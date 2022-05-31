@@ -1,0 +1,15 @@
+# ignore files in all directories
+.vs/
+~*
+*.7z
+**/obj/
+**/bin/
+**/Debug/
+**/Release/
+*.bak
+*.lnk
+*.suo
+
+output/
+packages/
+Doc/~$UI Design.pptx
