@@ -10,40 +10,38 @@ namespace SmartTester
 {
     public class Tester : ITester
     {
-        public int Id { get; set; }
-        public string Manufacturer { get; set; }
         public string Name { get; set; }
         public List<Channel> Channels { get; set; }
         private Timer mainTimer { get; set; }
-        private Timer[] Timers { get; set; }
-        //private bool isMainTimerRunning;
-        //private Timer[] timers;
-        private uint[] startTimes { get; set; }
-        private uint[] timeSpans { get; set; }
-        public double[] targetTemperatures { get; set; }
-        private Step[] steps { get; set; }
-        public List<Step>[] fullSteps { get; set; }
         private int _counter { get; set; } = 0;
-        private bool[] _shouldTimerStart { get; set; }
-        private bool[] _isTimerStart { get; set; }
-        private DataLogger[] dataLoggers { get; set; }
-        private Stopwatch[] stopwatchs { get; set; }
         private Stopwatch mainWatch { get; set; }
         private Chroma17208Executor Executor { get; set; }
+        //private Timer[] Timers { get; set; }
+        //private uint[] startTimes { get; set; }
+        //private uint[] timeSpans { get; set; }
+        //public double[] targetTemperatures { get; set; }
+        //private Step[] steps { get; set; }
+        //public List<Step>[] fullSteps { get; set; }
+        //private bool[] _shouldTimerStart { get; set; }
+        //private bool[] _isTimerStart { get; set; }
+        //private DataLogger[] dataLoggers { get; set; }
+        //private Stopwatch[] stopwatchs { get; set; }
         public Tester(string name, int channelNumber)
         {
             Name = name;
-            Channels = new List<Channel>();
-            startTimes = new uint[channelNumber];
-            timeSpans = new uint[channelNumber];
-            stopwatchs = new Stopwatch[channelNumber];
-            Timers = new Timer[channelNumber];
-            mainWatch = new Stopwatch();
             Executor = new Chroma17208Executor();
-            dataLoggers = new DataLogger[channelNumber];
-            targetTemperatures = new double[channelNumber];
-            steps = new Step[channelNumber];
-            fullSteps = new List<Step>[channelNumber];
+            mainWatch = new Stopwatch();
+            Channels = new List<Channel>();
+            //startTimes = new uint[channelNumber];
+            //timeSpans = new uint[channelNumber];
+            //stopwatchs = new Stopwatch[channelNumber];
+            //Timers = new Timer[channelNumber];
+            //dataLoggers = new DataLogger[channelNumber];
+            //targetTemperatures = new double[channelNumber];
+            //steps = new Step[channelNumber];
+            //fullSteps = new List<Step>[channelNumber];
+            //_shouldTimerStart = new bool[channelNumber];
+            //_isTimerStart = new bool[channelNumber];
 
             if (!Executor.Init())
             {
@@ -56,25 +54,19 @@ namespace SmartTester
                 Channel ch = new Channel();
                 ch.Name = $"Ch{i}";
                 ch.Index = i;
+                ch.Timer = new Timer(WorkerCallback, i - 1, Timeout.Infinite, Timeout.Infinite);
                 Channels.Add(ch);
-                ch.Tester = this;
-                //ch.Timer = new Timer(_ => TimerOperation(i), null, Timeout.Infinite, 0);
-                Timers[i - 1] = new Timer(WorkerCallback, i - 1, Timeout.Infinite, Timeout.Infinite);
-                stopwatchs[i - 1] = new Stopwatch();
-                //dataLoggers[i - 1] = new DataLogger(i, $"{Name}-{ch.Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt");
             }
             mainTimer = new Timer(_ => MainCounter(), null, 100, 0);
-            _shouldTimerStart = new bool[channelNumber];
-            _isTimerStart = new bool[channelNumber];
             mainWatch.Start();
         }
 
         private void WorkerCallback(object i)
         {
-            int index = (int)i % Channels.Count;
-            int channelIndex = index + 1;
+            int counter = (int)i % Channels.Count;
+            int channelIndex = counter + 1;
+            Channel channel = Channels.SingleOrDefault(ch => ch.Index == channelIndex);
             long data;
-            //Channel channel = Channels.SingleOrDefault(ch => ch.Index == index + 1);
             StandardRow stdRow;
             uint channelEvents;
             if (!Executor.ReadRow(channelIndex, out stdRow, out channelEvents))
@@ -94,7 +86,7 @@ namespace SmartTester
             while (data > 100 && stdRow.Status == RowStatus.RUNNING);
             stdRow.Temperature = Executor.ReadTemperarture(channelIndex);
             var strRow = stdRow.ToString();
-            dataLoggers[index].AddData(strRow + "\n");
+            channel.DataLogger.AddData(strRow + "\n");
             if (channelEvents != ChannelEvents.Normal)
             {
                 Console.WriteLine("Channel Event Error");
@@ -102,13 +94,12 @@ namespace SmartTester
             }
             if (stdRow.Status != RowStatus.RUNNING)
             {
-                timeSpans[index] = stdRow.TimeInMS - startTimes[index];
-                steps[index] = GetNewTargetStep(steps[index], fullSteps[index], targetTemperatures[index], timeSpans[index], stdRow);
-                if (steps[index] == null)
+                channel.Step = GetNewTargetStep(channel.Step, channel.FullSteps, channel.TargetTemperature, stdRow.TimeInMS, stdRow);
+                if (channel.Step == null)
                 {
-                    dataLoggers[index].Close();
-                    _shouldTimerStart[index] = false;
-                    _isTimerStart[index] = false;
+                    channel.DataLogger.Close();
+                    channel.ShouldTimerStart = false;
+                    channel.IsTimerStart = false;
                     Console.WriteLine($"CH{channelIndex} Done!");
                     return;
                 }
@@ -119,7 +110,7 @@ namespace SmartTester
                         Console.WriteLine("Error");
                         return;
                     }
-                    if (!Executor.SpecifyTestStep(steps[index]))
+                    if (!Executor.SpecifyTestStep(channel.Step))
                     {
                         Console.WriteLine("Error");
                         return;
@@ -131,14 +122,12 @@ namespace SmartTester
                     }
                 }
             }
-            var timer = Timers[index];
-            var enable = _shouldTimerStart[index];
-            if (enable) //开启下一次计时
+            if (channel.ShouldTimerStart) //开启下一次计时
             {
-                timer.Change(950, 0);
+                channel.Timer.Change(950, 0);
             }
             string gap = string.Empty;
-            for (int j = 0; j < index; j++)
+            for (int j = 0; j < counter; j++)
             {
                 gap += " ";
             }
@@ -147,7 +136,7 @@ namespace SmartTester
 
         private void MainCounter()
         {
-            var startPoint = mainWatch.ElapsedMilliseconds % 125;
+            //var startPoint = mainWatch.ElapsedMilliseconds % 125;
             long data;
             do
             {
@@ -158,26 +147,21 @@ namespace SmartTester
             //Console.WriteLine($"Main Counter Start point is {startPoint}, data is {data}, next delay is {100}");
 
             var counter = _counter % Channels.Count;
-            var timer = Timers[counter];
-            if (_shouldTimerStart[counter] && !_isTimerStart[counter])     //应该开启且还没开启
+            var channel = Channels.SingleOrDefault(ch => ch.Index == counter + 1);
+            if (channel.ShouldTimerStart && !channel.IsTimerStart)     //应该开启且还没开启
             {
-                //Console.WriteLine($"Start channel {counter + 1}");
-                //stopwatchs[counter].Start();
-                //Channels.SingleOrDefault(ch => ch.Index == counter + 1).Start();
-                dataLoggers[counter] = new DataLogger(counter + 1, $"{Name}-{Channels.SingleOrDefault(ch => ch.Index == counter + 1).Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt");
+                channel.DataLogger = new DataLogger(counter + 1, $"{Name}-{Channels.SingleOrDefault(ch => ch.Index == counter + 1).Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt");
                 Executor.SpecifyChannel(counter + 1);
-                steps[counter] = fullSteps[counter].First();
-                Executor.SpecifyTestStep(steps[counter]);
+                channel.Step = channel.FullSteps.First();
+                Executor.SpecifyTestStep(channel.Step);
                 Executor.Start();
-                startTimes[counter] = 0;
-                //dataLogger = new DataLogger(1, GetFileName());
-                timer.Change(980, 0);
-                _isTimerStart[counter] = true;
+                channel.Timer.Change(980, 0);
+                channel.IsTimerStart = true;
             }
             if (_counter >= Channels.Count * 9)
             {
-                if (_isTimerStart[_counter % Channels.Count])
-                    dataLoggers[_counter % Channels.Count].Flush();
+                if (channel.IsTimerStart)
+                    channel.DataLogger.Flush();
             }
             _counter++;
             if (_counter == Channels.Count * 10)
@@ -204,24 +188,20 @@ namespace SmartTester
 
         public void Start(int index)
         {
-            //var channel = Channels.SingleOrDefault(ch => ch.Index == index);
-            //channel.Start();
-            //channel.IsStarted = true;
-            _shouldTimerStart[index - 1] = true;
+            var channel = Channels.SingleOrDefault(ch => ch.Index == index);
+            channel.ShouldTimerStart = true;
         }
 
         public void Stop(int index)
         {
-            //var channel = Channels.SingleOrDefault(ch => ch.Index == index);
-            //channel.Stop();
-            _shouldTimerStart[index - 1] = false;
+            var channel = Channels.SingleOrDefault(ch => ch.Index == index);
+            channel.ShouldTimerStart = false;
 
             Console.WriteLine($"Stop channel {index - 1 + 1}");
-            //stopwatchs[index - 1].Reset();
             Executor.SpecifyChannel(index);
             Executor.Stop();
-            Timers[index - 1].Change(Timeout.Infinite, Timeout.Infinite);
-            _isTimerStart[index - 1] = false;
+            channel.Timer.Change(Timeout.Infinite, Timeout.Infinite);
+            channel.IsTimerStart = false;
         }
 
         public string GetData(int index)

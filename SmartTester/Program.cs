@@ -15,7 +15,7 @@ namespace SmartTester
             Channel channel = tester.Channels[0];
             Step chargeStep = new Step() { Index = 1, Action = new TesterAction() { Mode = ActionMode.CC_CV_CHARGE, Voltage = 3780, Current = 1500, Power = 0 } };
             JumpBehavior jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
-            Condition cdt = new Condition() { Parameter = Parameter.CURRENT, Mark = CompareMarkEnum.SmallerThan, Value = 750 };
+            Condition cdt = new Condition() { Parameter = Parameter.CURRENT, Mark = CompareMarkEnum.SmallerThan, Value = 1250 };
             CutOffBehavior cob = new CutOffBehavior() { Condition = cdt };
             cob.JumpBehaviors.Add(jpb);
             chargeStep.CutOffBehaviors.Add(cob);
@@ -23,7 +23,7 @@ namespace SmartTester
 
             Step idleStep = new Step() { Index = 2, Action = new TesterAction() { Mode = ActionMode.REST, Voltage = 0, Current = 0, Power = 0 } };
             jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
-            cdt = new Condition() { Parameter = Parameter.TIME, Mark = CompareMarkEnum.LargerThan, Value = 60 };
+            cdt = new Condition() { Parameter = Parameter.TIME, Mark = CompareMarkEnum.LargerThan, Value = 10 };
             cob = new CutOffBehavior() { Condition = cdt };
             cob.JumpBehaviors.Add(jpb);
             idleStep.CutOffBehaviors.Add(cob);
@@ -65,11 +65,16 @@ namespace SmartTester
             //tester.Stop(3);
             //tester.Stop(4);
             //Console.ReadKey();
-            for (int i = 0; i < 8; i++)
-            {
+            //for (int i = 0; i < 8; i++)
+            //{
                 //tester.SetStep(idleStep, i);
-                tester.targetTemperatures[i] = 25;
-                tester.fullSteps[i] = new List<Step> { chargeStep, idleStep, dischargeStep };
+                //tester.targetTemperatures[i] = 25;
+                //tester.fullSteps[i] = new List<Step> { chargeStep, idleStep, dischargeStep };
+            //}
+            foreach (var ch in tester.Channels)
+            {
+                ch.TargetTemperature = 25;
+                ch.FullSteps = new List<Step> { chargeStep, idleStep, dischargeStep };
             }
             while (true)
             {

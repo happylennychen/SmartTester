@@ -53,7 +53,7 @@ namespace SmartTester
 
         public void Close()
         {
-            streamWriter.Flush();
+            //streamWriter.FlushAsync();
             streamWriter.Close();
             fileStream.Close();
         }
