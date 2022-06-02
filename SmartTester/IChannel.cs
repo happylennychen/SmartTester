@@ -6,6 +6,7 @@
         void SetStep(Step step);
         void Start();
         void Stop();
-        string GetData();
+        StandardRow GetData();
+        void LogData(string log);
     }
 }

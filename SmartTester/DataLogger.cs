@@ -23,11 +23,28 @@ namespace SmartTester
             Task t = WriteData(log);
         }
 
+        public void Flush()
+        {
+            Task t = FlushData();
+        }
+
         private async Task WriteData(string log)
         {
             try
             {
                 await streamWriter.WriteAsync(log);
+                //await streamWriter.FlushAsync();
+            }
+            catch
+            {
+            }
+        }
+
+        private async Task FlushData()
+        {
+            try
+            {
+                await streamWriter.FlushAsync();
             }
             catch
             {

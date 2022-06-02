@@ -13,12 +13,27 @@ namespace SmartTester
         {
             Tester tester = new Tester("Chroma17208M", 8);
             Channel channel = tester.Channels[0];
-            Step step = new Step() { Index = 1, Action = new TesterAction() { Mode = ActionMode.CC_CV_CHARGE, Voltage = 4200, Current = 1500, Power = 0 } };
+            Step chargeStep = new Step() { Index = 1, Action = new TesterAction() { Mode = ActionMode.CC_CV_CHARGE, Voltage = 3780, Current = 1500, Power = 0 } };
             JumpBehavior jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
-            Condition cdt = new Condition() { Parameter = Parameter.CURRENT, Mark = CompareMarkEnum.SmallerThan, Value = 150 };
+            Condition cdt = new Condition() { Parameter = Parameter.CURRENT, Mark = CompareMarkEnum.SmallerThan, Value = 750 };
             CutOffBehavior cob = new CutOffBehavior() { Condition = cdt };
             cob.JumpBehaviors.Add(jpb);
-            step.CutOffBehaviors.Add(cob);
+            chargeStep.CutOffBehaviors.Add(cob);
+
+
+            Step idleStep = new Step() { Index = 2, Action = new TesterAction() { Mode = ActionMode.REST, Voltage = 0, Current = 0, Power = 0 } };
+            jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
+            cdt = new Condition() { Parameter = Parameter.TIME, Mark = CompareMarkEnum.LargerThan, Value = 60 };
+            cob = new CutOffBehavior() { Condition = cdt };
+            cob.JumpBehaviors.Add(jpb);
+            idleStep.CutOffBehaviors.Add(cob);
+
+            Step dischargeStep = new Step() { Index = 3, Action = new TesterAction() { Mode = ActionMode.CC_DISCHARGE, Voltage = 0, Current = 1000, Power = 0 } };
+            jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
+            cdt = new Condition() { Parameter = Parameter.VOLTAGE, Mark = CompareMarkEnum.SmallerThan, Value = 3730 };
+            cob = new CutOffBehavior() { Condition = cdt };
+            cob.JumpBehaviors.Add(jpb);
+            dischargeStep.CutOffBehaviors.Add(cob);
             /////////////////////////////Channel Test/////////////////////////////////////////
             //channel.SetStep(step);
             //channel.Start();
@@ -50,6 +65,12 @@ namespace SmartTester
             //tester.Stop(3);
             //tester.Stop(4);
             //Console.ReadKey();
+            for (int i = 0; i < 8; i++)
+            {
+                //tester.SetStep(idleStep, i);
+                tester.targetTemperatures[i] = 25;
+                tester.fullSteps[i] = new List<Step> { chargeStep, idleStep, dischargeStep };
+            }
             while (true)
             {
                 Console.WriteLine("Enter \"n\" to start channel n, \"a to h\" to stop channel n. Q to quit.");

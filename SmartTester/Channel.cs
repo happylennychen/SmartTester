@@ -17,14 +17,14 @@ namespace SmartTester
         //public bool IsStarted { get; set; }
         //public Timer Timer { get; set; }
         private DataLogger dataLogger { get; set; }
-        public string GetData()
+        public StandardRow GetData()
         {
             DateTime now = DateTime.Now;
             string time = now.ToString("yyyy-MM-dd HH:mm:ss fff");
             string fakeData = $"{Tester.Name} {Name} Fake data at {time}\n";
             Console.Write($"{Tester.Name} {Name} get data:{fakeData}");
-            dataLogger.AddData(fakeData);
-            return fakeData;
+            //dataLogger.AddData(fakeData);
+            return new StandardRow();
         }
 
         public void SetStep(Step step)
@@ -59,6 +59,11 @@ namespace SmartTester
             //IsRunning = false;
             dataLogger.Close();
             Console.WriteLine($"{Tester.Name} {Name} stopped in Stop().");
+        }
+
+        public void LogData(string log)
+        {
+            dataLogger.AddData(log);
         }
     }
 }
