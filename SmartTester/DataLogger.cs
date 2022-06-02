@@ -7,6 +7,7 @@ namespace SmartTester
     {
         public string FilePath { get; set; }
         public int Id { get; set; }
+        private int bufferSize { get; set; }
 
         private FileStream fileStream;
         private StreamWriter streamWriter;
@@ -20,7 +21,14 @@ namespace SmartTester
 
         public void AddData(string log)
         {
-            Task t = WriteData(log);
+            Task t1 = WriteData(log);
+            bufferSize++;
+            if (bufferSize >= 20)
+            {
+                t1.Wait();
+                Task t2 = FlushData();
+                bufferSize = 0;
+            }
         }
 
         public void Flush()
@@ -53,7 +61,7 @@ namespace SmartTester
 
         public void Close()
         {
-            //streamWriter.FlushAsync();
+            streamWriter.Flush();
             streamWriter.Close();
             fileStream.Close();
         }

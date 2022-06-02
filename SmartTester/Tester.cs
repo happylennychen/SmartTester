@@ -158,11 +158,11 @@ namespace SmartTester
                 channel.Timer.Change(980, 0);
                 channel.IsTimerStart = true;
             }
-            if (_counter >= Channels.Count * 9)
-            {
-                if (channel.IsTimerStart)
-                    channel.DataLogger.Flush();
-            }
+            //if (_counter >= Channels.Count * 9)
+            //{
+            //    if (channel.IsTimerStart)
+            //        channel.DataLogger.Flush();
+            //}
             _counter++;
             if (_counter == Channels.Count * 10)
             {
