@@ -202,10 +202,11 @@ namespace SmartTester
         public bool SpecifyTestStep(Step step)
         {
             SCPIWrite($"SOUR:CURR:RANGE:AUTO ON");
+            var current = step.Action.Mode == ActionMode.CP_DISCHARGE ? 30 : step.Action.Current / 1000.0;
             return SCPIWrite($"SOUR:ALL {ActionModeToString(step.Action.Mode)}," +
                 $"{GetCutOffTime(step)}," +
                 $"{(step.Action.Voltage / 1000.0).ToString()}," +
-                $"{(step.Action.Current / 1000.0).ToString()}," +
+                $"{(current).ToString()}," +
                 $"{(step.Action.Power / 1000.0).ToString()}," +
                 $"{GetCutOffVoltage(step)}," +
                 $"{GetCutOffCurrent(step)}");

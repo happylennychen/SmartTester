@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -71,6 +72,9 @@ namespace SmartTester
             uint channelEvents;
             if (!Executor.ReadRow(channelIndex, out stdRow, out channelEvents))
             {
+                channel.DataLogger.Close();
+                channel.ShouldTimerStart = false;
+                channel.IsTimerStart = false;
                 Console.WriteLine("Error");
                 return;
             }
@@ -89,6 +93,9 @@ namespace SmartTester
             channel.DataLogger.AddData(strRow + "\n");
             if (channelEvents != ChannelEvents.Normal)
             {
+                channel.DataLogger.Close();
+                channel.ShouldTimerStart = false;
+                channel.IsTimerStart = false;
                 Console.WriteLine("Channel Event Error");
                 return;
             }
@@ -101,22 +108,32 @@ namespace SmartTester
                     channel.ShouldTimerStart = false;
                     channel.IsTimerStart = false;
                     Console.WriteLine($"CH{channelIndex} Done!");
+                    //Task task = Task.Run(() => FileTransfer(channel.DataLogger.FilePath));
                     return;
                 }
                 else
                 {
                     if (!Executor.SpecifyChannel(channelIndex))
                     {
+                        channel.DataLogger.Close();
+                        channel.ShouldTimerStart = false;
+                        channel.IsTimerStart = false;
                         Console.WriteLine("Error");
                         return;
                     }
                     if (!Executor.SpecifyTestStep(channel.Step))
                     {
+                        channel.DataLogger.Close();
+                        channel.ShouldTimerStart = false;
+                        channel.IsTimerStart = false;
                         Console.WriteLine("Error");
                         return;
                     }
                     if (!Executor.Start())
                     {
+                        channel.DataLogger.Close();
+                        channel.ShouldTimerStart = false;
+                        channel.IsTimerStart = false;
                         Console.WriteLine("Error");
                         return;
                     }
@@ -131,7 +148,29 @@ namespace SmartTester
             {
                 gap += " ";
             }
-            Console.WriteLine($"{strRow}...SP:{startPoint}...Data:{data}...Ch{gap}{channelIndex}");
+            Console.WriteLine($"{strRow}...Ch{gap}{channelIndex}");
+        }
+
+        private void FileTransfer(string filePath)
+        {
+            string newFilePath = Path.ChangeExtension(filePath, "csv");
+            uint index = 1;
+            double totalCapacity = 0;
+            using (FileStream fs1 = new FileStream(newFilePath, FileMode.Create))
+            {
+                using(StreamWriter sw = new StreamWriter(fs1))
+                {
+                    sw.WriteLine("column header");
+                    using (FileStream fs2 = new FileStream(filePath, FileMode.Open))
+                    {
+                        using (StreamReader sr = new StreamReader(fs2))
+                        {
+
+                        }
+                    }
+
+                }
+            }
         }
 
         private void MainCounter()
@@ -211,6 +250,7 @@ namespace SmartTester
 
         private Step GetNewTargetStep(Step currentStep, List<Step> fullSteps, double temperature, uint timeSpan, StandardRow row)
         {
+            Console.WriteLine("GetNewTargetStep");
             Step nextStep = null;
             CutOffBehavior cob = null;
             switch (currentStep.Action.Mode)
@@ -219,6 +259,20 @@ namespace SmartTester
                     cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
                     break;
                 case ActionMode.CC_CV_CHARGE://"StepFinishByCut_I":
+                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
+                    if (cob != null)
+                    {
+                        var time = cob.Condition.Value;
+                        Console.WriteLine($"time = {time}");
+                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        if (Math.Abs(timeSpan / 1000 - time) < 1)
+                        {
+                            Console.WriteLine($"Meet time condition.");
+                            break;
+                        }
+                        else
+                            cob = null;
+                    }
                     cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.CURRENT);
                     break;
                 case ActionMode.CC_DISCHARGE://"StepFinishByCut_T":
@@ -227,8 +281,13 @@ namespace SmartTester
                     if (cob != null)
                     {
                         var time = cob.Condition.Value;
+                        Console.WriteLine($"time = {time}");
+                        Console.WriteLine($"timeSpan = {timeSpan}");
                         if (Math.Abs(timeSpan / 1000 - time) < 1)
+                        {
+                            Console.WriteLine($"Meet time condition.");
                             break;
+                        }
                         else
                             cob = null;
                     }
@@ -236,8 +295,13 @@ namespace SmartTester
                     if (cob != null)
                     {
                         var volt = cob.Condition.Value;
+                        Console.WriteLine($"volt = {volt}");
+                        Console.WriteLine($"row.Voltage = {row.Voltage}");
                         if (Math.Abs(row.Voltage * 1000 - volt) < 5)
+                        {
+                            Console.WriteLine($"Meet voltage condition.");
                             break;
+                        }
                         else
                             cob = null;
                     }
