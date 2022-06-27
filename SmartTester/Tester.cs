@@ -1,4 +1,5 @@
-﻿using System;
+﻿//#define debug
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -6,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
 namespace SmartTester
 {
     public class Tester : ITester
@@ -43,18 +43,20 @@ namespace SmartTester
             //fullSteps = new List<Step>[channelNumber];
             //_shouldTimerStart = new bool[channelNumber];
             //_isTimerStart = new bool[channelNumber];
-
+#if !debug
             if (!Executor.Init())
             {
                 Console.WriteLine("Error");
                 return;
             }
+#endif
 
             for (int i = 1; i <= channelNumber; i++)
             {
                 Channel ch = new Channel();
                 ch.Name = $"Ch{i}";
                 ch.Index = i;
+                ch.Tester = this;
                 ch.Timer = new Timer(WorkerCallback, i - 1, Timeout.Infinite, Timeout.Infinite);
                 Channels.Add(ch);
             }
@@ -75,6 +77,7 @@ namespace SmartTester
                 channel.DataLogger.Close();
                 channel.ShouldTimerStart = false;
                 channel.IsTimerStart = false;
+                channel.Status = ChannelStatus.ERROR;
                 Console.WriteLine("Error");
                 return;
             }
@@ -108,6 +111,7 @@ namespace SmartTester
                     channel.ShouldTimerStart = false;
                     channel.IsTimerStart = false;
                     Console.WriteLine($"CH{channelIndex} Done!");
+                    channel.Status = ChannelStatus.IDLE;
                     //Task task = Task.Run(() => FileTransfer(channel.DataLogger.FilePath));
                     return;
                 }
@@ -229,6 +233,7 @@ namespace SmartTester
         {
             var channel = Channels.SingleOrDefault(ch => ch.Index == index);
             channel.ShouldTimerStart = true;
+            channel.Status = ChannelStatus.RUNNING;
         }
 
         public void Stop(int index)

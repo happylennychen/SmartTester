@@ -11,6 +11,7 @@ namespace SmartTester
     public class Channel
     {
         public int Index { get; set; }
+        public Tester Tester { get; set; }
         public string Name { get; set; }
         public Timer Timer { get; set; }
         public Stopwatch Stopwatch { get; internal set; }
@@ -20,5 +21,6 @@ namespace SmartTester
         public bool IsTimerStart { get; internal set; }
         public bool ShouldTimerStart { get; internal set; }
         public double TargetTemperature { get; internal set; }
+        public ChannelStatus Status { get; internal set; }  //不需要了
     }
 }
