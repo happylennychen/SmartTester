@@ -61,7 +61,11 @@ namespace SmartTester
 
         public void Close()
         {
-            streamWriter.Flush();
+            Task task = CloseDataLogger();
+        }
+        private async Task CloseDataLogger()
+        {
+            await streamWriter.FlushAsync();
             streamWriter.Close();
             fileStream.Close();
         }

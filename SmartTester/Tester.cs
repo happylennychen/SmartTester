@@ -74,6 +74,7 @@ namespace SmartTester
             uint channelEvents;
             if (!Executor.ReadRow(channelIndex, out stdRow, out channelEvents))
             {
+                channel.DataQueue.Clear();
                 channel.DataLogger.Close();
                 channel.ShouldTimerStart = false;
                 channel.IsTimerStart = false;
@@ -92,10 +93,22 @@ namespace SmartTester
             }
             while (data > 100 && stdRow.Status == RowStatus.RUNNING);
             stdRow.Temperature = Executor.ReadTemperarture(channelIndex);
+            channel.DataQueue.Enqueue(stdRow);
+            if (stdRow.Status == RowStatus.STOP)
+                stdRow = GetAdjustedRow(channel.DataQueue.ToList());
+            if (channel.DataQueue.Count >= 4)
+                channel.DataQueue.Dequeue();
             var strRow = stdRow.ToString();
             channel.DataLogger.AddData(strRow + "\n");
+            string gap = string.Empty;
+            for (int j = 0; j < counter; j++)
+            {
+                gap += " ";
+            }
+            Console.WriteLine($"{strRow}...Ch{gap}{channelIndex}");
             if (channelEvents != ChannelEvents.Normal)
             {
+                channel.DataQueue.Clear();
                 channel.DataLogger.Close();
                 channel.ShouldTimerStart = false;
                 channel.IsTimerStart = false;
@@ -107,6 +120,7 @@ namespace SmartTester
                 channel.Step = GetNewTargetStep(channel.Step, channel.FullSteps, channel.TargetTemperature, stdRow.TimeInMS, stdRow);
                 if (channel.Step == null)
                 {
+                    channel.DataQueue.Clear();
                     channel.DataLogger.Close();
                     channel.ShouldTimerStart = false;
                     channel.IsTimerStart = false;
@@ -119,6 +133,7 @@ namespace SmartTester
                 {
                     if (!Executor.SpecifyChannel(channelIndex))
                     {
+                        channel.DataQueue.Clear();
                         channel.DataLogger.Close();
                         channel.ShouldTimerStart = false;
                         channel.IsTimerStart = false;
@@ -127,6 +142,7 @@ namespace SmartTester
                     }
                     if (!Executor.SpecifyTestStep(channel.Step))
                     {
+                        channel.DataQueue.Clear();
                         channel.DataLogger.Close();
                         channel.ShouldTimerStart = false;
                         channel.IsTimerStart = false;
@@ -135,6 +151,7 @@ namespace SmartTester
                     }
                     if (!Executor.Start())
                     {
+                        channel.DataQueue.Clear();
                         channel.DataLogger.Close();
                         channel.ShouldTimerStart = false;
                         channel.IsTimerStart = false;
@@ -147,12 +164,45 @@ namespace SmartTester
             {
                 channel.Timer.Change(950, 0);
             }
-            string gap = string.Empty;
-            for (int j = 0; j < counter; j++)
+        }
+
+        private StandardRow GetAdjustedRow(List<StandardRow> standardRows)
+        {
+            if (standardRows.Count < 3)
+                return standardRows.Last();
+            else
             {
-                gap += " ";
+                var lastRow = standardRows[standardRows.Count - 1];
+                var secondLastRow = standardRows[standardRows.Count - 2];
+                var thirdLastRow = standardRows[standardRows.Count - 3];
+                if (lastRow.Status == RowStatus.STOP &&
+                    secondLastRow.Status == RowStatus.RUNNING &&
+                    thirdLastRow.Status == RowStatus.RUNNING &&
+                    (lastRow.Mode == ActionMode.CC_DISCHARGE || lastRow.Mode == ActionMode.CP_DISCHARGE) &&
+                    (secondLastRow.Mode == ActionMode.CC_DISCHARGE || lastRow.Mode == ActionMode.CP_DISCHARGE) &&
+                    (thirdLastRow.Mode == ActionMode.CC_DISCHARGE || lastRow.Mode == ActionMode.CP_DISCHARGE))
+                {
+                    lastRow.Voltage = GetAdjustedValue(secondLastRow.TimeInMS, secondLastRow.Voltage, thirdLastRow.TimeInMS, thirdLastRow.Voltage, lastRow.TimeInMS);
+                    lastRow.Current = GetAdjustedValue(secondLastRow.TimeInMS, secondLastRow.Current, thirdLastRow.TimeInMS, thirdLastRow.Current, lastRow.TimeInMS);
+                    return lastRow;
+                }
+                else
+                    return standardRows.Last();
             }
-            Console.WriteLine($"{strRow}...Ch{gap}{channelIndex}");
+        }
+
+        private double GetAdjustedValue(uint x1, double y1, uint x2, double y2, uint x)
+        {
+            // a * x + b = y
+            // a * x1 + b = y1
+            // a * x2 + b = y2
+            // a = (y2-y1)/(x2-x1)
+            // b = y1 - x1*(y2-y1)/(x2-x1) = (y1*x2 - y1*x1 - x1*y2 + x1*y1)/(x2-x1) = (x2*y1 - x1*y2)/(x2-x1)
+            double slope = (y2 - y1) / ((int)x2 - (int)x1);
+            double offset = y1 - slope * x1;
+            var output = Math.Round((slope * x + offset), 6);
+            Console.WriteLine($"x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}, x:{x}, y:{output}");
+            return output;
         }
 
         private void FileTransfer(string filePath)
@@ -162,7 +212,7 @@ namespace SmartTester
             double totalCapacity = 0;
             using (FileStream fs1 = new FileStream(newFilePath, FileMode.Create))
             {
-                using(StreamWriter sw = new StreamWriter(fs1))
+                using (StreamWriter sw = new StreamWriter(fs1))
                 {
                     sw.WriteLine("column header");
                     using (FileStream fs2 = new FileStream(filePath, FileMode.Open))
@@ -193,6 +243,7 @@ namespace SmartTester
             var channel = Channels.SingleOrDefault(ch => ch.Index == counter + 1);
             if (channel.ShouldTimerStart && !channel.IsTimerStart)     //应该开启且还没开启
             {
+                channel.DataQueue = new Queue<StandardRow>();
                 channel.DataLogger = new DataLogger(counter + 1, $"{Name}-{Channels.SingleOrDefault(ch => ch.Index == counter + 1).Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt");
                 Executor.SpecifyChannel(counter + 1);
                 channel.Step = channel.FullSteps.First();
@@ -302,13 +353,16 @@ namespace SmartTester
                         var volt = cob.Condition.Value;
                         Console.WriteLine($"volt = {volt}");
                         Console.WriteLine($"row.Voltage = {row.Voltage}");
-                        if (Math.Abs(row.Voltage * 1000 - volt) < 5)
+                        if (Math.Abs(row.Voltage * 1000 - volt) < 15)
                         {
                             Console.WriteLine($"Meet voltage condition.");
                             break;
                         }
                         else
+                        {
+                            Console.WriteLine($"Doesn't meet voltage condition.");
                             cob = null;
+                        }
                     }
                     break;
             }

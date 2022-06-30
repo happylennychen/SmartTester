@@ -65,6 +65,8 @@ namespace SmartTester
                     return;
                 }
             }
+            Console.WriteLine($"Stop Chamber Group for {chamber.Name}");
+            chamber.Executor.Stop();
         }
 
         private async Task<bool> WaitForAllChannelsDone(List<Channel> channels)
@@ -130,9 +132,15 @@ namespace SmartTester
                 //return;
                 await Task.Delay(10000);
                 if (Math.Abs(temp - temperature) < 5)
+                {
                     tempInRangeCounter++;
+                    Console.WriteLine($"Temperature reach target. Counter: {tempInRangeCounter}");
+                }
                 else
+                {
                     tempInRangeCounter = 0;
+                    Console.WriteLine($"Temperature leave target. Counter: {tempInRangeCounter}");
+                }
             }
             while (tempInRangeCounter < 3 /*|| chamberStatus != ChamberStatus.HOLD*/);    //chamber temperature tolerrance is 5?
         }

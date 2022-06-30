@@ -16,6 +16,7 @@ namespace SmartTester
         public Timer Timer { get; set; }
         public Stopwatch Stopwatch { get; internal set; }
         public DataLogger DataLogger { get; internal set; }
+        public Queue<StandardRow> DataQueue { get; set; }
         public Step Step { get; internal set; }
         public List<Step> FullSteps { get; internal set; }
         public bool IsTimerStart { get; internal set; }

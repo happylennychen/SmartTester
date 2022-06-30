@@ -50,9 +50,9 @@ namespace SmartTester
             //Chamber cmb2 = new Chamber() { Id = 2, Manufacturer = "Hongzhan", Name = "PUL90", HighestTemperature = 150, LowestTemperature = -40 };
             Automator automator = new Automator();
             List<Test> tests = new List<Test>();
-            tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 1), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 0 });
-            tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 2), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 0 });
-            tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 3), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 0 });
+            tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 1), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
+            tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 2), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
+            tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 3), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
             //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 4), Chamber = cmb2, Steps = fullSteps, DischargeTemperature = 20 });
             //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 5), Chamber = cmb2, Steps = fullSteps, DischargeTemperature = 20 });
             Task t = automator.Start(tests);
@@ -77,20 +77,6 @@ namespace SmartTester
             cob = new CutOffBehavior() { Condition = cdt };
             cob.JumpBehaviors.Add(jpb);
             idleStep.CutOffBehaviors.Add(cob);
-
-            //Step dischargeStep1 = new Step() { Index = 3, Action = new TesterAction() { Mode = ActionMode.CC_DISCHARGE, Voltage = 0, Current = 15000, Power = 0 } };
-            //jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
-            //cdt = new Condition() { Parameter = Parameter.VOLTAGE, Mark = CompareMarkEnum.SmallerThan, Value = 2500 };
-            //cob = new CutOffBehavior() { Condition = cdt };
-            //cob.JumpBehaviors.Add(jpb);
-            //dischargeStep1.CutOffBehaviors.Add(cob);
-
-            //Step dischargeStep2 = new Step() { Index = 3, Action = new TesterAction() { Mode = ActionMode.CC_DISCHARGE, Voltage = 0, Current = 24000, Power = 0 } };
-            //jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
-            //cdt = new Condition() { Parameter = Parameter.VOLTAGE, Mark = CompareMarkEnum.SmallerThan, Value = 2500 };
-            //cob = new CutOffBehavior() { Condition = cdt };
-            //cob.JumpBehaviors.Add(jpb);
-            //dischargeStep2.CutOffBehaviors.Add(cob);
 
             Step cpStep = new Step() { Index = 3, Action = new TesterAction() { Mode = ActionMode.CP_DISCHARGE, Voltage = 0, Current = 0, Power = 6000 } };
             jpb = new JumpBehavior() { JumpType = JumpType.INDEX, Index = 7 };
