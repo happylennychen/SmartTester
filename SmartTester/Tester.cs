@@ -17,34 +17,14 @@ namespace SmartTester
         private int _counter { get; set; } = 0;
         private Stopwatch mainWatch { get; set; }
         private Chroma17208Executor Executor { get; set; }
-        //private Timer[] Timers { get; set; }
-        //private uint[] startTimes { get; set; }
-        //private uint[] timeSpans { get; set; }
-        //public double[] targetTemperatures { get; set; }
-        //private Step[] steps { get; set; }
-        //public List<Step>[] fullSteps { get; set; }
-        //private bool[] _shouldTimerStart { get; set; }
-        //private bool[] _isTimerStart { get; set; }
-        //private DataLogger[] dataLoggers { get; set; }
-        //private Stopwatch[] stopwatchs { get; set; }
-        public Tester(string name, int channelNumber)
+        public Tester(string name, int channelNumber, string ipAddress, int port, string sessionStr)
         {
             Name = name;
             Executor = new Chroma17208Executor();
             mainWatch = new Stopwatch();
             Channels = new List<Channel>();
-            //startTimes = new uint[channelNumber];
-            //timeSpans = new uint[channelNumber];
-            //stopwatchs = new Stopwatch[channelNumber];
-            //Timers = new Timer[channelNumber];
-            //dataLoggers = new DataLogger[channelNumber];
-            //targetTemperatures = new double[channelNumber];
-            //steps = new Step[channelNumber];
-            //fullSteps = new List<Step>[channelNumber];
-            //_shouldTimerStart = new bool[channelNumber];
-            //_isTimerStart = new bool[channelNumber];
 #if !debug
-            if (!Executor.Init())
+            if (!Executor.Init(ipAddress, port, sessionStr))
             {
                 Console.WriteLine("Error");
                 return;
@@ -53,11 +33,7 @@ namespace SmartTester
 
             for (int i = 1; i <= channelNumber; i++)
             {
-                Channel ch = new Channel();
-                ch.Name = $"Ch{i}";
-                ch.Index = i;
-                ch.Tester = this;
-                ch.Timer = new Timer(WorkerCallback, i - 1, Timeout.Infinite, Timeout.Infinite);
+                Channel ch = new Channel($"Ch{i}", i, this, new Timer(WorkerCallback, i - 1, Timeout.Infinite, Timeout.Infinite));
                 Channels.Add(ch);
             }
             mainTimer = new Timer(_ => MainCounter(), null, 100, 0);
@@ -85,9 +61,6 @@ namespace SmartTester
             var startPoint = stdRow.TimeInMS % 1000;
             do
             {
-                //data = stopwatchs[index].ElapsedMilliseconds % 1000;
-                //Console.WriteLine($"Read data from channel {index + 1}. Start point is {startPoint}, data is {data}");
-                //stdRow = channel.GetData();
                 Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
                 data = stdRow.TimeInMS % 1000;
             }
@@ -175,12 +148,13 @@ namespace SmartTester
                 var lastRow = standardRows[standardRows.Count - 1];
                 var secondLastRow = standardRows[standardRows.Count - 2];
                 var thirdLastRow = standardRows[standardRows.Count - 3];
-                if (lastRow.Status == RowStatus.STOP &&
-                    secondLastRow.Status == RowStatus.RUNNING &&
-                    thirdLastRow.Status == RowStatus.RUNNING &&
-                    (lastRow.Mode == ActionMode.CC_DISCHARGE || lastRow.Mode == ActionMode.CP_DISCHARGE) &&
-                    (secondLastRow.Mode == ActionMode.CC_DISCHARGE || lastRow.Mode == ActionMode.CP_DISCHARGE) &&
-                    (thirdLastRow.Mode == ActionMode.CC_DISCHARGE || lastRow.Mode == ActionMode.CP_DISCHARGE))
+                if (
+                        (lastRow.Status == RowStatus.STOP && secondLastRow.Status == RowStatus.RUNNING && thirdLastRow.Status == RowStatus.RUNNING) &&
+                        (
+                            (lastRow.Mode == ActionMode.CC_DISCHARGE && secondLastRow.Mode == ActionMode.CC_DISCHARGE && thirdLastRow.Mode == ActionMode.CC_DISCHARGE) ||
+                            (lastRow.Mode == ActionMode.CP_DISCHARGE && secondLastRow.Mode == ActionMode.CP_DISCHARGE && thirdLastRow.Mode == ActionMode.CP_DISCHARGE) ||
+                            (lastRow.Mode == ActionMode.CC_CV_CHARGE && secondLastRow.Mode == ActionMode.CC_CV_CHARGE && thirdLastRow.Mode == ActionMode.CC_CV_CHARGE))
+                        )
                 {
                     lastRow.Voltage = GetAdjustedValue(secondLastRow.TimeInMS, secondLastRow.Voltage, thirdLastRow.TimeInMS, thirdLastRow.Voltage, lastRow.TimeInMS);
                     lastRow.Current = GetAdjustedValue(secondLastRow.TimeInMS, secondLastRow.Current, thirdLastRow.TimeInMS, thirdLastRow.Current, lastRow.TimeInMS);
@@ -197,7 +171,7 @@ namespace SmartTester
             // a * x1 + b = y1
             // a * x2 + b = y2
             // a = (y2-y1)/(x2-x1)
-            // b = y1 - x1*(y2-y1)/(x2-x1) = (y1*x2 - y1*x1 - x1*y2 + x1*y1)/(x2-x1) = (x2*y1 - x1*y2)/(x2-x1)
+            // b = y1 - x1*a
             double slope = (y2 - y1) / ((int)x2 - (int)x1);
             double offset = y1 - slope * x1;
             var output = Math.Round((slope * x + offset), 6);
@@ -205,31 +179,8 @@ namespace SmartTester
             return output;
         }
 
-        private void FileTransfer(string filePath)
-        {
-            string newFilePath = Path.ChangeExtension(filePath, "csv");
-            uint index = 1;
-            double totalCapacity = 0;
-            using (FileStream fs1 = new FileStream(newFilePath, FileMode.Create))
-            {
-                using (StreamWriter sw = new StreamWriter(fs1))
-                {
-                    sw.WriteLine("column header");
-                    using (FileStream fs2 = new FileStream(filePath, FileMode.Open))
-                    {
-                        using (StreamReader sr = new StreamReader(fs2))
-                        {
-
-                        }
-                    }
-
-                }
-            }
-        }
-
         private void MainCounter()
         {
-            //var startPoint = mainWatch.ElapsedMilliseconds % 125;
             long data;
             do
             {
@@ -237,14 +188,15 @@ namespace SmartTester
             }
             while (data > 10);
             mainTimer.Change(100, 0);
-            //Console.WriteLine($"Main Counter Start point is {startPoint}, data is {data}, next delay is {100}");
 
             var counter = _counter % Channels.Count;
             var channel = Channels.SingleOrDefault(ch => ch.Index == counter + 1);
             if (channel.ShouldTimerStart && !channel.IsTimerStart)     //应该开启且还没开启
             {
                 channel.DataQueue = new Queue<StandardRow>();
-                channel.DataLogger = new DataLogger(counter + 1, $"{Name}-{Channels.SingleOrDefault(ch => ch.Index == counter + 1).Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt");
+                string filePath = $"{Name}-{channel.Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
+                channel.TempFileList.Add(filePath);
+                channel.DataLogger = new DataLogger(counter + 1, filePath);
                 Executor.SpecifyChannel(counter + 1);
                 channel.Step = channel.FullSteps.First();
                 Executor.SpecifyTestStep(channel.Step);
@@ -252,11 +204,6 @@ namespace SmartTester
                 channel.Timer.Change(980, 0);
                 channel.IsTimerStart = true;
             }
-            //if (_counter >= Channels.Count * 9)
-            //{
-            //    if (channel.IsTimerStart)
-            //        channel.DataLogger.Flush();
-            //}
             _counter++;
             if (_counter == Channels.Count * 10)
             {
@@ -266,8 +213,6 @@ namespace SmartTester
 
         public void SetStep(Step step, int index)
         {
-            //var channel = Channels.SingleOrDefault(ch => ch.Index == index);
-            //channel.SetStep(step);
             if (!Executor.SpecifyChannel(index))
             {
                 Console.WriteLine("Error");

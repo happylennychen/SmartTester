@@ -6,7 +6,7 @@ using System.Text;
 
 namespace SmartTester
 {
-    public class Chroma17208Executor : IChannelExecutor
+    public class Chroma17208Executor
     {
         private static MessageBasedSession mbSession;
         //private static TcpClient tcpClient;
@@ -14,16 +14,14 @@ namespace SmartTester
         private object HiokiLock = new object();
         private object ChromaLock = new object();
 
-        public bool Init()
+        public bool Init(string ipAddress, int port, string sessionStr)
         {
-            string ipAddress = "192.168.1.23";
-            if (!OpenTcp(ipAddress, 1000, 8802))
+            if (!OpenTcp(ipAddress, 1000, port))
                 return false;
 
             string line = $":STARt\n";
             stream.Write(Encoding.ASCII.GetBytes(line), 0, line.Length);
 
-            string sessionStr = "TCPIP0::192.168.1.101::60000::SOCKET";
             return Open17208Session(sessionStr);
         }
 

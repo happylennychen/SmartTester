@@ -8,10 +8,9 @@ namespace SmartTester
         private static TcpClient tcpClient;
         private static NetworkStream stream;
 
-        public bool Init()
+        public bool Init(string ipAddress, int port)
         {
-            string ipAddress = "192.168.1.102";
-            return OpenTcp(ipAddress, 1000, 3000);
+            return OpenTcp(ipAddress, 1000, port);
         }
 
         private bool OpenTcp(string ipAddress, int connectTimeout, int port)

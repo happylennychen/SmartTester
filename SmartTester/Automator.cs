@@ -34,7 +34,7 @@ namespace SmartTester
         {
             Console.WriteLine($"Start Chamber Group for {chamber.Name}");
             List<KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>> sections = GetTestSections(testsInOneChamber);   //sections是每个温度点下的测试的集合
-            //List<TargetTemperature> temperaturePoints = GetTemperaturePoints(testsInOneChamber);
+            var channels = testsInOneChamber.Select(o => o.Channel).ToList();
             foreach (var ts in sections)
             {
                 TargetTemperature targetT = ts.Key;
@@ -46,7 +46,7 @@ namespace SmartTester
                     await WaitForChamberReady(chamber, targetT.Temperature);
                 }
                 var dic = ts.Value; //dic.key
-                var channels = dic.Keys.ToList();
+                //var channels = dic.Keys.ToList();
                 foreach (var channel in channels)
                 {
                     var steps = dic[channel];
@@ -62,11 +62,19 @@ namespace SmartTester
                     {
                         Console.WriteLine($"Something went wrong. CH{ch.Index} Status:{ch.Status}");
                     }
-                    return;
+                    //return;
+                }
+                else
+                {
+                    //如果顺利完成，是否需要进行文件转换？还是等所有section都结束了再一起转换？
                 }
             }
             Console.WriteLine($"Stop Chamber Group for {chamber.Name}");
             chamber.Executor.Stop();
+            foreach (var ch in channels)
+            {
+                ch.GenerateFile();
+            }
         }
 
         private async Task<bool> WaitForAllChannelsDone(List<Channel> channels)
@@ -145,7 +153,7 @@ namespace SmartTester
             while (tempInRangeCounter < 3 /*|| chamberStatus != ChamberStatus.HOLD*/);    //chamber temperature tolerrance is 5?
         }
 
-        private List<TargetTemperature> GetTemperaturePoints(List<Test> testsInOneChamber)
+        private List<TargetTemperature> GetTemperaturePoints(List<Test> testsInOneChamber)  //现在暂时就两个点
         {
             return new List<TargetTemperature>() { new TargetTemperature() { Temperature = 25, IsCritical = true }, new TargetTemperature() { Temperature = (testsInOneChamber.First().DischargeTemperature), IsCritical = false } };
         }

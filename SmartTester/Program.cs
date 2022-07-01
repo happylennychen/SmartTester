@@ -11,54 +11,26 @@ namespace SmartTester
     {
         static void Main(string[] args)
         {
-            Tester tester = new Tester("Chroma17208M", 8);
-            //Tester tester2 = new Tester("Chroma17216", 8);
-            List<Step> fullSteps;
-            CreateFullSteps(out fullSteps);
-            /*foreach (var ch in tester.Channels)
-            {
-                ch.TargetTemperature = 20;
-                ch.FullSteps = fullSteps;
-            }
-            while (true)
-            {
-                Console.WriteLine("Enter \"n\" to start channel n, \"a to h\" to stop channel n. Q to quit.");
-                var line = Console.ReadLine();
-                int result;
-                if (line.ToUpper() == "Q")
-                    break;
-                else if (int.TryParse(line, out result))
-                {
-                    if (result > 0 && result < 9)
-                    {
-                        tester.Start(result);
-                    }
-                }
-                else if (line.Length == 1)
-                {
-                    char x = line[0];
-                    result = x - 'a' + 1;
+            Tester tester = new Tester("Chroma17208M", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
+            Chamber cmb1 = new Chamber(1, "Hongzhan", "PUL80", 150, -40, "192.168.1.102", 3000) ;
 
-                    tester.Stop(result);
-                }
-                else
-                {
-                    Console.WriteLine("Wrong command.");
-                }
-            }*/
-            Chamber cmb1 = new Chamber() { Id = 1, Manufacturer = "Hongzhan", Name = "PUL80", HighestTemperature = 150, LowestTemperature = -40 };
-            //Chamber cmb2 = new Chamber() { Id = 2, Manufacturer = "Hongzhan", Name = "PUL90", HighestTemperature = 150, LowestTemperature = -40 };
-            Automator automator = new Automator();
-            List<Test> tests = new List<Test>();
-            tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 1), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
-            tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 2), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
-            tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 3), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
-            //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 4), Chamber = cmb2, Steps = fullSteps, DischargeTemperature = 20 });
-            //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 5), Chamber = cmb2, Steps = fullSteps, DischargeTemperature = 20 });
+            List<Test> tests = LoadTestFromFile();
+            //List<Step> fullSteps;
+            //CreateFullSteps(out fullSteps);
+            //Automator automator = new Automator();
+            //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 1), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
+            //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 2), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
+            //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 3), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
+
             Task t = automator.Start(tests);
             t.Wait();
             Console.WriteLine("Demo program completed!");
             Console.ReadLine();
+        }
+
+        private static List<Test> LoadTestFromFile()
+        {
+            throw new NotImplementedException();
         }
 
         private static void CreateFullSteps(out List<Step> fullSteps)

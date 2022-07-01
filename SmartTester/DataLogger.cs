@@ -63,6 +63,7 @@ namespace SmartTester
         {
             Task task = CloseDataLogger();
         }
+
         private async Task CloseDataLogger()
         {
             await streamWriter.FlushAsync();

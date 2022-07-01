@@ -10,6 +10,15 @@ namespace SmartTester
 {
     public class Channel
     {
+        public Channel(string name, int index, Tester tester, Timer timer)
+        {
+            Name = name;
+            Index = index;
+            Tester = tester;
+            Timer = timer;
+            TempFileList = new List<string>();
+        }
+
         public int Index { get; set; }
         public Tester Tester { get; set; }
         public string Name { get; set; }
@@ -22,6 +31,13 @@ namespace SmartTester
         public bool IsTimerStart { get; internal set; }
         public bool ShouldTimerStart { get; internal set; }
         public double TargetTemperature { get; internal set; }
-        public ChannelStatus Status { get; internal set; }  //不需要了
+        public ChannelStatus Status { get; internal set; }
+        public List<string> TempFileList { get; internal set; }
+
+        public void GenerateFile()
+        {
+            Utilities.FileConvert(TempFileList, $"{Tester.Name}-{Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.csv");
+            TempFileList.Clear();
+        }
     }
 }
