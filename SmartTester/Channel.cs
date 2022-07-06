@@ -36,7 +36,7 @@ namespace SmartTester
 
         public void GenerateFile()
         {
-            Utilities.FileConvert(TempFileList, $"{Tester.Name}-{Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.csv");
+            Utilities.FileConvert(TempFileList, FullSteps, TargetTemperature);
             TempFileList.Clear();
         }
     }

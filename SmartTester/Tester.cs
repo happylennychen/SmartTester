@@ -90,7 +90,7 @@ namespace SmartTester
             }
             if (stdRow.Status != RowStatus.RUNNING)
             {
-                channel.Step = GetNewTargetStep(channel.Step, channel.FullSteps, channel.TargetTemperature, stdRow.TimeInMS, stdRow);
+                channel.Step = Utilities.GetNewTargetStep(channel.Step, channel.FullSteps, channel.TargetTemperature, stdRow.TimeInMS, stdRow);
                 if (channel.Step == null)
                 {
                     channel.DataQueue.Clear();
@@ -249,148 +249,7 @@ namespace SmartTester
             throw new NotImplementedException();
         }
 
-        private Step GetNewTargetStep(Step currentStep, List<Step> fullSteps, double temperature, uint timeSpan, StandardRow row)
-        {
-            Console.WriteLine("GetNewTargetStep");
-            Step nextStep = null;
-            CutOffBehavior cob = null;
-            switch (currentStep.Action.Mode)
-            {
-                case ActionMode.REST:// "StepFinishByCut_V":
-                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
-                    break;
-                case ActionMode.CC_CV_CHARGE://"StepFinishByCut_I":
-                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
-                    if (cob != null)
-                    {
-                        var time = cob.Condition.Value;
-                        Console.WriteLine($"time = {time}");
-                        Console.WriteLine($"timeSpan = {timeSpan}");
-                        if (Math.Abs(timeSpan / 1000 - time) < 1)
-                        {
-                            Console.WriteLine($"Meet time condition.");
-                            break;
-                        }
-                        else
-                            cob = null;
-                    }
-                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.CURRENT);
-                    break;
-                case ActionMode.CC_DISCHARGE://"StepFinishByCut_T":
-                case ActionMode.CP_DISCHARGE:
-                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
-                    if (cob != null)
-                    {
-                        var time = cob.Condition.Value;
-                        Console.WriteLine($"time = {time}");
-                        Console.WriteLine($"timeSpan = {timeSpan}");
-                        if (Math.Abs(timeSpan / 1000 - time) < 1)
-                        {
-                            Console.WriteLine($"Meet time condition.");
-                            break;
-                        }
-                        else
-                            cob = null;
-                    }
-                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.VOLTAGE);
-                    if (cob != null)
-                    {
-                        var volt = cob.Condition.Value;
-                        Console.WriteLine($"volt = {volt}");
-                        Console.WriteLine($"row.Voltage = {row.Voltage}");
-                        if (Math.Abs(row.Voltage * 1000 - volt) < 15)
-                        {
-                            Console.WriteLine($"Meet voltage condition.");
-                            break;
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Doesn't meet voltage condition.");
-                            cob = null;
-                        }
-                    }
-                    break;
-            }
-            if (cob != null)
-                nextStep = Jump(cob, fullSteps, currentStep.Index, row);
-            return nextStep;
-        }
+ 
 
-        private static Step Jump(CutOffBehavior cob, List<Step> fullSteps, int currentStepIndex, StandardRow row)
-        {
-            Step nextStep = null;
-            if (cob.JumpBehaviors.Count == 1)
-            {
-                var jpb = cob.JumpBehaviors.First();
-                switch (jpb.JumpType)
-                {
-                    case JumpType.INDEX:
-                        nextStep = fullSteps.SingleOrDefault(o => o.Index == jpb.Index);
-                        break;
-                    case JumpType.END:
-                        break;
-                    case JumpType.NEXT:
-                        nextStep = fullSteps.SingleOrDefault(o => o.Index == currentStepIndex + 1);
-                        break;
-                    case JumpType.LOOP:
-                        throw new NotImplementedException();
-                }
-            }
-            else if (cob.JumpBehaviors.Count > 1)
-            {
-                JumpBehavior validJPB = null;
-                foreach (var jpb in cob.JumpBehaviors)
-                {
-                    bool isConditionMet = false;
-                    double leftvalue = 0;
-                    double rightvalue = jpb.Condition.Value;
-                    switch (jpb.Condition.Parameter)
-                    {
-                        case Parameter.CURRENT: leftvalue = row.Current; break;
-                        case Parameter.POWER: leftvalue = row.Current * row.Voltage; break;
-                        case Parameter.TEMPERATURE: leftvalue = row.Temperature; break;
-                        case Parameter.TIME: leftvalue = row.TimeInMS / 1000; break;
-                        case Parameter.VOLTAGE: leftvalue = row.Voltage; break;
-                    }
-                    switch (jpb.Condition.Mark)
-                    {
-                        case CompareMarkEnum.EqualTo:
-                            if (leftvalue == rightvalue)
-                                isConditionMet = true;
-                            break;
-                        case CompareMarkEnum.LargerThan:
-                            if (leftvalue > rightvalue)
-                                isConditionMet = true;
-                            break;
-                        case CompareMarkEnum.SmallerThan:
-                            if (leftvalue < rightvalue)
-                                isConditionMet = true;
-                            break;
-                    }
-                    if (isConditionMet)
-                    {
-                        validJPB = jpb;
-                        break;
-                    }
-                }
-                if (validJPB != null)
-                {
-                    switch (validJPB.JumpType)
-                    {
-                        case JumpType.INDEX:
-                            nextStep = fullSteps.SingleOrDefault(o => o.Index == validJPB.Index);
-                            break;
-                        case JumpType.END:
-                            break;
-                        case JumpType.NEXT:
-                            nextStep = fullSteps.SingleOrDefault(o => o.Index == currentStepIndex + 1);
-                            break;
-                        case JumpType.LOOP:
-                            throw new NotImplementedException();
-                    }
-                }
-            }
-            return nextStep;
-        }
     }
 }

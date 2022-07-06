@@ -15,9 +15,9 @@ namespace SmartTester
             Chamber cmb1 = new Chamber(1, "Hongzhan", "PUL80", 150, -40, "192.168.1.102", 3000) ;
 
             List<Test> tests = LoadTestFromFile();
+            Automator automator = new Automator();
             //List<Step> fullSteps;
             //CreateFullSteps(out fullSteps);
-            //Automator automator = new Automator();
             //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 1), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
             //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 2), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
             //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 3), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });

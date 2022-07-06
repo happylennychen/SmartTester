@@ -63,8 +63,6 @@
     <Compile Include="Condition.cs" />
     <Compile Include="CutOffBehavior.cs" />
     <Compile Include="DataLogger.cs" />
-    <Compile Include="IChannel.cs" />
-    <Compile Include="IChannelExecutor.cs" />
     <Compile Include="IDataLogger.cs" />
     <Compile Include="ITester.cs" />
     <Compile Include="JumpBehavior.cs" />
@@ -80,6 +78,7 @@
     <Compile Include="Tester.cs" />
     <Compile Include="TesterAction.cs" />
     <Compile Include="Test.cs" />
+    <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

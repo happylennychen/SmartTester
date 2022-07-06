@@ -55,7 +55,7 @@ namespace SmartTester
                 }
             }
         }
-        public static void FileConvert(List<string> filePaths, string newFilePath)
+        public static void FileConvert(List<string> filePaths, List<Step> fullSteps, double targetTemperature)
         {
             uint indexOffset = 0;
             uint timeOffset = 0;
@@ -63,22 +63,53 @@ namespace SmartTester
             double capacityOffset = 0;
             double totalCapacityOffset = 0;
             bool isNewStep = false;
+            uint lastTimeInMS = 0;
             ActionMode lastMode = ActionMode.REST;
+            var newFilePath = Path.ChangeExtension(filePaths[0], "csv");
+            Step step = fullSteps.First();
             using (FileStream stdFile = new FileStream(newFilePath, FileMode.Create))
             {
                 using (StreamWriter stdWriter = new StreamWriter(stdFile))
                 {
+                    stdWriter.WriteLine("Index,Time(mS),Mode,Current(mA),Voltage(mV),Temperature(degC),Capacity(mAh),Total Capacity(mAh),Status");
                     foreach (var filePath in filePaths)
                     {
                         using (FileStream rawFile = new FileStream(filePath, FileMode.Open))
                         {
                             using (StreamReader rawReader = new StreamReader(rawFile))
                             {
-                                stdWriter.WriteLine("Index,Time(mS),Mode,Current(mA),Voltage(mV),Temperature(degC),Capacity(mAh),Total Capacity(mAh),Status");
                                 while (rawReader.Peek() != -1)
                                 {
                                     var line = rawReader.ReadLine();
                                     StandardRow stdRow = new StandardRow(line);
+                                    if (stdRow.Status != RowStatus.RUNNING)
+                                    {
+                                        CutOffBehavior cob = GetCutOffBehavior(step, stdRow.TimeInMS, stdRow);
+                                        step = GetNewTargetStep(step, fullSteps, targetTemperature, stdRow.TimeInMS, stdRow);
+
+                                        if (cob != null)
+                                            switch (cob.Condition.Parameter)
+                                            {
+                                                case Parameter.CURRENT:
+                                                    stdRow.Status = RowStatus.CUT_OFF_BY_CURRENT;
+                                                    break;
+                                                case Parameter.POWER:
+                                                    stdRow.Status = RowStatus.CUT_OFF_BY_POWER;
+                                                    break;
+                                                case Parameter.TEMPERATURE:
+                                                    stdRow.Status = RowStatus.CUT_OFF_BY_TEMPERATURE;
+                                                    break;
+                                                case Parameter.TIME:
+                                                    stdRow.Status = RowStatus.CUT_OFF_BY_TIME;
+                                                    break;
+                                                case Parameter.VOLTAGE:
+                                                    stdRow.Status = RowStatus.CUT_OFF_BY_VOLTAGE;
+                                                    break;
+                                                default:
+                                                    stdRow.Status = RowStatus.UNKNOWN;
+                                                    break;
+                                            }
+                                    }
                                     if (isNewStep)
                                     {
                                         if (lastMode == stdRow.Mode)
@@ -89,7 +120,7 @@ namespace SmartTester
                                     stdRow.Capacity += capacityOffset;
                                     stdRow.TotalCapacity = stdRow.Capacity + totalCapacityOffset;
                                     stdWriter.WriteLine(stdRow.ToString());
-                                    if (stdRow.Status == RowStatus.STOP)
+                                    if (stdRow.Status != RowStatus.RUNNING)
                                     {
                                         timeOffset = stdRow.TimeInMS;
                                         lastMode = stdRow.Mode;
@@ -97,12 +128,181 @@ namespace SmartTester
                                         totalCapacityOffset = stdRow.TotalCapacity;
                                         isNewStep = true;
                                     }
+                                    lastTimeInMS = stdRow.TimeInMS;
                                 }
                             }
                         }
                     }
                 }
             }
+            string newFileFullPath = GetNewFileFullPath(newFilePath, lastTimeInMS);
+            if (newFileFullPath != null)
+                File.Move(newFilePath, newFileFullPath);
+        }
+
+        public static string GetNewFileFullPath(string newFilePath, uint lastTimeInMS)
+        {
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(newFilePath);
+            var path = Path.GetDirectoryName(newFilePath);
+            var startTimeInString = fileNameWithoutExtension.Split('-').Last();
+            DateTime startTime;
+            if (DateTime.TryParseExact(startTimeInString, "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.None, out startTime))
+            {
+                var duration = TimeSpan.FromMilliseconds(lastTimeInMS);
+                var endTimeInString = (startTime + duration).ToString("yyyyMMddHHmmss");
+                return path + '\\' + fileNameWithoutExtension + "-" + endTimeInString + ".csv";
+                //File.Move(newFilePath, fileNameWithoutExtension + "-" + endTimeInString + ".csv");
+            }
+            else
+                return null;
+        }
+
+        public static Step GetNewTargetStep(Step currentStep, List<Step> fullSteps, double temperature, uint timeSpan, StandardRow row)
+        {
+            Console.WriteLine("GetNewTargetStep");
+            Step nextStep = null;
+            CutOffBehavior cob = GetCutOffBehavior(currentStep, timeSpan, row);
+            if (cob != null)
+                nextStep = Jump(cob, fullSteps, currentStep.Index, row);
+            return nextStep;
+        }
+        private static CutOffBehavior GetCutOffBehavior(Step currentStep, uint timeSpan, StandardRow row)
+        {
+            CutOffBehavior cob = null;
+            switch (currentStep.Action.Mode)
+            {
+                case ActionMode.REST:// "StepFinishByCut_V":
+                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
+                    break;
+                case ActionMode.CC_CV_CHARGE://"StepFinishByCut_I":
+                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
+                    if (cob != null)
+                    {
+                        var time = cob.Condition.Value;
+                        Console.WriteLine($"time = {time}");
+                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        if (Math.Abs(timeSpan / 1000 - time) < 1)
+                        {
+                            Console.WriteLine($"Meet time condition.");
+                            break;
+                        }
+                        else
+                            cob = null;
+                    }
+                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.CURRENT);
+                    break;
+                case ActionMode.CC_DISCHARGE://"StepFinishByCut_T":
+                case ActionMode.CP_DISCHARGE:
+                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
+                    if (cob != null)
+                    {
+                        var time = cob.Condition.Value;
+                        Console.WriteLine($"time = {time}");
+                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        if (Math.Abs(timeSpan / 1000 - time) < 1)
+                        {
+                            Console.WriteLine($"Meet time condition.");
+                            break;
+                        }
+                        else
+                            cob = null;
+                    }
+                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.VOLTAGE);
+                    if (cob != null)
+                    {
+                        var volt = cob.Condition.Value;
+                        Console.WriteLine($"volt = {volt}");
+                        Console.WriteLine($"row.Voltage = {row.Voltage}");
+                        if (Math.Abs(row.Voltage * 1000 - volt) < 15)
+                        {
+                            Console.WriteLine($"Meet voltage condition.");
+                            break;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Doesn't meet voltage condition.");
+                            cob = null;
+                        }
+                    }
+                    break;
+            }
+            return cob;
+        }
+        private static Step Jump(CutOffBehavior cob, List<Step> fullSteps, int currentStepIndex, StandardRow row)
+        {
+            Step nextStep = null;
+            if (cob.JumpBehaviors.Count == 1)
+            {
+                var jpb = cob.JumpBehaviors.First();
+                switch (jpb.JumpType)
+                {
+                    case JumpType.INDEX:
+                        nextStep = fullSteps.SingleOrDefault(o => o.Index == jpb.Index);
+                        break;
+                    case JumpType.END:
+                        break;
+                    case JumpType.NEXT:
+                        nextStep = fullSteps.SingleOrDefault(o => o.Index == currentStepIndex + 1);
+                        break;
+                    case JumpType.LOOP:
+                        throw new NotImplementedException();
+                }
+            }
+            else if (cob.JumpBehaviors.Count > 1)
+            {
+                JumpBehavior validJPB = null;
+                foreach (var jpb in cob.JumpBehaviors)
+                {
+                    bool isConditionMet = false;
+                    double leftvalue = 0;
+                    double rightvalue = jpb.Condition.Value;
+                    switch (jpb.Condition.Parameter)
+                    {
+                        case Parameter.CURRENT: leftvalue = row.Current; break;
+                        case Parameter.POWER: leftvalue = row.Current * row.Voltage; break;
+                        case Parameter.TEMPERATURE: leftvalue = row.Temperature; break;
+                        case Parameter.TIME: leftvalue = row.TimeInMS / 1000; break;
+                        case Parameter.VOLTAGE: leftvalue = row.Voltage; break;
+                    }
+                    switch (jpb.Condition.Mark)
+                    {
+                        case CompareMarkEnum.EqualTo:
+                            if (leftvalue == rightvalue)
+                                isConditionMet = true;
+                            break;
+                        case CompareMarkEnum.LargerThan:
+                            if (leftvalue > rightvalue)
+                                isConditionMet = true;
+                            break;
+                        case CompareMarkEnum.SmallerThan:
+                            if (leftvalue < rightvalue)
+                                isConditionMet = true;
+                            break;
+                    }
+                    if (isConditionMet)
+                    {
+                        validJPB = jpb;
+                        break;
+                    }
+                }
+                if (validJPB != null)
+                {
+                    switch (validJPB.JumpType)
+                    {
+                        case JumpType.INDEX:
+                            nextStep = fullSteps.SingleOrDefault(o => o.Index == validJPB.Index);
+                            break;
+                        case JumpType.END:
+                            break;
+                        case JumpType.NEXT:
+                            nextStep = fullSteps.SingleOrDefault(o => o.Index == currentStepIndex + 1);
+                            break;
+                        case JumpType.LOOP:
+                            throw new NotImplementedException();
+                    }
+                }
+            }
+            return nextStep;
         }
     }
 }
