@@ -34,9 +34,9 @@ namespace SmartTester
         public ChannelStatus Status { get; internal set; }
         public List<string> TempFileList { get; internal set; }
 
-        public void GenerateFile()
+        public void GenerateFile(List<Step> fullSteps)
         {
-            Utilities.FileConvert(TempFileList, FullSteps, TargetTemperature);
+            Utilities.FileConvert(TempFileList, fullSteps, TargetTemperature);
             TempFileList.Clear();
         }
     }

@@ -22,7 +22,7 @@ namespace UnitTest
         [Fact]
         public void FileConvertShouldWork()
         {
-            var files = Directory.GetFiles(@"D:\BC_Lab\SW Design\Instrument Automation\File Converter\30T auto init 2\", "*.txt");
+            var files = Directory.GetFiles(@"D:\BC_Lab\SW Design\Instrument Automation\File Converter\40T init\", "*.txt");
             for(int i=1;i<=8;i++)
             {
                 var fileList = files.Where(o => o.Contains($"Chroma17208M-Ch{i}")).OrderBy(o=>o).ToList();
@@ -34,9 +34,9 @@ namespace UnitTest
         }
         private static List<Step> CreateFullSteps()
         {
-            Step chargeStep = new Step() { Index = 1, Action = new TesterAction() { Mode = ActionMode.CC_CV_CHARGE, Voltage = 4200, Current = 1500, Power = 0 } };
+            Step chargeStep = new Step() { Index = 1, Action = new TesterAction() { Mode = ActionMode.CC_CV_CHARGE, Voltage = 4200, Current = 2000, Power = 0 } };
             JumpBehavior jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
-            Condition cdt = new Condition() { Parameter = Parameter.CURRENT, Mark = CompareMarkEnum.SmallerThan, Value = 150 };
+            Condition cdt = new Condition() { Parameter = Parameter.CURRENT, Mark = CompareMarkEnum.SmallerThan, Value = 200 };
             CutOffBehavior cob = new CutOffBehavior() { Condition = cdt };
             cob.JumpBehaviors.Add(jpb);
             chargeStep.CutOffBehaviors.Add(cob);
@@ -49,7 +49,7 @@ namespace UnitTest
             cob.JumpBehaviors.Add(jpb);
             idleStep.CutOffBehaviors.Add(cob);
 
-            Step dischargeStep = new Step() { Index = 3, Action = new TesterAction() { Mode = ActionMode.CC_DISCHARGE, Voltage = 0, Current = 3000, Power = 0 } };
+            Step dischargeStep = new Step() { Index = 3, Action = new TesterAction() { Mode = ActionMode.CC_DISCHARGE, Voltage = 0, Current = 4000, Power = 0 } };
             jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
             cdt = new Condition() { Parameter = Parameter.VOLTAGE, Mark = CompareMarkEnum.SmallerThan, Value = 2500 };
             cob = new CutOffBehavior() { Condition = cdt };

@@ -71,9 +71,9 @@ namespace SmartTester
             }
             Console.WriteLine($"Stop Chamber Group for {chamber.Name}");
             chamber.Executor.Stop();
-            foreach (var ch in channels)
+            foreach (var test in testsInOneChamber)
             {
-                ch.GenerateFile();
+                test.Channel.GenerateFile(test.Steps);
             }
         }
 
