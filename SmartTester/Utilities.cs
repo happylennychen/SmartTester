@@ -59,12 +59,11 @@ namespace SmartTester
         {
             uint indexOffset = 0;
             uint timeOffset = 0;
-            double lastCapacity = 0;
             double capacityOffset = 0;
             double totalCapacityOffset = 0;
-            bool isNewStep = false;
             uint lastTimeInMS = 0;
-            ActionMode lastMode = ActionMode.REST;
+            StandardRow lastRow = null;
+            StandardRow currentRow = null;
             var newFilePath = Path.ChangeExtension(filePaths[0], "csv");
             Step step = fullSteps.First();
             using (FileStream stdFile = new FileStream(newFilePath, FileMode.Create))
@@ -80,56 +79,47 @@ namespace SmartTester
                             {
                                 while (rawReader.Peek() != -1)
                                 {
+                                    if (currentRow != null)
+                                        lastRow = currentRow;
                                     var line = rawReader.ReadLine();
-                                    StandardRow stdRow = new StandardRow(line);
-                                    if (stdRow.Status != RowStatus.RUNNING)
-                                    {
-                                        CutOffBehavior cob = GetCutOffBehavior(step, stdRow.TimeInMS, stdRow);
-                                        step = GetNewTargetStep(step, fullSteps, targetTemperature, stdRow.TimeInMS, stdRow);
+                                    currentRow = new StandardRow(line);
+                                    if (lastRow == null)
+                                        continue;
 
-                                        if (cob != null)
-                                            switch (cob.Condition.Parameter)
-                                            {
-                                                case Parameter.CURRENT:
-                                                    stdRow.Status = RowStatus.CUT_OFF_BY_CURRENT;
-                                                    break;
-                                                case Parameter.POWER:
-                                                    stdRow.Status = RowStatus.CUT_OFF_BY_POWER;
-                                                    break;
-                                                case Parameter.TEMPERATURE:
-                                                    stdRow.Status = RowStatus.CUT_OFF_BY_TEMPERATURE;
-                                                    break;
-                                                case Parameter.TIME:
-                                                    stdRow.Status = RowStatus.CUT_OFF_BY_TIME;
-                                                    break;
-                                                case Parameter.VOLTAGE:
-                                                    stdRow.Status = RowStatus.CUT_OFF_BY_VOLTAGE;
-                                                    break;
-                                                default:
-                                                    stdRow.Status = RowStatus.UNKNOWN;
-                                                    break;
-                                            }
-                                    }
-                                    if (isNewStep)
+                                    if (lastRow.Status != RowStatus.RUNNING)
                                     {
-                                        if (lastMode == stdRow.Mode)
-                                            capacityOffset = lastCapacity;
+                                        CutOffBehavior cob = GetCutOffBehavior(step, lastRow.TimeInMS, lastRow);
+                                        step = GetNewTargetStep(step, fullSteps, targetTemperature, lastRow.TimeInMS, lastRow);
+                                        UpdateRowStatus(ref lastRow, cob, targetTemperature);
                                     }
-                                    stdRow.Index = ++indexOffset;
-                                    stdRow.TimeInMS += timeOffset;
-                                    stdRow.Capacity += capacityOffset;
-                                    stdRow.TotalCapacity = stdRow.Capacity + totalCapacityOffset;
-                                    stdWriter.WriteLine(stdRow.ToString());
-                                    if (stdRow.Status != RowStatus.RUNNING)
+
+                                    lastRow.Index = ++indexOffset;
+                                    lastRow.TimeInMS += timeOffset;
+                                    lastRow.Capacity += capacityOffset;
+                                    lastRow.TotalCapacity = lastRow.Capacity + totalCapacityOffset;
+                                    stdWriter.WriteLine(lastRow.ToString());
+                                    if (lastRow.Status != RowStatus.RUNNING)
                                     {
-                                        timeOffset = stdRow.TimeInMS;
-                                        lastMode = stdRow.Mode;
-                                        lastCapacity = stdRow.Capacity;
-                                        totalCapacityOffset = stdRow.TotalCapacity;
-                                        isNewStep = true;
+                                        timeOffset = lastRow.TimeInMS;
+                                        if (capacityShouldContinue(lastRow, currentRow))
+                                        {
+                                            capacityOffset = lastRow.Capacity;
+                                        }
+                                        else
+                                        {
+                                            capacityOffset = 0;
+                                            totalCapacityOffset = lastRow.TotalCapacity;
+                                        }
                                     }
-                                    lastTimeInMS = stdRow.TimeInMS;
+                                    lastTimeInMS = lastRow.TimeInMS;
                                 }
+                                //处理最后一行数据
+                                currentRow.Index = ++indexOffset;
+                                currentRow.TimeInMS += timeOffset;
+                                currentRow.Capacity += capacityOffset;
+                                currentRow.TotalCapacity = currentRow.Capacity + totalCapacityOffset;
+                                UpdateRowStatus(ref currentRow, GetCutOffBehavior(step, currentRow.TimeInMS, currentRow), targetTemperature);
+                                stdWriter.WriteLine(currentRow.ToString());
                             }
                         }
                     }
@@ -138,6 +128,37 @@ namespace SmartTester
             string newFileFullPath = GetNewFileFullPath(newFilePath, lastTimeInMS);
             if (newFileFullPath != null)
                 File.Move(newFilePath, newFileFullPath);
+        }
+
+        private static void UpdateRowStatus(ref StandardRow row, CutOffBehavior cob, double targetTemperature)
+        {
+                if (cob != null)
+                    switch (cob.Condition.Parameter)
+                    {
+                        case Parameter.CURRENT:
+                            row.Status = RowStatus.CUT_OFF_BY_CURRENT;
+                            break;
+                        case Parameter.POWER:
+                            row.Status = RowStatus.CUT_OFF_BY_POWER;
+                            break;
+                        case Parameter.TEMPERATURE:
+                            row.Status = RowStatus.CUT_OFF_BY_TEMPERATURE;
+                            break;
+                        case Parameter.TIME:
+                            row.Status = RowStatus.CUT_OFF_BY_TIME;
+                            break;
+                        case Parameter.VOLTAGE:
+                            row.Status = RowStatus.CUT_OFF_BY_VOLTAGE;
+                            break;
+                        default:
+                            row.Status = RowStatus.UNKNOWN;
+                            break;
+                    }
+        }
+
+        private static bool capacityShouldContinue(StandardRow lastRow, StandardRow stdRow)
+        {
+            return lastRow.Mode == stdRow.Mode;
         }
 
         public static string GetNewFileFullPath(string newFilePath, uint lastTimeInMS)
@@ -213,7 +234,7 @@ namespace SmartTester
                         var volt = cob.Condition.Value;
                         Console.WriteLine($"volt = {volt}");
                         Console.WriteLine($"row.Voltage = {row.Voltage}");
-                        if (Math.Abs(row.Voltage * 1000 - volt) < 15)
+                        if (Math.Abs(row.Voltage - volt) < 15)
                         {
                             Console.WriteLine($"Meet voltage condition.");
                             break;

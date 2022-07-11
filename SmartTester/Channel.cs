@@ -23,11 +23,11 @@ namespace SmartTester
         public Tester Tester { get; set; }
         public string Name { get; set; }
         public Timer Timer { get; set; }
-        public Stopwatch Stopwatch { get; internal set; }
+        //public Stopwatch Stopwatch { get; internal set; }
         public DataLogger DataLogger { get; internal set; }
         public Queue<StandardRow> DataQueue { get; set; }
-        public Step Step { get; internal set; }
-        public List<Step> FullSteps { get; internal set; }
+        public Step Step { get; internal set; } //当前Step
+        public List<Step> FullSteps { get; internal set; }  //同一温度下的工步集合
         public bool IsTimerStart { get; internal set; }
         public bool ShouldTimerStart { get; internal set; }
         public double TargetTemperature { get; internal set; }

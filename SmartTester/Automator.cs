@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static System.Threading.Thread;
 
 namespace SmartTester
 {
@@ -13,6 +14,7 @@ namespace SmartTester
 
         public async Task Start(List<Test> tests)
         {
+            Console.WriteLine($"Automator Start. Begin in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
             var testsGroupedbyChamber = tests.GroupBy(t => t.Chamber);
             List<Task> tasks = new List<Task>();
             foreach (var testGroup in testsGroupedbyChamber)        //Tests按Chamber分组
@@ -26,15 +28,20 @@ namespace SmartTester
                 Task t = AsyncStartChamberGroup(chamber, testsInOneChamber);
                 tasks.Add(t);
             }
+            Console.WriteLine($"Automator Start. Waiting in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
             await Task.WhenAll(tasks);
             Console.WriteLine("All test done!");
         }
 
         private async Task AsyncStartChamberGroup(Chamber chamber, List<Test> testsInOneChamber)
         {
-            Console.WriteLine($"Start Chamber Group for {chamber.Name}");
+            Console.WriteLine($"Start Chamber Group for {chamber.Name} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
             List<KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>> sections = GetTestSections(testsInOneChamber);   //sections是每个温度点下的测试的集合
             var channels = testsInOneChamber.Select(o => o.Channel).ToList();
+            foreach (var channel in channels)
+            {
+                channel.Tester.Stop(channel.Index);     //先停止前面的实验。
+            }
             foreach (var ts in sections)
             {
                 TargetTemperature targetT = ts.Key;
@@ -93,39 +100,53 @@ namespace SmartTester
         {
             List<KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>> output = new List<KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>>();
             List<TargetTemperature> tts = GetTemperaturePoints(testsInOneChamber);
-            foreach (var tt in tts)
+            if (tts.Count == 1)
             {
+                TargetTemperature tt = new TargetTemperature();
+                tt.Temperature = 25;
+                tt.IsCritical = true;
                 Dictionary<Channel, List<Step>> dic = new Dictionary<Channel, List<Step>>();
                 foreach (var t in testsInOneChamber)
                 {
-                    List<Step> steps = null;
-                    if (output.Count == 0)  //添加第一个温度点对应的工步
-                    {
-                        var firstStep = t.Steps.First();
-                        //if (firstStep.Action.Mode == ActionMode.CC_CV_CHARGE)
-                        steps = new List<Step>() { firstStep };
-                    }
-                    else if (output.Count == 1) //添加第二个温度点对应的工步
-                    {
-                        //var firstStep = t.Steps.First();
-                        //if (firstStep.Action.Mode == ActionMode.CC_CV_CHARGE)
-                        //{
-                        steps = new List<Step>(t.Steps.Where(s => s.Index != 1).OrderBy(s => s.Index));
-                        //}
-                    }
-                    else if (output.Count == 2)//添加第三个温度点对应的工步
-                    {
-                        Console.WriteLine("Not ready.");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Not ready.");
-                    }
-                    dic.Add(t.Channel, steps);
+                    dic.Add(t.Channel, t.Steps);
                 }
                 KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>> pair = new KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>(tt, dic);
                 output.Add(pair);
             }
+            else
+                foreach (var tt in tts)
+                {
+                    Dictionary<Channel, List<Step>> dic = new Dictionary<Channel, List<Step>>();
+                    foreach (var t in testsInOneChamber)
+                    {
+                        List<Step> steps = null;
+                        if (output.Count == 0)  //添加第一个温度点对应的工步
+                        {
+                            var firstStep = t.Steps.First();
+                            //if (firstStep.Action.Mode == ActionMode.CC_CV_CHARGE)
+                            steps = new List<Step>() { firstStep };
+                        }
+                        else if (output.Count == 1) //添加第二个温度点对应的工步
+                        {
+                            //var firstStep = t.Steps.First();
+                            //if (firstStep.Action.Mode == ActionMode.CC_CV_CHARGE)
+                            //{
+                            steps = new List<Step>(t.Steps.Where(s => s.Index != 1).OrderBy(s => s.Index));
+                            //}
+                        }
+                        else if (output.Count == 2)//添加第三个温度点对应的工步
+                        {
+                            Console.WriteLine("Not ready.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Not ready.");
+                        }
+                        dic.Add(t.Channel, steps);
+                    }
+                    KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>> pair = new KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>(tt, dic);
+                    output.Add(pair);
+                }
             return output;
         }
 
@@ -136,9 +157,10 @@ namespace SmartTester
             do
             {
                 temp = chamber.Executor.ReadTemperature();
+                Console.WriteLine($"Read Temperature:{temp}");
                 //if (!chamber.Executor.ReadStatus(out chamberStatus))    //偶尔读出786？？？
                 //return;
-                await Task.Delay(10000);
+                await Task.Delay(1000);
                 if (Math.Abs(temp - temperature) < 5)
                 {
                     tempInRangeCounter++;
@@ -150,12 +172,16 @@ namespace SmartTester
                     Console.WriteLine($"Temperature leave target. Counter: {tempInRangeCounter}");
                 }
             }
-            while (tempInRangeCounter < 3 /*|| chamberStatus != ChamberStatus.HOLD*/);    //chamber temperature tolerrance is 5?
+            while (tempInRangeCounter < 30 /*|| chamberStatus != ChamberStatus.HOLD*/);    //chamber temperature tolerrance is 5?
         }
 
         private List<TargetTemperature> GetTemperaturePoints(List<Test> testsInOneChamber)  //现在暂时就两个点
         {
-            return new List<TargetTemperature>() { new TargetTemperature() { Temperature = 25, IsCritical = true }, new TargetTemperature() { Temperature = (testsInOneChamber.First().DischargeTemperature), IsCritical = false } };
+            var targetTemperature = testsInOneChamber.First().DischargeTemperature;
+            if (targetTemperature != 25)
+                return new List<TargetTemperature>() { new TargetTemperature() { Temperature = 25, IsCritical = true }, new TargetTemperature() { Temperature = (targetTemperature), IsCritical = false } };
+            else
+                return new List<TargetTemperature>() { new TargetTemperature() { Temperature = 25, IsCritical = true } };
         }
 
         private bool ChamberGroupTestCheck(List<Test> tests)

@@ -88,14 +88,14 @@ namespace SmartTester
                 }
                 standardRow = new StandardRow();
                 var strs = result.Split(',');
-                standardRow.Capacity = double.Parse(strs[8]);
-                standardRow.Current = double.Parse(strs[6]);
+                standardRow.Capacity = double.Parse(strs[8]) * 1000;
+                standardRow.Current = double.Parse(strs[6]) * 1000;
                 //standardRow.Index = ???
                 standardRow.Mode = StringToActionMode(strs[0]);
                 standardRow.Status = GetStatusFromString(strs[3]);
                 //standardRow.Temperature = ReadTemperarture(channel);
                 standardRow.TimeInMS = uint.Parse(strs[1]);
-                standardRow.Voltage = double.Parse(strs[5]);
+                standardRow.Voltage = double.Parse(strs[5]) * 1000;
                 //standardRow.TotalCapacity = ???
                 channelEvents = GetEventsFromString(strs[2]);
                 return true;

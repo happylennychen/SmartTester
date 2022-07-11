@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Threading.Thread;
 
 namespace SmartTester
 {
@@ -21,7 +22,7 @@ namespace SmartTester
             //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 1), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
             //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 2), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
             //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 3), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
-
+            Console.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
             Task t = automator.Start(tests);
             t.Wait();
             Console.WriteLine("Demo program completed!");
