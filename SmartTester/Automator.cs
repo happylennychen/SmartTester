@@ -28,14 +28,14 @@ namespace SmartTester
                 Task t = AsyncStartChamberGroup(chamber, testsInOneChamber);
                 tasks.Add(t);
             }
-            Console.WriteLine($"Automator Start. Waiting in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
+            Console.WriteLine($"Automator Start. Waiting. Thread {CurrentThread.ManagedThreadId}, {CurrentThread.IsThreadPoolThread}");
             await Task.WhenAll(tasks);
             Console.WriteLine("All test done!");
         }
 
         private async Task AsyncStartChamberGroup(Chamber chamber, List<Test> testsInOneChamber)
         {
-            Console.WriteLine($"Start Chamber Group for {chamber.Name} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
+            Console.WriteLine($"Start Chamber Group for {chamber.Name}. Thread {CurrentThread.ManagedThreadId}, {CurrentThread.IsThreadPoolThread}");
             List<KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>> sections = GetTestSections(testsInOneChamber);   //sections是每个温度点下的测试的集合
             var channels = testsInOneChamber.Select(o => o.Channel).ToList();
             foreach (var channel in channels)
@@ -61,7 +61,7 @@ namespace SmartTester
                     channel.Tester.Start(channel.Index);
                 }
 
-                Console.WriteLine($"Wait for all channels done.");
+                Console.WriteLine($"Wait for all channels done. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
                 if (!await WaitForAllChannelsDone(channels))
                 {
                     var errChannels = channels.Where(ch => ch.Status != ChannelStatus.IDLE);
@@ -76,7 +76,7 @@ namespace SmartTester
                     //如果顺利完成，是否需要进行文件转换？还是等所有section都结束了再一起转换？
                 }
             }
-            Console.WriteLine($"Stop Chamber Group for {chamber.Name}");
+            Console.WriteLine($"Stop Chamber Group for {chamber.Name}. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
             chamber.Executor.Stop();
             foreach (var test in testsInOneChamber)
             {
@@ -88,6 +88,7 @@ namespace SmartTester
         {
             while (!channels.All(ch => ch.Status != ChannelStatus.RUNNING))
             {
+                Console.WriteLine($"Not all channels stoped, wait for more 5 seconds. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
                 await Task.Delay(5000);
             }
             if (channels.All(ch => ch.Status == ChannelStatus.IDLE))
@@ -157,19 +158,19 @@ namespace SmartTester
             do
             {
                 temp = chamber.Executor.ReadTemperature();
-                Console.WriteLine($"Read Temperature:{temp}");
+                Console.WriteLine($"Read Temperature:{temp} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
                 //if (!chamber.Executor.ReadStatus(out chamberStatus))    //偶尔读出786？？？
                 //return;
                 await Task.Delay(1000);
                 if (Math.Abs(temp - temperature) < 5)
                 {
                     tempInRangeCounter++;
-                    Console.WriteLine($"Temperature reach target. Counter: {tempInRangeCounter}");
+                    Console.WriteLine($"Temperature reach target. Counter: {tempInRangeCounter} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
                 }
                 else
                 {
                     tempInRangeCounter = 0;
-                    Console.WriteLine($"Temperature leave target. Counter: {tempInRangeCounter}");
+                    Console.WriteLine($"Temperature leave target. Counter: {tempInRangeCounter} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
                 }
             }
             while (tempInRangeCounter < 30 /*|| chamberStatus != ChamberStatus.HOLD*/);    //chamber temperature tolerrance is 5?

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Threading.Thread;
 namespace SmartTester
 {
     public class Tester : ITester
@@ -78,7 +79,7 @@ namespace SmartTester
             {
                 gap += " ";
             }
-            Console.WriteLine($"{strRow}...Ch{gap}{channelIndex}");
+            Console.WriteLine($"{strRow}...Ch{gap}{channelIndex}. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
             if (channelEvents != ChannelEvents.Normal)
             {
                 channel.DataQueue.Clear();
