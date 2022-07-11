@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -324,6 +325,20 @@ namespace SmartTester
                 }
             }
             return nextStep;
+        }
+
+
+        public static List<Test> LoadTestFromFile()
+        {
+            List<Test> output = new List<Test>();
+            var files = Directory.GetFiles(@"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\", "*.testplan");
+            foreach (var file in files)
+            {
+                string json = File.ReadAllText(file);
+                var test = JsonConvert.DeserializeObject<Test>(json);
+                output.Add(test);
+            }
+            return output;
         }
     }
 }

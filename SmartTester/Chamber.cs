@@ -1,4 +1,4 @@
-﻿//#define debug
+﻿#define debug
 using System;
 
 namespace SmartTester
@@ -12,6 +12,16 @@ namespace SmartTester
         public double HighestTemperature { get; set; }
         public PUL80Executor Executor { get; set; }
 
+        public Chamber()
+        { }
+        public Chamber(int Id, string Manufacturer, string Name, int HighestTemperature, int LowestTemperature)
+        {
+            this.Id = Id;
+            this.Manufacturer = Manufacturer;
+            this.Name = Name;
+            this.HighestTemperature = HighestTemperature;
+            this.LowestTemperature = LowestTemperature;
+        }
         public Chamber(int id, string manufacturer, string name, int highestTemperature, int lowestTemperature, string ipAddress, int port)
         {
             Id = id;

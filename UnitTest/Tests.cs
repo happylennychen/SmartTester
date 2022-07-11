@@ -58,5 +58,11 @@ namespace UnitTest
 
             return new List<Step> { chargeStep, idleStep, dischargeStep};
         }
+
+        [Fact]
+        public void LoadFromFileShouldWork()
+        {
+            Utilities.LoadTestFromFile();
+        }
     }
 }

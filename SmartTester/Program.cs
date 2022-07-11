@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using static System.Threading.Thread;
 
@@ -12,10 +11,17 @@ namespace SmartTester
     {
         static void Main(string[] args)
         {
-            Tester tester = new Tester("Chroma17208M", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
-            Chamber cmb1 = new Chamber(1, "Hongzhan", "PUL80", 150, -40, "192.168.1.102", 3000) ;
+            Tester tester = new Tester("17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
+            Chamber cmb1 = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
 
-            List<Test> tests = LoadTestFromFile();
+            List<Test> tests = Utilities.LoadTestFromFile();
+            foreach (var test in tests)
+            {
+                if (test.Chamber.Name == cmb1.Name)
+                    test.Chamber = cmb1;
+                if (test.Channel.Tester.Name == "17208Auto")
+                    test.Channel = tester.Channels.SingleOrDefault(ch => ch.Index == GetChannelIndex(test.Channel.Name));
+            }
             Automator automator = new Automator();
             //List<Step> fullSteps;
             //CreateFullSteps(out fullSteps);
@@ -29,9 +35,9 @@ namespace SmartTester
             Console.ReadLine();
         }
 
-        private static List<Test> LoadTestFromFile()
+        private static int GetChannelIndex(string name)
         {
-            throw new NotImplementedException();
+            return int.Parse(System.Text.RegularExpressions.Regex.Replace(name, @"[^0-9]+", ""));
         }
 
         private static void CreateFullSteps(out List<Step> fullSteps)
