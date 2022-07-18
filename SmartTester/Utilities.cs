@@ -114,16 +114,16 @@ namespace SmartTester
                                     }
                                     lastTimeInMS = lastRow.TimeInMS;
                                 }
-                                //处理最后一行数据
-                                currentRow.Index = ++indexOffset;
-                                currentRow.TimeInMS += timeOffset;
-                                currentRow.Capacity += capacityOffset;
-                                currentRow.TotalCapacity = currentRow.Capacity + totalCapacityOffset;
-                                UpdateRowStatus(ref currentRow, GetCutOffBehavior(step, currentRow.TimeInMS, currentRow), targetTemperature);
-                                stdWriter.WriteLine(currentRow.ToString());
                             }
                         }
                     }
+                    //处理最后一行数据
+                    currentRow.Index = ++indexOffset;
+                    currentRow.TimeInMS += timeOffset;
+                    currentRow.Capacity += capacityOffset;
+                    currentRow.TotalCapacity = currentRow.Capacity + totalCapacityOffset;
+                    UpdateRowStatus(ref currentRow, GetCutOffBehavior(step, currentRow.TimeInMS, currentRow), targetTemperature);
+                    stdWriter.WriteLine(currentRow.ToString());
                 }
             }
             string newFileFullPath = GetNewFileFullPath(newFilePath, lastTimeInMS);

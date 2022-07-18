@@ -22,7 +22,7 @@ namespace UnitTest
         [Fact]
         public void FileConvertShouldWork()
         {
-            var files = Directory.GetFiles(@"D:\BC_Lab\SW Design\Instrument Automation\File Converter\40T init\", "*.txt");
+            var files = Directory.GetFiles(@"D:\BC_Lab\SW Design\Instrument Automation\40T init(2)\", "*.txt");
             for(int i=1;i<=8;i++)
             {
                 var fileList = files.Where(o => o.Contains($"Chroma17208M-Ch{i}")).OrderBy(o=>o).ToList();
