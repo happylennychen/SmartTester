@@ -1,4 +1,4 @@
-﻿//#define debug
+﻿#define debug
 using System;
 
 namespace SmartTester
@@ -10,7 +10,11 @@ namespace SmartTester
         public string Name { get; set; }
         public double LowestTemperature { get; set; }
         public double HighestTemperature { get; set; }
+#if debug
+        public DebugChamberExecutor Executor { get; set; }
+#else
         public PUL80Executor Executor { get; set; }
+#endif
 
         public Chamber()
         { }
@@ -29,8 +33,11 @@ namespace SmartTester
             Name = name;
             HighestTemperature = highestTemperature;
             LowestTemperature = lowestTemperature;
-
+#if debug
+            Executor = new DebugChamberExecutor();
+#else
             Executor = new PUL80Executor();
+#endif
 #if !debug
             if (!Executor.Init(ipAddress, port))
             {

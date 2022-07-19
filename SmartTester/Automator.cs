@@ -154,6 +154,10 @@ namespace SmartTester
 
         private async Task WaitForChamberReady(Chamber chamber, double temperature)
         {
+#if debug
+            await Task.Delay(5000); 
+            Console.WriteLine($"Chamber Ready!");
+#else
             byte tempInRangeCounter = 0;
             double temp;
             do
@@ -175,6 +179,7 @@ namespace SmartTester
                 }
             }
             while (tempInRangeCounter < 30 /*|| chamberStatus != ChamberStatus.HOLD*/);    //chamber temperature tolerrance is 5?
+#endif
         }
 
         private List<TargetTemperature> GetTemperaturePoints(List<Test> testsInOneChamber)  //现在暂时就两个点

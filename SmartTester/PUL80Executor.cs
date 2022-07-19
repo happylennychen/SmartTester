@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 namespace SmartTester
 {
-    public class PUL80Executor
+    public class PUL80Executor:IChamberExecutor
     {
         private static TcpClient tcpClient;
         private static NetworkStream stream;

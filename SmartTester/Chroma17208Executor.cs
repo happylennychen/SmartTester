@@ -6,7 +6,7 @@ using System.Text;
 
 namespace SmartTester
 {
-    public class Chroma17208Executor
+    public class Chroma17208Executor : ITesterExecutor
     {
         private static MessageBasedSession mbSession;
         //private static TcpClient tcpClient;

@@ -93,7 +93,11 @@
     <Compile Include="Condition.cs" />
     <Compile Include="CutOffBehavior.cs" />
     <Compile Include="DataLogger.cs" />
+    <Compile Include="DebugChamberExecutor.cs" />
+    <Compile Include="DebugTesterExecutor.cs" />
+    <Compile Include="IChamberExecutor.cs" />
     <Compile Include="IDataLogger.cs" />
+    <Compile Include="ITesterExecutor.cs" />
     <Compile Include="ITester.cs" />
     <Compile Include="JumpBehavior.cs" />
     <Compile Include="JumpType.cs" />

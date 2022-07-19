@@ -1,4 +1,4 @@
-﻿//#define debug
+﻿#define debug
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,13 +17,21 @@ namespace SmartTester
         private Timer mainTimer { get; set; }
         private int _counter { get; set; } = 0;
         private Stopwatch mainWatch { get; set; }
+#if debug
+        private DebugTesterExecutor Executor { get; set; }
+#else
         private Chroma17208Executor Executor { get; set; }
+#endif
         public Tester()
         { }
         public Tester(string name, int channelNumber, string ipAddress, int port, string sessionStr)
         {
             Name = name;
+#if debug
+            Executor = new DebugTesterExecutor();
+#else
             Executor = new Chroma17208Executor();
+#endif
             mainWatch = new Stopwatch();
             Channels = new List<Channel>();
 #if !debug
