@@ -98,7 +98,8 @@ namespace SmartTester
                                     lastRow.TimeInMS += timeOffset;
                                     lastRow.Capacity += capacityOffset;
                                     lastRow.TotalCapacity = lastRow.Capacity + totalCapacityOffset;
-                                    stdWriter.WriteLine(lastRow.ToString());
+                                    var offset = (int)currentRow.TimeInMS - (int)lastRow.TimeInMS - 1000;
+                                    stdWriter.WriteLine(lastRow.ToString() + "," + offset.ToString());
                                     if (lastRow.Status != RowStatus.RUNNING)
                                     {
                                         timeOffset = lastRow.TimeInMS;
@@ -133,28 +134,28 @@ namespace SmartTester
 
         private static void UpdateRowStatus(ref StandardRow row, CutOffBehavior cob, double targetTemperature)
         {
-                if (cob != null)
-                    switch (cob.Condition.Parameter)
-                    {
-                        case Parameter.CURRENT:
-                            row.Status = RowStatus.CUT_OFF_BY_CURRENT;
-                            break;
-                        case Parameter.POWER:
-                            row.Status = RowStatus.CUT_OFF_BY_POWER;
-                            break;
-                        case Parameter.TEMPERATURE:
-                            row.Status = RowStatus.CUT_OFF_BY_TEMPERATURE;
-                            break;
-                        case Parameter.TIME:
-                            row.Status = RowStatus.CUT_OFF_BY_TIME;
-                            break;
-                        case Parameter.VOLTAGE:
-                            row.Status = RowStatus.CUT_OFF_BY_VOLTAGE;
-                            break;
-                        default:
-                            row.Status = RowStatus.UNKNOWN;
-                            break;
-                    }
+            if (cob != null)
+                switch (cob.Condition.Parameter)
+                {
+                    case Parameter.CURRENT:
+                        row.Status = RowStatus.CUT_OFF_BY_CURRENT;
+                        break;
+                    case Parameter.POWER:
+                        row.Status = RowStatus.CUT_OFF_BY_POWER;
+                        break;
+                    case Parameter.TEMPERATURE:
+                        row.Status = RowStatus.CUT_OFF_BY_TEMPERATURE;
+                        break;
+                    case Parameter.TIME:
+                        row.Status = RowStatus.CUT_OFF_BY_TIME;
+                        break;
+                    case Parameter.VOLTAGE:
+                        row.Status = RowStatus.CUT_OFF_BY_VOLTAGE;
+                        break;
+                    default:
+                        row.Status = RowStatus.UNKNOWN;
+                        break;
+                }
         }
 
         private static bool capacityShouldContinue(StandardRow lastRow, StandardRow stdRow)
@@ -172,7 +173,7 @@ namespace SmartTester
             {
                 var duration = TimeSpan.FromMilliseconds(lastTimeInMS);
                 var endTimeInString = (startTime + duration).ToString("yyyyMMddHHmmss");
-                return path + '\\' + fileNameWithoutExtension + "-" + endTimeInString + ".csv";
+                return fileNameWithoutExtension + "-" + endTimeInString + ".csv";
                 //File.Move(newFilePath, fileNameWithoutExtension + "-" + endTimeInString + ".csv");
             }
             else

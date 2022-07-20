@@ -89,8 +89,8 @@ namespace SmartTester
         {
             while (!channels.All(ch => ch.Status != ChannelStatus.RUNNING))
             {
-                Console.WriteLine($"Not all channels stoped, wait for more 5 seconds. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
-                await Task.Delay(5000);
+                //Console.WriteLine($"Not all channels stoped, wait for more 5 seconds. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
+                await Task.Delay(10000);
             }
             if (channels.All(ch => ch.Status == ChannelStatus.IDLE))
                 return true;
@@ -155,7 +155,7 @@ namespace SmartTester
         private async Task WaitForChamberReady(Chamber chamber, double temperature)
         {
 #if debug
-            await Task.Delay(5000); 
+            await Task.Delay(500); 
             Console.WriteLine($"Chamber Ready!");
 #else
             byte tempInRangeCounter = 0;
