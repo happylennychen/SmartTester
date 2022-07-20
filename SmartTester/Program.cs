@@ -11,6 +11,12 @@ namespace SmartTester
     {
         static void Main(string[] args)
         {
+            string consoleOuputFile = $"Console Output {DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
+            FileStream fs = new FileStream(consoleOuputFile, FileMode.Create);
+            StreamWriter sw = new StreamWriter(fs);
+            sw.AutoFlush = true;
+            var tempOut = Console.Out;
+            Console.SetOut(sw);
             Tester tester = new Tester("17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
             Chamber cmb1 = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
 
@@ -32,7 +38,10 @@ namespace SmartTester
             Task t = automator.Start(tests);
             t.Wait();
             Console.WriteLine("Demo program completed!");
-            Console.ReadLine();
+            sw.Close();
+            fs.Close();
+            Console.SetOut(tempOut);
+            Console.WriteLine($"Demo program completed! Please check {consoleOuputFile} for the details.");
         }
 
         private static int GetChannelIndex(string name)
