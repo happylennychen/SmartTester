@@ -98,8 +98,8 @@ namespace SmartTester
                                     lastRow.TimeInMS += timeOffset;
                                     lastRow.Capacity += capacityOffset;
                                     lastRow.TotalCapacity = lastRow.Capacity + totalCapacityOffset;
-                                    var offset = (int)currentRow.TimeInMS - (int)lastRow.TimeInMS - 1000;
-                                    stdWriter.WriteLine(lastRow.ToString() + "," + offset.ToString());
+                                    //var offset = (int)currentRow.TimeInMS - (int)lastRow.TimeInMS - 1000;
+                                    stdWriter.WriteLine(lastRow.ToString()/* + "," + offset.ToString()*/);
                                     if (lastRow.Status != RowStatus.RUNNING)
                                     {
                                         timeOffset = lastRow.TimeInMS;
