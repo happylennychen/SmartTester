@@ -56,15 +56,12 @@ namespace SmartTester
             int counter = (int)i % Channels.Count;
             int channelIndex = counter + 1;
             Channel channel = Channels.SingleOrDefault(ch => ch.Index == channelIndex);
-            long data;
+            //long data;
             StandardRow stdRow;
             uint channelEvents;
             if (!Executor.ReadRow(channelIndex, out stdRow, out channelEvents))
             {
-                channel.DataQueue.Clear();
-                channel.DataLogger.Close();
-                channel.ShouldTimerStart = false;
-                channel.IsTimerStart = false;
+                channel.Reset();
                 channel.Status = ChannelStatus.ERROR;
                 Console.WriteLine("Error");
                 return;
@@ -73,9 +70,12 @@ namespace SmartTester
             do
             {
                 Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
-                data = stdRow.TimeInMS % 1000;
+                //data = stdRow.TimeInMS % 1000;
             }
-            while (data > 100 && stdRow.Status == RowStatus.RUNNING);
+            //while (data > 100 && stdRow.Status == RowStatus.RUNNING);
+            while (stdRow.TimeInMS < (1000 + channel.LastTimeInMS) && stdRow.Status == RowStatus.RUNNING);
+
+            channel.LastTimeInMS = stdRow.TimeInMS / 1000 * 1000;
             stdRow.Temperature = Executor.ReadTemperarture(channelIndex);
             channel.DataQueue.Enqueue(stdRow);
             if (stdRow.Status == RowStatus.STOP)
@@ -89,13 +89,10 @@ namespace SmartTester
             {
                 gap += " ";
             }
-            Console.WriteLine($"{strRow}...Ch{gap}{channelIndex}. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
+            Console.WriteLine($"{0,60}Ch{gap}{channelIndex}.", strRow);
             if (channelEvents != ChannelEvents.Normal)
             {
-                channel.DataQueue.Clear();
-                channel.DataLogger.Close();
-                channel.ShouldTimerStart = false;
-                channel.IsTimerStart = false;
+                channel.Reset();
                 Console.WriteLine("Channel Event Error");
                 return;
             }
@@ -104,41 +101,30 @@ namespace SmartTester
                 channel.Step = Utilities.GetNewTargetStep(channel.Step, channel.FullSteps, channel.TargetTemperature, stdRow.TimeInMS, stdRow);
                 if (channel.Step == null)
                 {
-                    channel.DataQueue.Clear();
-                    channel.DataLogger.Close();
-                    channel.ShouldTimerStart = false;
-                    channel.IsTimerStart = false;
+                    channel.Reset();
                     Console.WriteLine($"CH{channelIndex} Done!");
                     channel.Status = ChannelStatus.IDLE;
                     //Task task = Task.Run(() => FileTransfer(channel.DataLogger.FilePath));
                     return;
                 }
-                else
+                else    //新的工步
                 {
+                    channel.LastTimeInMS = 0;
                     if (!Executor.SpecifyChannel(channelIndex))
                     {
-                        channel.DataQueue.Clear();
-                        channel.DataLogger.Close();
-                        channel.ShouldTimerStart = false;
-                        channel.IsTimerStart = false;
+                        channel.Reset();
                         Console.WriteLine("Error");
                         return;
                     }
                     if (!Executor.SpecifyTestStep(channel.Step))
                     {
-                        channel.DataQueue.Clear();
-                        channel.DataLogger.Close();
-                        channel.ShouldTimerStart = false;
-                        channel.IsTimerStart = false;
+                        channel.Reset();
                         Console.WriteLine("Error");
                         return;
                     }
                     if (!Executor.Start())
                     {
-                        channel.DataQueue.Clear();
-                        channel.DataLogger.Close();
-                        channel.ShouldTimerStart = false;
-                        channel.IsTimerStart = false;
+                        channel.Reset();
                         Console.WriteLine("Error");
                         return;
                     }
@@ -260,7 +246,7 @@ namespace SmartTester
             throw new NotImplementedException();
         }
 
- 
+
 
     }
 }

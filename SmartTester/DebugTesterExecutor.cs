@@ -16,7 +16,7 @@ namespace SmartTester
         public Stopwatch[] Stopwatches { get; set; }
         public DebugTesterExecutor()
         {
-            FilePath = $@"debug.txt";
+            FilePath = $@"debug{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
             Stopwatches = new Stopwatch[8];
             for (int i = 0; i < Stopwatches.Length; i++)
             {
