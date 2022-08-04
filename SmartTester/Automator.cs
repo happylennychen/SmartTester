@@ -1,4 +1,4 @@
-﻿//#define debug
+﻿#define debug
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,6 +79,7 @@ namespace SmartTester
             }
             Console.WriteLine($"Stop Chamber Group for {chamber.Name}. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
             chamber.Executor.Stop();
+            await Task.Delay(60000);
             foreach (var test in testsInOneChamber)
             {
                 test.Channel.GenerateFile(test.Steps);

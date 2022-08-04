@@ -19,25 +19,38 @@ namespace SmartTester
             Console.SetOut(sw);
             Tester tester = new Tester("17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
             Chamber cmb1 = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
-
-            List<Test> tests = Utilities.LoadTestFromFile();
-            foreach (var test in tests)
+            int i = 1;
+            while(true)
             {
-                if (test.Chamber.Name == cmb1.Name)
-                    test.Chamber = cmb1;
-                if (test.Channel.Tester.Name == "17208Auto")
-                    test.Channel = tester.Channels.SingleOrDefault(ch => ch.Index == GetChannelIndex(test.Channel.Name));
+                var root = @"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\";
+                var dirs = Directory.GetDirectories(root);
+                if (dirs.Contains($@"{root}{i}"))
+                {
+                    Console.WriteLine($"Round {i}");
+                    var folderPath = $@"{root}{i}";
+
+                    List<Test> tests = Utilities.LoadTestFromFile(folderPath);
+                    foreach (var test in tests)
+                    {
+                        if (test.Chamber.Name == cmb1.Name)
+                            test.Chamber = cmb1;
+                        if (test.Channel.Tester.Name == "17208Auto")
+                            test.Channel = tester.Channels.SingleOrDefault(ch => ch.Index == GetChannelIndex(test.Channel.Name));
+                    }
+                    Automator automator = new Automator();
+                    Console.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
+                    Task t = automator.Start(tests);
+                    t.Wait();
+                    Console.WriteLine($"Round {i} programs in {folderPath} completed!");
+                    i++;
+                }
+                else
+                {
+                    Console.WriteLine($"All rounds finished.");
+                    break;
+                }
             }
-            Automator automator = new Automator();
-            //List<Step> fullSteps;
-            //CreateFullSteps(out fullSteps);
-            //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 1), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
-            //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 2), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
-            //tests.Add(new Test() { Channel = tester.Channels.SingleOrDefault(ch => ch.Index == 3), Chamber = cmb1, Steps = fullSteps, DischargeTemperature = 30 });
-            Console.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
-            Task t = automator.Start(tests);
-            t.Wait();
-            Console.WriteLine("Demo program completed!");
+
             sw.Close();
             fs.Close();
             Console.SetOut(tempOut);

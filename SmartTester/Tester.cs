@@ -1,4 +1,4 @@
-﻿//#define debug
+﻿#define debug
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -89,7 +89,7 @@ namespace SmartTester
             {
                 gap += " ";
             }
-            Console.WriteLine($"{0,60}Ch{gap}{channelIndex}.", strRow);
+            Console.WriteLine($"{strRow,-60}Ch{gap}{channelIndex}.");
             if (channelEvents != ChannelEvents.Normal)
             {
                 channel.Reset();

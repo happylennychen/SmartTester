@@ -329,10 +329,10 @@ namespace SmartTester
         }
 
 
-        public static List<Test> LoadTestFromFile()
+        public static List<Test> LoadTestFromFile(string folderPath)
         {
             List<Test> output = new List<Test>();
-            var files = Directory.GetFiles(@"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\", "*.testplan");
+            var files = Directory.GetFiles(folderPath, "*.testplan");
             foreach (var file in files)
             {
                 string json = File.ReadAllText(file);

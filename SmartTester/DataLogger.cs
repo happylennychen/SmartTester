@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace SmartTester
@@ -66,9 +67,11 @@ namespace SmartTester
 
         private async Task CloseDataLogger()
         {
+            Console.WriteLine($"Start close {FilePath}");
             await streamWriter.FlushAsync();
             streamWriter.Close();
             fileStream.Close();
+            Console.WriteLine($"Complete close {FilePath}");
         }
     }
 }

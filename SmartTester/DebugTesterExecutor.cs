@@ -36,7 +36,7 @@ namespace SmartTester
                 Console.WriteLine($"Channel {channelIndex} read row");
                 stdRow = new StandardRow();
                 stdRow.TimeInMS = (uint)Stopwatches[channelIndex - 1].ElapsedMilliseconds;
-                if (stdRow.TimeInMS > 60000)
+                if (stdRow.TimeInMS > 3000)
                     stdRow.Status = RowStatus.STOP;
                 AccessFile($"Channel {channelIndex}, Time: {stdRow.TimeInMS}, Thread:{CurrentThread.ManagedThreadId}");
                 channelEvents = 0;

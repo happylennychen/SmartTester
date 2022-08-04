@@ -62,7 +62,7 @@ namespace UnitTest
         [Fact]
         public void LoadFromFileShouldWork()
         {
-            Utilities.LoadTestFromFile();
+            Utilities.LoadTestFromFile(@"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\");
         }
     }
 }
