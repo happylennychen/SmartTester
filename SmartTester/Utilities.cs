@@ -76,53 +76,64 @@ namespace SmartTester
             Step step = fullSteps.First();
             using (FileStream stdFile = new FileStream(newFilePath, FileMode.Create))
             {
+                Console.WriteLine($"{newFilePath} created.");
                 using (StreamWriter stdWriter = new StreamWriter(stdFile))
                 {
+                    Console.WriteLine($"StreamWriter created.");
                     stdWriter.WriteLine("Index,Time(mS),Mode,Current(mA),Voltage(mV),Temperature(degC),Capacity(mAh),Total Capacity(mAh),Status");
                     foreach (var filePath in filePaths)
                     {
-                        using (FileStream rawFile = new FileStream(filePath, FileMode.Open))
+
+                        Console.WriteLine($"Trying to open file {filePath}.");
+                        try
                         {
-                            using (StreamReader rawReader = new StreamReader(rawFile))
+                            using (FileStream rawFile = new FileStream(filePath, FileMode.Open))
                             {
-                                while (rawReader.Peek() != -1)
+                                using (StreamReader rawReader = new StreamReader(rawFile))
                                 {
-                                    if (currentRow != null)
-                                        lastRow = currentRow;
-                                    var line = rawReader.ReadLine();
-                                    currentRow = new StandardRow(line);
-                                    if (lastRow == null)
-                                        continue;
-
-                                    if (lastRow.Status != RowStatus.RUNNING)
+                                    while (rawReader.Peek() != -1)
                                     {
-                                        CutOffBehavior cob = GetCutOffBehavior(step, lastRow.TimeInMS, lastRow);
-                                        step = GetNewTargetStep(step, fullSteps, targetTemperature, lastRow.TimeInMS, lastRow);
-                                        UpdateRowStatus(ref lastRow, cob, targetTemperature);
-                                    }
+                                        if (currentRow != null)
+                                            lastRow = currentRow;
+                                        var line = rawReader.ReadLine();
+                                        currentRow = new StandardRow(line);
+                                        if (lastRow == null)
+                                            continue;
 
-                                    lastRow.Index = ++indexOffset;
-                                    lastRow.TimeInMS += timeOffset;
-                                    lastRow.Capacity += capacityOffset;
-                                    lastRow.TotalCapacity = lastRow.Capacity + totalCapacityOffset;
-                                    //var offset = (int)currentRow.TimeInMS - (int)lastRow.TimeInMS - 1000;
-                                    stdWriter.WriteLine(lastRow.ToString()/* + "," + offset.ToString()*/);
-                                    if (lastRow.Status != RowStatus.RUNNING)
-                                    {
-                                        timeOffset = lastRow.TimeInMS;
-                                        if (capacityShouldContinue(lastRow, currentRow))
+                                        if (lastRow.Status != RowStatus.RUNNING)
                                         {
-                                            capacityOffset = lastRow.Capacity;
+                                            CutOffBehavior cob = GetCutOffBehavior(step, lastRow.TimeInMS, lastRow);
+                                            step = GetNewTargetStep(step, fullSteps, targetTemperature, lastRow.TimeInMS, lastRow);
+                                            UpdateRowStatus(ref lastRow, cob, targetTemperature);
                                         }
-                                        else
+
+                                        lastRow.Index = ++indexOffset;
+                                        lastRow.TimeInMS += timeOffset;
+                                        lastRow.Capacity += capacityOffset;
+                                        lastRow.TotalCapacity = lastRow.Capacity + totalCapacityOffset;
+                                        //var offset = (int)currentRow.TimeInMS - (int)lastRow.TimeInMS - 1000;
+                                        stdWriter.WriteLine(lastRow.ToString()/* + "," + offset.ToString()*/);
+                                        if (lastRow.Status != RowStatus.RUNNING)
                                         {
-                                            capacityOffset = 0;
-                                            totalCapacityOffset = lastRow.TotalCapacity;
+                                            timeOffset = lastRow.TimeInMS;
+                                            if (capacityShouldContinue(lastRow, currentRow))
+                                            {
+                                                capacityOffset = lastRow.Capacity;
+                                            }
+                                            else
+                                            {
+                                                capacityOffset = 0;
+                                                totalCapacityOffset = lastRow.TotalCapacity;
+                                            }
                                         }
+                                        lastTimeInMS = lastRow.TimeInMS;
                                     }
-                                    lastTimeInMS = lastRow.TimeInMS;
                                 }
                             }
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Cannot open file {filePath}.\n{e.Message}");
                         }
                     }
                     //处理最后一行数据

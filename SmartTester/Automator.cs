@@ -95,6 +95,7 @@ namespace SmartTester
                 return;
             }
             //await Task.Delay(1000);
+            Console.WriteLine($"Start file converting.");
             foreach (var test in testsInOneChamber)
             {
                 test.Channel.GenerateFile(test.Steps);
