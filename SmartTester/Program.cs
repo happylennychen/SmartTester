@@ -19,15 +19,21 @@ namespace SmartTester
             Console.SetOut(sw);
             Tester tester = new Tester("17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
             Chamber cmb1 = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
-            int i = 1;
+            var root = @"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\";
+            GlobalSettings.RoundIndex = 1;
+            if (!TestPlanPreCheck(root))
+            {
+                Console.WriteLine($"Test Plan pre-check failed!");
+                return;
+            }
+            GlobalSettings.OutputFolder = CreateOutputFolderRoot(DateTime.Now.ToString("yyyyMMddHHmmss"));
             while(true)
             {
-                var root = @"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\";
                 var dirs = Directory.GetDirectories(root);
-                if (dirs.Contains($@"{root}{i}"))
+                if (dirs.Contains($@"{root}{GlobalSettings.RoundIndex}"))
                 {
-                    Console.WriteLine($"Round {i}");
-                    var folderPath = $@"{root}{i}";
+                    Console.WriteLine($"Round {GlobalSettings.RoundIndex}");
+                    var folderPath = $@"{root}{GlobalSettings.RoundIndex}";
 
                     List<Test> tests = Utilities.LoadTestFromFile(folderPath);
                     foreach (var test in tests)
@@ -41,8 +47,8 @@ namespace SmartTester
                     Console.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
                     Task t = automator.Start(tests);
                     t.Wait();
-                    Console.WriteLine($"Round {i} programs in {folderPath} completed!");
-                    i++;
+                    Console.WriteLine($"Round {GlobalSettings.RoundIndex} programs in {folderPath} completed!");
+                    GlobalSettings.RoundIndex++;
                 }
                 else
                 {
@@ -55,6 +61,47 @@ namespace SmartTester
             fs.Close();
             Console.SetOut(tempOut);
             Console.WriteLine($"Demo program completed! Please check {consoleOuputFile} for the details.");
+        }
+
+        private static string CreateOutputFolderRoot(string v)
+        {
+            Directory.CreateDirectory(v);
+            return v;
+        }
+
+        private static bool TestPlanPreCheck(string root)
+        {
+            bool ret = true;
+            Console.WriteLine("Test Plan pre-check.");
+            int roundIndex = 1;
+            while (true)
+            {
+                var dirs = Directory.GetDirectories(root);
+                if (dirs.Contains($@"{root}{roundIndex}"))
+                {
+                    var folderPath = $@"{root}{roundIndex}";
+
+                    List<Test> tests = Utilities.LoadTestFromFile(folderPath);
+                    var testsGroupedbyChamber = tests.GroupBy(t => t.Chamber);
+                    foreach (var tst in testsGroupedbyChamber)
+                    {
+                        if (!Automator.ChamberGroupTestCheck(tst.ToList()))
+                        {
+                            Console.WriteLine($"Round {roundIndex} failed!");
+                            ret = false;
+                        }
+                        else
+                            Console.WriteLine($"Round {roundIndex} pass!");
+                    }
+                    roundIndex++;
+                }
+                else
+                {
+                    Console.WriteLine($"All rounds test plan check finished.");
+                    break;
+                }
+            }
+            return ret;
         }
 
         private static int GetChannelIndex(string name)

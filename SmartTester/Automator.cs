@@ -1,6 +1,7 @@
 ﻿#define debug
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using static System.Threading.Thread;
@@ -37,11 +38,13 @@ namespace SmartTester
         private async Task AsyncStartChamberGroup(Chamber chamber, List<Test> testsInOneChamber)
         {
             Console.WriteLine($"Start Chamber Group for {chamber.Name}. Thread {CurrentThread.ManagedThreadId}, {CurrentThread.IsThreadPoolThread}");
+            Utilities.CreateOutputFolder();
             List<KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>> sections = GetTestSections(testsInOneChamber);   //sections是每个温度点下的测试的集合
             var channels = testsInOneChamber.Select(o => o.Channel).ToList();
             foreach (var channel in channels)
             {
                 channel.Tester.Stop(channel.Index);     //先停止前面的实验。
+                //channel.DataLogger.Folder = outputFolder;
             }
             foreach (var ts in sections)
             {
@@ -79,7 +82,7 @@ namespace SmartTester
             }
             Console.WriteLine($"Stop Chamber Group for {chamber.Name}. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
             chamber.Executor.Stop();
-            await Task.Delay(60000);
+            await Task.Delay(1000);
             foreach (var test in testsInOneChamber)
             {
                 test.Channel.GenerateFile(test.Steps);
@@ -192,7 +195,7 @@ namespace SmartTester
                 return new List<TargetTemperature>() { new TargetTemperature() { Temperature = 25, IsCritical = true } };
         }
 
-        private bool ChamberGroupTestCheck(List<Test> tests)
+        public static bool ChamberGroupTestCheck(List<Test> tests)
         {
             if (tests.GroupBy(t => t.DischargeTemperature).Count() != 1)
             {

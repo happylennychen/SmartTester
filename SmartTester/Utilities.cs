@@ -56,6 +56,13 @@ namespace SmartTester
                 }
             }
         }
+
+        internal static void CreateOutputFolder()
+        {
+            string outputFolder = Path.Combine(GlobalSettings.OutputFolder, GlobalSettings.RoundIndex.ToString());
+            Directory.CreateDirectory(outputFolder);
+        }
+
         public static void FileConvert(List<string> filePaths, List<Step> fullSteps, double targetTemperature)
         {
             uint indexOffset = 0;
@@ -166,14 +173,14 @@ namespace SmartTester
         public static string GetNewFileFullPath(string newFilePath, uint lastTimeInMS)
         {
             var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(newFilePath);
-            var path = Path.GetDirectoryName(newFilePath);
+            var directory = Path.GetDirectoryName(newFilePath);
             var startTimeInString = fileNameWithoutExtension.Split('-').Last();
             DateTime startTime;
             if (DateTime.TryParseExact(startTimeInString, "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.None, out startTime))
             {
                 var duration = TimeSpan.FromMilliseconds(lastTimeInMS);
                 var endTimeInString = (startTime + duration).ToString("yyyyMMddHHmmss");
-                return fileNameWithoutExtension + "-" + endTimeInString + ".csv";
+                return directory + "\\" + fileNameWithoutExtension + "-" + endTimeInString + ".csv";
                 //File.Move(newFilePath, fileNameWithoutExtension + "-" + endTimeInString + ".csv");
             }
             else

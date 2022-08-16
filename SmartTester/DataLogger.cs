@@ -12,10 +12,10 @@ namespace SmartTester
 
         private FileStream fileStream;
         private StreamWriter streamWriter;
-        public DataLogger(int id, string filePath)
+        public DataLogger(int id, string fileName)
         {
             this.Id = id;
-            this.FilePath = filePath;
+            this.FilePath = Path.Combine(GlobalSettings.OutputFolder, GlobalSettings.RoundIndex.ToString(), fileName);
             fileStream = new FileStream(FilePath, FileMode.Create);
             streamWriter = new StreamWriter(fileStream);
         }

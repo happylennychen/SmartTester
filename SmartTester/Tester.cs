@@ -191,9 +191,9 @@ namespace SmartTester
             if (channel.ShouldTimerStart && !channel.IsTimerStart)     //应该开启且还没开启
             {
                 channel.DataQueue = new Queue<StandardRow>();
-                string filePath = $"{Name}-{channel.Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
-                channel.TempFileList.Add(filePath);
-                channel.DataLogger = new DataLogger(counter + 1, filePath);
+                string fileName = $"{Name}-{channel.Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
+                channel.DataLogger = new DataLogger(counter + 1, fileName);
+                channel.TempFileList.Add(channel.DataLogger.FilePath);
                 Executor.SpecifyChannel(counter + 1);
                 channel.Step = channel.FullSteps.First();
                 Executor.SpecifyTestStep(channel.Step);

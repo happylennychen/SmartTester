@@ -95,6 +95,7 @@
     <Compile Include="DataLogger.cs" />
     <Compile Include="DebugChamberExecutor.cs" />
     <Compile Include="DebugTesterExecutor.cs" />
+    <Compile Include="GlobalSettings.cs" />
     <Compile Include="IChamberExecutor.cs" />
     <Compile Include="IDataLogger.cs" />
     <Compile Include="ITesterExecutor.cs" />
