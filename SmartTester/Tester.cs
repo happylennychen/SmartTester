@@ -1,4 +1,4 @@
-﻿#define debug
+﻿//#define debug
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,6 +10,14 @@ using System.Threading.Tasks;
 using static System.Threading.Thread;
 namespace SmartTester
 {
+    public static class StepTolerance
+    {
+        public static double Current { get { return 10; } } //mA
+        public static double Temperature { get { return 3.5; } }    //deg
+        public static double Voltage { get { return 5; } } //mV
+        public static double Power { get { return 100; } }
+        public static double Time { get { return 3000; } }     //mS
+    }
     public class Tester : ITester
     {
         public string Name { get; set; }
@@ -23,7 +31,8 @@ namespace SmartTester
         private Chroma17208Executor Executor { get; set; }
 #endif
         public Tester()
-        { }
+        {
+        }
         public Tester(string name, int channelNumber, string ipAddress, int port, string sessionStr)
         {
             Name = name;
@@ -53,49 +62,88 @@ namespace SmartTester
 
         private void WorkerCallback(object i)
         {
+            bool ret;
             int counter = (int)i % Channels.Count;
             int channelIndex = counter + 1;
             Channel channel = Channels.SingleOrDefault(ch => ch.Index == channelIndex);
             //long data;
+            #region read data
             StandardRow stdRow;
             uint channelEvents;
-            if (!Executor.ReadRow(channelIndex, out stdRow, out channelEvents))
+            ret = Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
+            if (!ret)
             {
                 channel.Reset();
                 channel.Status = ChannelStatus.ERROR;
-                Console.WriteLine("Error");
+                Console.WriteLine("Cannot read row from tester. Please check cable connection.");
                 return;
             }
             var startPoint = stdRow.TimeInMS % 1000;
             do
             {
-                Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
+                ret = Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
+                if (!ret)
+                {
+                    channel.Reset();
+                    channel.Status = ChannelStatus.ERROR;
+                    Console.WriteLine("Cannot read row from tester. Please check cable connection.");
+                    return;
+                }
                 //data = stdRow.TimeInMS % 1000;
             }
             //while (data > 100 && stdRow.Status == RowStatus.RUNNING);
             while (stdRow.TimeInMS < (1000 + channel.LastTimeInMS) && stdRow.Status == RowStatus.RUNNING);
 
             channel.LastTimeInMS = stdRow.TimeInMS / 1000 * 1000;
-            stdRow.Temperature = Executor.ReadTemperarture(channelIndex);
+            double temperature;
+            ret = Executor.ReadTemperarture(channelIndex, out temperature);
+            if (!ret)
+            {
+                channel.Reset();
+                channel.Status = ChannelStatus.ERROR;
+                Console.WriteLine("Cannot read temperature from tester. Please check cable connection.");
+                return;
+            }
+            stdRow.Temperature = temperature;
             channel.DataQueue.Enqueue(stdRow);
             if (stdRow.Status == RowStatus.STOP)
                 stdRow = GetAdjustedRow(channel.DataQueue.ToList());
             if (channel.DataQueue.Count >= 4)
                 channel.DataQueue.Dequeue();
             var strRow = stdRow.ToString();
+            #endregion
+
+            #region log data
             channel.DataLogger.AddData(strRow + "\n");
+            #endregion
+
+            #region display data
             string gap = string.Empty;
             for (int j = 0; j < counter; j++)
             {
                 gap += " ";
             }
             Console.WriteLine($"{strRow,-60}Ch{gap}{channelIndex}.");
+            #endregion
+
+            #region verify data
             if (channelEvents != ChannelEvents.Normal)
             {
                 channel.Reset();
                 Console.WriteLine("Channel Event Error");
                 return;
             }
+            if (channel.Step.Action.Mode == ActionMode.CC_DISCHARGE)
+                if (stdRow.Current - channel.Step.Action.Current > StepTolerance.Current)
+                {
+                    channel.Reset();
+                    channel.Status = ChannelStatus.ERROR;
+                    Console.WriteLine("Current out of range.");
+                    return;
+                }
+            #endregion
+
+            #region change step
             if (stdRow.Status != RowStatus.RUNNING)
             {
                 channel.Step = Utilities.GetNewTargetStep(channel.Step, channel.FullSteps, channel.TargetTemperature, stdRow.TimeInMS, stdRow);
@@ -113,23 +161,25 @@ namespace SmartTester
                     if (!Executor.SpecifyChannel(channelIndex))
                     {
                         channel.Reset();
-                        Console.WriteLine("Error");
+                        Console.WriteLine("Cannot specify channel. Please check cable connection.");
                         return;
                     }
                     if (!Executor.SpecifyTestStep(channel.Step))
                     {
                         channel.Reset();
-                        Console.WriteLine("Error");
+                        Console.WriteLine("Cannot specify test step. Please check cable connection.");
                         return;
                     }
                     if (!Executor.Start())
                     {
                         channel.Reset();
-                        Console.WriteLine("Error");
+                        Console.WriteLine("Cannot start tester. Please check cable connection.");
                         return;
                     }
                 }
             }
+            #endregion
+
             if (channel.ShouldTimerStart) //开启下一次计时
             {
                 channel.Timer.Change(950, 0);

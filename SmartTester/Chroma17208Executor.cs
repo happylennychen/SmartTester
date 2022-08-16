@@ -42,45 +42,46 @@ namespace SmartTester
             return true;
         }
 
-        public double ReadCapacity(int channel)
-        {
-            string cmd = $"MEAS:AH? {channel.ToString()}";
-            var result = SCPIQuary(cmd);
-            return double.Parse(result);
-        }
+        //public double ReadCapacity(int channel)
+        //{
+        //    string cmd = $"MEAS:AH? {channel.ToString()}";
+        //    var result = SCPIQuary(cmd);
+        //    return double.Parse(result);
+        //}
 
-        public double ReadCurrent(int channel)
-        {
-            string cmd = $"MEAS:CURR? {channel.ToString()}";
-            var result = SCPIQuary(cmd);
-            return double.Parse(result);
-        }
+        //public double ReadCurrent(int channel)
+        //{
+        //    string cmd = $"MEAS:CURR? {channel.ToString()}";
+        //    var result = SCPIQuary(cmd);
+        //    return double.Parse(result);
+        //}
 
-        public uint ReadEvents(int channel)
-        {
-            string cmd = $"MEAS:PROT? {channel.ToString()}";
-            var result = SCPIQuary(cmd);
-            uint prot = uint.Parse(result);
-            if (prot != 0x00000000)
-                return ChannelEvents.Error;
-            else
-                return ChannelEvents.Normal;
-        }
+        //public uint ReadEvents(int channel)
+        //{
+        //    string cmd = $"MEAS:PROT? {channel.ToString()}";
+        //    var result = SCPIQuary(cmd);
+        //    uint prot = uint.Parse(result);
+        //    if (prot != 0x00000000)
+        //        return ChannelEvents.Error;
+        //    else
+        //        return ChannelEvents.Normal;
+        //}
 
-        public double ReadPower(int channel)
-        {
-            string cmd = $"MEAS:POW? {channel.ToString()}";
-            var result = SCPIQuary(cmd);
-            return double.Parse(result);
-        }
+        //public double ReadPower(int channel)
+        //{
+        //    string cmd = $"MEAS:POW? {channel.ToString()}";
+        //    var result = SCPIQuary(cmd);
+        //    return double.Parse(result);
+        //}
 
         public bool ReadRow(int channel, out StandardRow standardRow, out uint channelEvents)
         {
             lock (ChromaLock)
             {
                 string cmd = $"MEAS:ALL? {channel.ToString()}";
-                var result = SCPIQuary(cmd);
-                if (result == null)
+                string result;
+                bool ret = SCPIQuary(cmd, out result);
+                if (ret == false)
                 {
                     standardRow = null;
                     channelEvents = 0;
@@ -153,22 +154,32 @@ namespace SmartTester
             return output;
         }
 
-        public RowStatus ReadStatus(int channel)
-        {
-            string cmd = $"MEAS:STATU? {channel.ToString()}";
-            var result = SCPIQuary(cmd);
-            return GetStatusFromString(result);
-        }
+        //public RowStatus ReadStatus(int channel)
+        //{
+        //    string cmd = $"MEAS:STATU? {channel.ToString()}";
+        //    var result = SCPIQuary(cmd);
+        //    return GetStatusFromString(result);
+        //}
 
-        public double ReadTemperarture(int channel)
+        public bool ReadTemperarture(int channel, out double temperature)
         {
             //return 25.0;
             lock (HiokiLock)
             {
                 string line = $":MEMORY:AREAL? UNIT1,CH{channel.ToString()}\n";
-                stream.Write(Encoding.ASCII.GetBytes(line), 0, line.Length);
-                string response = GetResponse(stream);
-                return double.Parse(response) / 100.0;
+                try
+                {
+                    stream.Write(Encoding.ASCII.GetBytes(line), 0, line.Length);
+                    string response = GetResponse(stream);
+                    temperature = double.Parse(response) / 100.0;
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"{e.Message}\n{line} cannot be executed.");
+                    temperature = 0;
+                    return false;
+                }
             }
         }
         private static string GetResponse(NetworkStream stream)
@@ -185,12 +196,12 @@ namespace SmartTester
             return str;
         }
 
-        public double ReadVoltage(int channel)
-        {
-            string cmd = $"MEAS:VOLT? {channel.ToString()}";
-            var result = SCPIQuary(cmd);
-            return double.Parse(result);
-        }
+        //public double ReadVoltage(int channel)
+        //{
+        //    string cmd = $"MEAS:VOLT? {channel.ToString()}";
+        //    var result = SCPIQuary(cmd);
+        //    return double.Parse(result);
+        //}
 
         public bool SpecifyChannel(int channel)
         {
@@ -199,7 +210,10 @@ namespace SmartTester
 
         public bool SpecifyTestStep(Step step)
         {
-            SCPIWrite($"SOUR:CURR:RANGE:AUTO ON");
+            bool ret;
+            ret = SCPIWrite($"SOUR:CURR:RANGE:AUTO ON");
+            if (!ret)
+                return ret;
             var current = step.Action.Mode == ActionMode.CP_DISCHARGE ? 30 : step.Action.Current / 1000.0;
             return SCPIWrite($"SOUR:ALL {ActionModeToString(step.Action.Mode)}," +
                 $"{GetCutOffTime(step)}," +
@@ -270,7 +284,7 @@ namespace SmartTester
         {
             return SCPIWrite("OUTP:STAT OFF");
         }
-        private static string SCPIQuary(string quaryCmd)
+        private static bool SCPIQuary(string quaryCmd, out string output)
         {
             int retry = 5;
             for (int i = 0; i < retry; i++)
@@ -280,15 +294,16 @@ namespace SmartTester
                     //Console.WriteLine(quaryCmd);
                     string textToWrite = ReplaceCommonEscapeSequences(quaryCmd);
                     mbSession.RawIO.Write(textToWrite);
-                    var output = mbSession.RawIO.ReadString().TrimEnd('\n');
-                    return output;
+                    output = mbSession.RawIO.ReadString().TrimEnd('\n');
+                    return true;
                 }
                 catch (Exception exp)
                 {
                     Console.WriteLine($"{exp.Message}\n{quaryCmd} cannot be executed.");
                 }
             }
-            return null;
+            output = string.Empty;
+            return false;
         }
 
         private static bool SCPIWrite(string writeCmd)
@@ -313,15 +328,15 @@ namespace SmartTester
             return s.Replace("\\n", "\n").Replace("\\r", "\r");
         }
 
-        private static string InsertCommonEscapeSequences(string s)
-        {
-            return s.Replace("\n", "\\n").Replace("\r", "\\r");
-        }
+        //private static string InsertCommonEscapeSequences(string s)
+        //{
+        //    return s.Replace("\n", "\\n").Replace("\r", "\\r");
+        //}
 
-        private static void CloseSession()
-        {
-            mbSession.Dispose();
-        }
+        //private static void CloseSession()
+        //{
+        //    mbSession.Dispose();
+        //}
 
         private static bool Open17208Session(string str)
         {

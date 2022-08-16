@@ -1,6 +1,7 @@
-﻿#define debug
+﻿//#define debug
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,6 +42,7 @@ namespace SmartTester
             Utilities.CreateOutputFolder();
             List<KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>> sections = GetTestSections(testsInOneChamber);   //sections是每个温度点下的测试的集合
             var channels = testsInOneChamber.Select(o => o.Channel).ToList();
+            bool ret;
             foreach (var channel in channels)
             {
                 channel.Tester.Stop(channel.Index);     //先停止前面的实验。
@@ -49,7 +51,12 @@ namespace SmartTester
             foreach (var ts in sections)
             {
                 TargetTemperature targetT = ts.Key;
-                chamber.Executor.Start(targetT.Temperature);
+                ret = chamber.Executor.Start(targetT.Temperature);
+                if (!ret)
+                {
+                    Console.WriteLine($"Start chamber failed! Please check chamber cable.");
+                    return;
+                }
                 Console.WriteLine($"Start {targetT.Temperature} deg for {chamber.Name}");
                 if (targetT.IsCritical)
                 {
@@ -81,8 +88,13 @@ namespace SmartTester
                 }
             }
             Console.WriteLine($"Stop Chamber Group for {chamber.Name}. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
-            chamber.Executor.Stop();
-            await Task.Delay(1000);
+            ret = chamber.Executor.Stop();
+            if (!ret)
+            {
+                Console.WriteLine($"Stop chamber failed! Please check chamber cable.");
+                return;
+            }
+            //await Task.Delay(1000);
             foreach (var test in testsInOneChamber)
             {
                 test.Channel.GenerateFile(test.Steps);
@@ -156,7 +168,7 @@ namespace SmartTester
             return output;
         }
 
-        private async Task WaitForChamberReady(Chamber chamber, double temperature)
+        private async Task<bool> WaitForChamberReady(Chamber chamber, double temperature)
         {
 #if debug
             await Task.Delay(500); 
@@ -164,9 +176,22 @@ namespace SmartTester
 #else
             byte tempInRangeCounter = 0;
             double temp;
+            bool ret;
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             do
             {
-                temp = chamber.Executor.ReadTemperature();
+                if(sw.Elapsed.TotalMinutes > 15)
+                {
+                    Console.WriteLine($"Cannot reach target temperature in 15 minutes!");
+                    return false;
+                }
+                ret = chamber.Executor.ReadTemperature(out temp);
+                if(!ret)
+                {
+                    Console.WriteLine($"Read Temperature failed! Please check chamber cable.");
+                    return false;
+                }
                 Console.WriteLine($"Read Temperature:{temp} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
                 //if (!chamber.Executor.ReadStatus(out chamberStatus))    //偶尔读出786？？？
                 //return;
@@ -183,6 +208,7 @@ namespace SmartTester
                 }
             }
             while (tempInRangeCounter < 30 /*|| chamberStatus != ChamberStatus.HOLD*/);    //chamber temperature tolerrance is 5?
+            return true;
 #endif
         }
 

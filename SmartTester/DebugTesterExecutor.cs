@@ -54,9 +54,10 @@ namespace SmartTester
             fileStream.Close();
         }
 
-        public double ReadTemperarture(int channelIndex)
+        public bool ReadTemperarture(int channelIndex, out double temperature)
         {
-            return 0;
+            temperature = 0;
+            return true;
         }
 
         public bool SpecifyChannel(int channelIndex)
