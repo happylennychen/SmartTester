@@ -1,4 +1,5 @@
-﻿using SmartTester;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SmartTester;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Assert = Xunit.Assert;
 
 namespace UnitTest
 {
@@ -63,6 +65,26 @@ namespace UnitTest
         public void LoadFromFileShouldWork()
         {
             Utilities.LoadTestFromFile(@"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\");
+        }
+        [Fact]
+        public void GetAdjustedRowShouldWork()
+        {
+            Step step = new Step();
+            step.Action = new TesterAction(ActionMode.CP_DISCHARGE, 0, 0, 16000);
+            var cob = new CutOffBehavior();
+            cob.Condition = new Condition() { Parameter = Parameter.VOLTAGE, Value = 2500};
+            step.CutOffBehaviors.Add(cob);
+            List<StandardRow> standardRows = new List<StandardRow>();
+            //standardRows.Add(new StandardRow("0,58000,2,-3117.825,2567.09,32.15,-48.52404,0,0"));
+            standardRows.Add(new StandardRow("0,59000,2,-3124.468,2562.845,32.1,-49.39121,0,0"));
+            standardRows.Add(new StandardRow("0,60000,2,-3128.044,2558.552,32.14,-50.25982,0,0"));
+            standardRows.Add(new StandardRow("0,60012,2,-3128.086912,2558.500484,32.11,-50.27025,0,8"));
+            standardRows.Add(new StandardRow("0,334,2,-7.898484E-05,2648.892,32.14,-0.5672878,0,8"));
+            Tester test = new Tester();
+            PrivateObject poTest = new PrivateObject(test);
+            StandardRow stdrow = (StandardRow)poTest.Invoke("GetAdjustedRow", standardRows, step);
+            Assert.Equal(2500.0, stdrow.Voltage);
+            Assert.Equal(16000.0 / 2500.0 * 1000, stdrow.Current);
         }
     }
 }

@@ -9,6 +9,8 @@ namespace SmartTester
 {
     class Program
     {
+        public static Tester MyTester { get; set; }
+        public static Chamber MyChamber { get; set; }
         static void Main(string[] args)
         {
             string consoleOuputFile = $"Console Output {DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
@@ -17,8 +19,8 @@ namespace SmartTester
             sw.AutoFlush = true;
             var tempOut = Console.Out;
             Console.SetOut(sw);
-            Tester tester = new Tester("17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
-            Chamber cmb1 = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
+            MyTester = new Tester("17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
+            MyChamber = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
             var root = @"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\";
             GlobalSettings.RoundIndex = 1;
             if (!TestPlanPreCheck(root))
@@ -38,10 +40,10 @@ namespace SmartTester
                     List<Test> tests = Utilities.LoadTestFromFile(folderPath);
                     foreach (var test in tests)
                     {
-                        if (test.Chamber.Name == cmb1.Name)
-                            test.Chamber = cmb1;
+                        if (test.Chamber.Name == MyChamber.Name)
+                            test.Chamber = MyChamber;
                         if (test.Channel.Tester.Name == "17208Auto")
-                            test.Channel = tester.Channels.SingleOrDefault(ch => ch.Index == GetChannelIndex(test.Channel.Name));
+                            test.Channel = MyTester.Channels.SingleOrDefault(ch => ch.Index == GetChannelIndex(test.Channel.Name));
                     }
                     Automator automator = new Automator();
                     Console.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
@@ -82,6 +84,13 @@ namespace SmartTester
                     var folderPath = $@"{root}{roundIndex}";
 
                     List<Test> tests = Utilities.LoadTestFromFile(folderPath);
+                    foreach (var test in tests)
+                    {
+                        if (test.Chamber.Name == MyChamber.Name)
+                            test.Chamber = MyChamber;
+                        if (test.Channel.Tester.Name == "17208Auto")
+                            test.Channel = MyTester.Channels.SingleOrDefault(ch => ch.Index == GetChannelIndex(test.Channel.Name));
+                    }
                     var testsGroupedbyChamber = tests.GroupBy(t => t.Chamber);
                     foreach (var tst in testsGroupedbyChamber)
                     {

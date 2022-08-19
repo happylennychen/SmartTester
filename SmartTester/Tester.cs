@@ -107,7 +107,7 @@ namespace SmartTester
             stdRow.Temperature = temperature;
             channel.DataQueue.Enqueue(stdRow);
             if (stdRow.Status == RowStatus.STOP)
-                stdRow = GetAdjustedRow(channel.DataQueue.ToList());
+                stdRow = GetAdjustedRow(channel.DataQueue.ToList(), channel.Step);
             if (channel.DataQueue.Count >= 4)
                 channel.DataQueue.Dequeue();
             var strRow = stdRow.ToString();
@@ -186,15 +186,30 @@ namespace SmartTester
             }
         }
 
-        private StandardRow GetAdjustedRow(List<StandardRow> standardRows)
+        private StandardRow GetAdjustedRow(List<StandardRow> standardRows, Step step)
         {
-            if (standardRows.Count < 3)
-                return standardRows.Last();
-            else
+            List<StandardRow> rows = GetLastStepRows(standardRows);
+            if (rows.Count < 3) //如果没有足够多的行，则根据设定值来修正最后一行
             {
-                var lastRow = standardRows[standardRows.Count - 1];
-                var secondLastRow = standardRows[standardRows.Count - 2];
-                var thirdLastRow = standardRows[standardRows.Count - 3];
+                var lastRow = rows.Last();
+                switch (step.Action.Mode)
+                {
+                    case ActionMode.CC_DISCHARGE:
+                        lastRow.Voltage = step.CutOffBehaviors.SingleOrDefault(cob => cob.Condition.Parameter == Parameter.VOLTAGE).Condition.Value;
+                        lastRow.Current = step.Action.Current;
+                        break;
+                    case ActionMode.CP_DISCHARGE:
+                        lastRow.Voltage = step.CutOffBehaviors.SingleOrDefault(cob => cob.Condition.Parameter == Parameter.VOLTAGE).Condition.Value;
+                        lastRow.Current = step.Action.Power / lastRow.Voltage * 1000;
+                        break;
+                }
+                return lastRow;
+            }
+            else    //如果有足够多行，则用插值的方式来修正最后一行
+            {
+                var lastRow = rows[rows.Count - 1];
+                var secondLastRow = rows[rows.Count - 2];
+                var thirdLastRow = rows[rows.Count - 3];
                 if (
                         (lastRow.Status == RowStatus.STOP && secondLastRow.Status == RowStatus.RUNNING && thirdLastRow.Status == RowStatus.RUNNING) &&
                         (
@@ -208,8 +223,25 @@ namespace SmartTester
                     return lastRow;
                 }
                 else
-                    return standardRows.Last();
+                    return rows.Last();
             }
+        }
+
+        private List<StandardRow> GetLastStepRows(List<StandardRow> standardRows)   //虽然只有短短几行，但是也可能有多个工步，我们只需要最后一个工步的数据
+        {
+            List<StandardRow> output = new List<StandardRow>();
+            Stack<StandardRow> rowStack = new Stack<StandardRow>();
+            standardRows.Reverse();
+            foreach (var row in standardRows)
+            {
+                if (row.Status == RowStatus.RUNNING || standardRows.First() == row)
+                    rowStack.Push(row);
+                else
+                    break;
+            }
+            while (rowStack.Count() != 0)
+                output.Add(rowStack.Pop());
+            return output;
         }
 
         private double GetAdjustedValue(uint x1, double y1, uint x2, double y2, uint x)
