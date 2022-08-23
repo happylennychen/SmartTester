@@ -21,7 +21,10 @@ namespace SmartTester
             Console.SetOut(sw);
             MyTester = new Tester("17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
             MyChamber = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
-            var root = @"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\";
+            //var root = @"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\";
+            var root = Path.Combine(System.Environment.CurrentDirectory, "Test Plan\\");
+            if (!Directory.Exists(root))
+                Directory.CreateDirectory(root);
             GlobalSettings.RoundIndex = 1;
             if (!TestPlanPreCheck(root))
             {
@@ -97,7 +100,7 @@ namespace SmartTester
                         if (!Automator.ChamberGroupTestCheck(tst.ToList()))
                         {
                             Console.WriteLine($"Round {roundIndex} failed!");
-                            ret = false;
+                            ret &= false;
                         }
                         else
                             Console.WriteLine($"Round {roundIndex} pass!");

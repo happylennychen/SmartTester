@@ -1,4 +1,4 @@
-﻿//#define debug
+﻿#define debug
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -174,6 +174,7 @@ namespace SmartTester
 #if debug
             await Task.Delay(500); 
             Console.WriteLine($"Chamber Ready!");
+            return true;
 #else
             byte tempInRangeCounter = 0;
             double temp;
