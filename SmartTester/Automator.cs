@@ -1,4 +1,4 @@
-﻿#define debug
+﻿//#define debug
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -61,7 +61,12 @@ namespace SmartTester
                 if (targetT.IsCritical)
                 {
                     Console.WriteLine($"Wait for {targetT.Temperature} deg ready");
-                    await WaitForChamberReady(chamber, targetT.Temperature);
+                    ret = await WaitForChamberReady(chamber, targetT.Temperature);
+                    if (ret == false)
+                    {
+                        Console.WriteLine("Chamber control failed.");
+                        return;
+                    }
                 }
                 var dic = ts.Value; //dic.key
                 //var channels = dic.Keys.ToList();
@@ -181,11 +186,12 @@ namespace SmartTester
             bool ret;
             Stopwatch sw = new Stopwatch();
             sw.Start();
+            int waitingTime = 15;
             do
             {
-                if(sw.Elapsed.TotalMinutes > 15)
+                if(sw.Elapsed.TotalMinutes > waitingTime)
                 {
-                    Console.WriteLine($"Cannot reach target temperature in 15 minutes!");
+                    Console.WriteLine($"Cannot reach target temperature in {waitingTime} minutes!");
                     return false;
                 }
                 ret = chamber.Executor.ReadTemperature(out temp);

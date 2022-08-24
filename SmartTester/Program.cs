@@ -109,8 +109,17 @@ namespace SmartTester
                 }
                 else
                 {
+                    if (roundIndex == 1)
+                    {
+                        Console.WriteLine($"There's no test plan, please check.");
+                        ret = false;
+                        break;
+                    }
+                    else
+                    {
                     Console.WriteLine($"All rounds test plan check finished.");
                     break;
+                    }
                 }
             }
             return ret;
