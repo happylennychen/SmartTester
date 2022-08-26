@@ -116,7 +116,7 @@ namespace SmartTester
                                         if (lastRow.Status != RowStatus.RUNNING)
                                         {
                                             timeOffset = lastRow.TimeInMS;
-                                            if (capacityShouldContinue(lastRow, currentRow))
+                                            if (ShouldCapacityContinue(lastRow, currentRow))
                                             {
                                                 capacityOffset = lastRow.Capacity;
                                             }
@@ -176,7 +176,7 @@ namespace SmartTester
                 }
         }
 
-        private static bool capacityShouldContinue(StandardRow lastRow, StandardRow stdRow)
+        private static bool ShouldCapacityContinue(StandardRow lastRow, StandardRow stdRow)
         {
             return lastRow.Mode == stdRow.Mode;
         }
@@ -358,6 +358,39 @@ namespace SmartTester
                 output.Add(test);
             }
             return output;
+        }
+
+        public static bool SaveConfiguration(List<Chamber> chambers, List<Tester> testers)
+        {
+            try
+            {
+                Configuration conf = new Configuration(chambers, testers);
+                //string jsonString = System.Text.Json.JsonSerializer.Serialize(conf);
+                string jsonString = JsonConvert.SerializeObject(conf, Formatting.Indented);
+                File.WriteAllText(GlobalSettings.ConfigurationFilePath, jsonString);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error! Create Configuration Failed!");
+                return false;
+            }
+            return true;
+        }
+
+        public static bool LoadConfiguration(out Configuration conf)
+        {
+            conf = null;
+            try
+            {
+                string jsonString = File.ReadAllText(GlobalSettings.ConfigurationFilePath);
+                conf = JsonConvert.DeserializeObject<Configuration>(jsonString);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error! Load Configuration Failed!");
+                return false;
+            }
+            return true;
         }
     }
 }

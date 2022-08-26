@@ -1,4 +1,4 @@
-﻿//#define debug
+﻿#define debug
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,7 +15,7 @@ namespace SmartTester
         public List<Tester> Testers { get; set; }
         public List<Test> Tests { get; set; }
 
-        public async Task Start(List<Test> tests)
+        public async Task Start(List<Test> tests)   //multiple chamber,
         {
             Console.WriteLine($"Automator Start. Begin in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
             var testsGroupedbyChamber = tests.GroupBy(t => t.Chamber);

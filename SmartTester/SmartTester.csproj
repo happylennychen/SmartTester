@@ -81,43 +81,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActionMode.cs" />
-    <Compile Include="Automator.cs" />
-    <Compile Include="Chamber.cs" />
-    <Compile Include="ChamberStatus.cs" />
-    <Compile Include="Channel.cs" />
-    <Compile Include="ChannelEvents.cs" />
-    <Compile Include="ChannelStatus.cs" />
-    <Compile Include="Chroma17208Executor.cs" />
-    <Compile Include="CompareMarkEnum.cs" />
-    <Compile Include="Condition.cs" />
-    <Compile Include="CutOffBehavior.cs" />
-    <Compile Include="DataLogger.cs" />
-    <Compile Include="DebugChamberExecutor.cs" />
-    <Compile Include="DebugTesterExecutor.cs" />
-    <Compile Include="GlobalSettings.cs" />
-    <Compile Include="IChamberExecutor.cs" />
-    <Compile Include="IDataLogger.cs" />
-    <Compile Include="ITesterExecutor.cs" />
-    <Compile Include="ITester.cs" />
-    <Compile Include="JumpBehavior.cs" />
-    <Compile Include="JumpType.cs" />
-    <Compile Include="Parameter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PUL80Executor.cs" />
-    <Compile Include="RowStatus.cs" />
-    <Compile Include="StandardRow.cs" />
-    <Compile Include="Step.cs" />
-    <Compile Include="TargetTemperature.cs" />
-    <Compile Include="Tester.cs" />
-    <Compile Include="TesterAction.cs" />
-    <Compile Include="Test.cs" />
-    <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SmartTesterLib\SmartTesterLib.csproj">
+      <Project>{62c83cb9-5d17-470d-a4e0-7f8351ddd617}</Project>
+      <Name>SmartTesterLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace SmartTester
         }
 
         public int Index { get; set; }
+        [JsonIgnore]
         public Tester Tester { get; set; }
         public string Name { get; set; }
         public Timer Timer { get; set; }
@@ -48,6 +50,11 @@ namespace SmartTester
             ShouldTimerStart = false;
             IsTimerStart = false;
             LastTimeInMS = 0;
+        }
+        [JsonConstructor]
+        public Channel()
+        {
+            ;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿//#define debug
+﻿#define debug
+using Newtonsoft.Json;
 using System;
 
 namespace SmartTester
@@ -10,9 +11,13 @@ namespace SmartTester
         public string Name { get; set; }
         public double LowestTemperature { get; set; }
         public double HighestTemperature { get; set; }
+        public string IpAddress { get; set; }
+        public int Port { get; set; }
 #if debug
+        [JsonIgnore]
         public DebugChamberExecutor Executor { get; set; }
 #else
+        [JsonIgnore]
         public PUL80Executor Executor { get; set; }
 #endif
 
@@ -26,13 +31,16 @@ namespace SmartTester
             this.HighestTemperature = HighestTemperature;
             this.LowestTemperature = LowestTemperature;
         }
-        public Chamber(int id, string manufacturer, string name, int highestTemperature, int lowestTemperature, string ipAddress, int port)
+        [JsonConstructor]
+        public Chamber(int id, string manufacturer, string name, double highestTemperature, double lowestTemperature, string ipAddress, int port)
         {
             Id = id;
             Manufacturer = manufacturer;
             Name = name;
             HighestTemperature = highestTemperature;
             LowestTemperature = lowestTemperature;
+            IpAddress = ipAddress;
+            Port = port;
 #if debug
             Executor = new DebugChamberExecutor();
 #else

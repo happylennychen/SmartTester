@@ -86,5 +86,22 @@ namespace UnitTest
             Assert.Equal(2500.0, stdrow.Voltage);
             Assert.Equal(16000.0 / 2500.0 * 1000, stdrow.Current);
         }
+
+        [Fact]
+        public void CreateConfigurationShouldWork()
+        {
+            var tester = new Tester(1, "17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
+            var chamber = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
+            List<Chamber> chambers = new List<Chamber>();
+            List<Tester> testers = new List<Tester>();
+            chambers.Add(chamber);
+            testers.Add(tester);
+            Configuration conf1 = new Configuration(chambers, testers);
+            Configuration conf2;
+            Utilities.SaveConfiguration(chambers, testers);
+            Utilities.LoadConfiguration(out conf2);
+            Assert.True(conf1.Testers.Count == conf2.Testers.Count);
+            Assert.True(conf1.Chambers.Count == conf2.Chambers.Count);
+        }
     }
 }

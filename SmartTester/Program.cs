@@ -19,8 +19,19 @@ namespace SmartTester
             sw.AutoFlush = true;
             var tempOut = Console.Out;
             Console.SetOut(sw);
-            MyTester = new Tester("17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
-            MyChamber = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
+            Configuration conf;
+            if (!Utilities.LoadConfiguration(out conf))
+            {
+                Console.WriteLine("Error! Load Configuration Failed!");
+                return;
+            }
+            else
+            {
+                MyChamber = conf.Chambers.First();
+                MyTester = conf.Testers.First();
+            }
+            //MyTester = new Tester("17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
+            //MyChamber = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
             //var root = @"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\";
             var root = Path.Combine(System.Environment.CurrentDirectory, "Test Plan\\");
             if (!Directory.Exists(root))
