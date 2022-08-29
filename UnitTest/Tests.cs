@@ -64,7 +64,7 @@ namespace UnitTest
         [Fact]
         public void LoadFromFileShouldWork()
         {
-            Utilities.LoadTestFromFile(@"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\");
+            Utilities.LoadTestFromFolder(@"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\");
         }
         [Fact]
         public void GetAdjustedRowShouldWork()

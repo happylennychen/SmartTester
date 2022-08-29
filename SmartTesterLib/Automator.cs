@@ -15,7 +15,7 @@ namespace SmartTester
         public List<Tester> Testers { get; set; }
         public List<Test> Tests { get; set; }
 
-        public async Task Start(List<Test> tests)   //multiple chamber,
+        public async Task Start(List<Test> tests)   //multiple chamber, one round
         {
             Console.WriteLine($"Automator Start. Begin in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
             var testsGroupedbyChamber = tests.GroupBy(t => t.Chamber);
@@ -24,7 +24,7 @@ namespace SmartTester
             {
                 var chamber = testGroup.Key;
                 var testsInOneChamber = testGroup.ToList();
-                if (!ChamberGroupTestCheck(testsInOneChamber))
+                if (!Utilities.ChamberGroupTestCheck(testsInOneChamber))
                 {
                     return;
                 }
@@ -34,6 +34,95 @@ namespace SmartTester
             Console.WriteLine($"Automator Start. Waiting. Thread {CurrentThread.ManagedThreadId}, {CurrentThread.IsThreadPoolThread}");
             await Task.WhenAll(tasks);
             Console.WriteLine("All test done!");
+        }
+
+        public async Task AutoRun()
+        {
+            if (!Directory.Exists(GlobalSettings.TestPlanFolderPath))
+                Directory.CreateDirectory(GlobalSettings.TestPlanFolderPath);
+            if (!TestPlanPreCheck())
+            {
+                Console.WriteLine($"Test Plan pre-check failed!");
+                return;
+            }
+
+            Utilities.CreateOutputFolderRoot();
+
+            List<Task> tasks = new List<Task>();
+            foreach (var chamber in Chambers)        //Tests按Chamber分组
+            {
+                Task t = AsyncStartChamberGroup(chamber);
+                tasks.Add(t);
+            }
+            Console.WriteLine($"Automator Start. Waiting. Thread {CurrentThread.ManagedThreadId}, {CurrentThread.IsThreadPoolThread}");
+            await Task.WhenAll(tasks);
+            Console.WriteLine("All test done!");
+        }
+
+        public void Init()
+        {
+            Configuration conf;
+            if (!Utilities.LoadConfiguration(out conf))
+            {
+                Console.WriteLine("Error! Load Configuration Failed!");
+                return;
+            }
+            else
+            {
+                Chambers = conf.Chambers;
+                Testers = conf.Testers;
+            }
+        }
+        private bool TestPlanPreCheck()
+        {
+            string root = GlobalSettings.TestPlanFolderPath;
+            bool ret = true;
+            //Console.WriteLine("Test Plan pre-check.");
+            //int roundIndex = 1;
+            //while (true)
+            //{
+            //    var dirs = Directory.GetDirectories(root);
+            //    if (dirs.Contains($@"{root}{roundIndex}"))
+            //    {
+            //        var folderPath = $@"{root}{roundIndex}";
+
+            //        List<Test> tests = Utilities.LoadTestFromFile(folderPath);
+            //        foreach (var test in tests)
+            //        {
+            //            if (test.Chamber.Name == MyChamber.Name)
+            //                test.Chamber = MyChamber;
+            //            if (test.Channel.Tester.Name == "17208Auto")
+            //                test.Channel = MyTester.Channels.SingleOrDefault(ch => ch.Index == GetChannelIndex(test.Channel.Name));
+            //        }
+            //        var testsGroupedbyChamber = tests.GroupBy(t => t.Chamber);
+            //        foreach (var tst in testsGroupedbyChamber)
+            //        {
+            //            if (!Automator.ChamberGroupTestCheck(tst.ToList()))
+            //            {
+            //                Console.WriteLine($"Round {roundIndex} failed!");
+            //                ret &= false;
+            //            }
+            //            else
+            //                Console.WriteLine($"Round {roundIndex} pass!");
+            //        }
+            //        roundIndex++;
+            //    }
+            //    else
+            //    {
+            //        if (roundIndex == 1)
+            //        {
+            //            Console.WriteLine($"There's no test plan, please check.");
+            //            ret = false;
+            //            break;
+            //        }
+            //        else
+            //        {
+            //            Console.WriteLine($"All rounds test plan check finished.");
+            //            break;
+            //        }
+            //    }
+            //}
+            return ret;
         }
 
         private async Task AsyncStartChamberGroup(Chamber chamber, List<Test> testsInOneChamber)
@@ -104,6 +193,30 @@ namespace SmartTester
             foreach (var test in testsInOneChamber)
             {
                 test.Channel.GenerateFile(test.Steps);
+            }
+        }
+
+        private async Task AsyncStartChamberGroup(Chamber chamber)
+        {
+            GlobalSettings.ChamberRoundIndex[chamber] = 1;
+            while (true)
+            {
+                List<Test> tests;
+                if (Utilities.LoadTests(chamber, GlobalSettings.ChamberRoundIndex[chamber], out tests))
+                {
+                    Console.WriteLine($"Round {GlobalSettings.ChamberRoundIndex}");
+                    var folderPath = $@"{GlobalSettings.TestPlanFolderPath}{GlobalSettings.ChamberRoundIndex[chamber]}";
+
+                    Console.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
+                    await Start(tests);
+                    Console.WriteLine($"Round {GlobalSettings.ChamberRoundIndex} programs in {folderPath} completed!");
+                    GlobalSettings.ChamberRoundIndex[chamber]++;
+                }
+                else
+                {
+                    Console.WriteLine($"All rounds finished.");
+                    break;
+                }
             }
         }
 
@@ -229,19 +342,5 @@ namespace SmartTester
                 return new List<TargetTemperature>() { new TargetTemperature() { Temperature = 25, IsCritical = true } };
         }
 
-        public static bool ChamberGroupTestCheck(List<Test> tests)
-        {
-            if (tests.GroupBy(t => t.DischargeTemperature).Count() != 1)
-            {
-                Console.WriteLine("Error. No unified discharge temperature.");
-                return false;
-            }
-            if (tests.GroupBy(t => t.Channel).Where(g => g.Count() > 1).Count() > 0)
-            {
-                Console.WriteLine("Error. Multiple tests used same channel(s).");
-                return false;
-            }
-            return true;
-        }
     }
 }

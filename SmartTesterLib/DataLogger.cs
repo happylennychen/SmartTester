@@ -15,7 +15,7 @@ namespace SmartTester
         public DataLogger(int id, string fileName)
         {
             this.Id = id;
-            this.FilePath = Path.Combine(GlobalSettings.OutputFolder, GlobalSettings.RoundIndex.ToString(), fileName);
+            this.FilePath = Path.Combine(GlobalSettings.OutputFolder, GlobalSettings.ChamberRoundIndex.ToString(), fileName);
             fileStream = new FileStream(FilePath, FileMode.Create);
             streamWriter = new StreamWriter(fileStream);
         }

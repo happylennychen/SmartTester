@@ -10,7 +10,8 @@ namespace SmartTester
     public static class GlobalSettings
     {
         public static string OutputFolder { get; set; }
-        public static int RoundIndex { get; set; }
+        public static Dictionary<Chamber,int> ChamberRoundIndex { get; set; }
         public static string ConfigurationFilePath { get; internal set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Configuration.json");
+        public static string TestPlanFolderPath { get; set; } = Path.Combine(System.Environment.CurrentDirectory, "Test Plan\\");
     }
 }

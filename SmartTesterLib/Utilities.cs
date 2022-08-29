@@ -59,7 +59,7 @@ namespace SmartTester
 
         internal static void CreateOutputFolder()
         {
-            string outputFolder = Path.Combine(GlobalSettings.OutputFolder, GlobalSettings.RoundIndex.ToString());
+            string outputFolder = Path.Combine(GlobalSettings.OutputFolder, GlobalSettings.ChamberRoundIndex.ToString());
             Directory.CreateDirectory(outputFolder);
         }
 
@@ -347,7 +347,7 @@ namespace SmartTester
         }
 
 
-        public static List<Test> LoadTestFromFile(string folderPath)
+        public static List<Test> LoadTestFromFolder(string folderPath)
         {
             List<Test> output = new List<Test>();
             var files = Directory.GetFiles(folderPath, "*.testplan");
@@ -358,6 +358,38 @@ namespace SmartTester
                 output.Add(test);
             }
             return output;
+        }
+        public static bool ChamberGroupTestCheck(List<Test> tests)
+        {
+            if (tests.GroupBy(t => t.DischargeTemperature).Count() != 1)
+            {
+                Console.WriteLine("Error. No unified discharge temperature.");
+                return false;
+            }
+            if (tests.GroupBy(t => t.Channel).Where(g => g.Count() > 1).Count() > 0)
+            {
+                Console.WriteLine("Error. Multiple tests used same channel(s).");
+                return false;
+            }
+            return true;
+        }
+
+        private static bool GetFolderPath(Chamber chamber, int index, out string folderPath)
+        {
+            folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, chamber.Name, index.ToString());
+            return Directory.Exists(folderPath);
+        }
+        public static bool LoadTests(Chamber chamber, int index, out List<Test> tests)
+        {
+            tests = null;
+            string folderPath = null;
+            if (GetFolderPath(chamber, index, out folderPath))
+            {
+                tests = LoadTestFromFolder(folderPath);
+                return ChamberGroupTestCheck(tests);
+            }
+            else
+                return false;
         }
 
         public static bool SaveConfiguration(List<Chamber> chambers, List<Tester> testers)
@@ -388,6 +420,21 @@ namespace SmartTester
             catch (Exception e)
             {
                 Console.WriteLine("Error! Load Configuration Failed!");
+                return false;
+            }
+            return true;
+        }
+
+        public static bool CreateOutputFolderRoot()
+        {
+            try
+            {
+                GlobalSettings.OutputFolder = DateTime.Now.ToString("yyyyMMddHHmmss");
+                Directory.CreateDirectory(GlobalSettings.OutputFolder);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error! " + e.Message);
                 return false;
             }
             return true;
