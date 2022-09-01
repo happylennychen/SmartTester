@@ -4,7 +4,7 @@ using System;
 
 namespace SmartTester
 {
-    public class Chamber
+    public class Chamber : IChamber
     {
         public int Id { get; set; }
         public string Manufacturer { get; set; }
@@ -15,7 +15,7 @@ namespace SmartTester
         public int Port { get; set; }
 #if debug
         [JsonIgnore]
-        public DebugChamberExecutor Executor { get; set; }
+        public IChamberExecutor Executor { get; set; }
 #else
         [JsonIgnore]
         public PUL80Executor Executor { get; set; }

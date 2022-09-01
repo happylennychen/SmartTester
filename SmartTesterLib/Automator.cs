@@ -11,8 +11,8 @@ namespace SmartTester
 {
     public class Automator
     {
-        public List<Chamber> Chambers { get; set; }
-        public List<Tester> Testers { get; set; }
+        public List<IChamber> Chambers { get; set; }
+        public List<ITester> Testers { get; set; }
         public List<Test> Tests { get; set; }
 
         public async Task Start(List<Test> tests)   //multiple chamber, one round
@@ -40,7 +40,7 @@ namespace SmartTester
         {
             if (!Directory.Exists(GlobalSettings.TestPlanFolderPath))
                 Directory.CreateDirectory(GlobalSettings.TestPlanFolderPath);
-            if (!TestPlanPreCheck())
+            if (!Utilities.TestPlanFullCheck(Chambers, Testers))
             {
                 Console.WriteLine($"Test Plan pre-check failed!");
                 return;
@@ -54,7 +54,7 @@ namespace SmartTester
                 Task t = AsyncStartChamberGroup(chamber);
                 tasks.Add(t);
             }
-            Console.WriteLine($"Automator Start. Waiting. Thread {CurrentThread.ManagedThreadId}, {CurrentThread.IsThreadPoolThread}");
+            Console.WriteLine($"Automator Start. Waiting.");
             await Task.WhenAll(tasks);
             Console.WriteLine("All test done!");
         }
@@ -69,63 +69,12 @@ namespace SmartTester
             }
             else
             {
-                Chambers = conf.Chambers;
-                Testers = conf.Testers;
+                Chambers = conf.Chambers.Select(c=>(IChamber)c).ToList();
+                Testers = conf.Testers.Select(t=>(ITester)t).ToList();
             }
         }
-        private bool TestPlanPreCheck()
-        {
-            string root = GlobalSettings.TestPlanFolderPath;
-            bool ret = true;
-            //Console.WriteLine("Test Plan pre-check.");
-            //int roundIndex = 1;
-            //while (true)
-            //{
-            //    var dirs = Directory.GetDirectories(root);
-            //    if (dirs.Contains($@"{root}{roundIndex}"))
-            //    {
-            //        var folderPath = $@"{root}{roundIndex}";
 
-            //        List<Test> tests = Utilities.LoadTestFromFile(folderPath);
-            //        foreach (var test in tests)
-            //        {
-            //            if (test.Chamber.Name == MyChamber.Name)
-            //                test.Chamber = MyChamber;
-            //            if (test.Channel.Tester.Name == "17208Auto")
-            //                test.Channel = MyTester.Channels.SingleOrDefault(ch => ch.Index == GetChannelIndex(test.Channel.Name));
-            //        }
-            //        var testsGroupedbyChamber = tests.GroupBy(t => t.Chamber);
-            //        foreach (var tst in testsGroupedbyChamber)
-            //        {
-            //            if (!Automator.ChamberGroupTestCheck(tst.ToList()))
-            //            {
-            //                Console.WriteLine($"Round {roundIndex} failed!");
-            //                ret &= false;
-            //            }
-            //            else
-            //                Console.WriteLine($"Round {roundIndex} pass!");
-            //        }
-            //        roundIndex++;
-            //    }
-            //    else
-            //    {
-            //        if (roundIndex == 1)
-            //        {
-            //            Console.WriteLine($"There's no test plan, please check.");
-            //            ret = false;
-            //            break;
-            //        }
-            //        else
-            //        {
-            //            Console.WriteLine($"All rounds test plan check finished.");
-            //            break;
-            //        }
-            //    }
-            //}
-            return ret;
-        }
-
-        private async Task AsyncStartChamberGroup(Chamber chamber, List<Test> testsInOneChamber)
+        private async Task AsyncStartChamberGroup(IChamber chamber, List<Test> testsInOneChamber)
         {
             Console.WriteLine($"Start Chamber Group for {chamber.Name}. Thread {CurrentThread.ManagedThreadId}, {CurrentThread.IsThreadPoolThread}");
             Utilities.CreateOutputFolder();
@@ -196,13 +145,13 @@ namespace SmartTester
             }
         }
 
-        private async Task AsyncStartChamberGroup(Chamber chamber)
+        private async Task AsyncStartChamberGroup(IChamber chamber)
         {
             GlobalSettings.ChamberRoundIndex[chamber] = 1;
             while (true)
             {
                 List<Test> tests;
-                if (Utilities.LoadTests(chamber, GlobalSettings.ChamberRoundIndex[chamber], out tests))
+                if (Utilities.LoadTestsForOneRound(Chambers, Testers, chamber, GlobalSettings.ChamberRoundIndex[chamber], out tests))
                 {
                     Console.WriteLine($"Round {GlobalSettings.ChamberRoundIndex}");
                     var folderPath = $@"{GlobalSettings.TestPlanFolderPath}{GlobalSettings.ChamberRoundIndex[chamber]}";
@@ -287,7 +236,7 @@ namespace SmartTester
             return output;
         }
 
-        private async Task<bool> WaitForChamberReady(Chamber chamber, double temperature)
+        private async Task<bool> WaitForChamberReady(IChamber chamber, double temperature)
         {
 #if debug
             await Task.Delay(500); 

@@ -57,6 +57,12 @@ namespace SmartTester
 #endif
             mainWatch = new Stopwatch();
             Channels = new List<Channel>();
+
+            for (int i = 1; i <= channelNumber; i++)
+            {
+                Channel ch = new Channel($"Ch{i}", i, this, new Timer(WorkerCallback, i - 1, Timeout.Infinite, Timeout.Infinite));
+                Channels.Add(ch);
+            }
 #if !debug
             if (!Executor.Init(ipAddress, port, sessionStr))
             {
@@ -64,14 +70,21 @@ namespace SmartTester
                 return;
             }
 #endif
+            mainTimer = new Timer(_ => MainCounter(), null, 100, 0);
+            mainWatch.Start();
+        }
 
+        public Tester(int id, string name, int channelNumber)
+        {
+            Id = id;
+            Name = name;
+            ChannelNumber = channelNumber;
+            Channels = new List<Channel>();
             for (int i = 1; i <= channelNumber; i++)
             {
                 Channel ch = new Channel($"Ch{i}", i, this, new Timer(WorkerCallback, i - 1, Timeout.Infinite, Timeout.Infinite));
                 Channels.Add(ch);
             }
-            mainTimer = new Timer(_ => MainCounter(), null, 100, 0);
-            mainWatch.Start();
         }
 
         private void WorkerCallback(object i)

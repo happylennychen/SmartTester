@@ -24,10 +24,10 @@ namespace UnitTest
         [Fact]
         public void FileConvertShouldWork()
         {
-            var files = Directory.GetFiles(@"D:\BC_Lab\SW Design\Instrument Automation\40T init(2)\", "*.txt");
-            for(int i=1;i<=8;i++)
+            var files = Directory.GetFiles(@"D:\BC_Lab\SW Design\Instrument Automation\40T INIT txt A V W\", "*.txt");
+            for (int i = 1; i <= 8; i++)
             {
-                var fileList = files.Where(o => o.Contains($"Chroma17208M-Ch{i}")).OrderBy(o=>o).ToList();
+                var fileList = files.Where(o => o.Contains($"Chroma17208M-Ch{i}")).OrderBy(o => o).ToList();
                 Utilities.FileConvert(fileList, CreateFullSteps(), -10);
             }
             //List<string> fileList = new List<string>();
@@ -58,13 +58,13 @@ namespace UnitTest
             cob.JumpBehaviors.Add(jpb);
             dischargeStep.CutOffBehaviors.Add(cob);
 
-            return new List<Step> { chargeStep, idleStep, dischargeStep};
+            return new List<Step> { chargeStep, idleStep, dischargeStep };
         }
 
         [Fact]
         public void LoadFromFileShouldWork()
         {
-            Utilities.LoadTestFromFolder(@"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\");
+            //Utilities.LoadTestFromFolder(@"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\");
         }
         [Fact]
         public void GetAdjustedRowShouldWork()
@@ -72,7 +72,7 @@ namespace UnitTest
             Step step = new Step();
             step.Action = new TesterAction(ActionMode.CP_DISCHARGE, 0, 0, 16000);
             var cob = new CutOffBehavior();
-            cob.Condition = new Condition() { Parameter = Parameter.VOLTAGE, Value = 2500};
+            cob.Condition = new Condition() { Parameter = Parameter.VOLTAGE, Value = 2500 };
             step.CutOffBehaviors.Add(cob);
             List<StandardRow> standardRows = new List<StandardRow>();
             //standardRows.Add(new StandardRow("0,58000,2,-3117.825,2567.09,32.15,-48.52404,0,0"));
@@ -88,7 +88,7 @@ namespace UnitTest
         }
 
         [Fact]
-        public void CreateConfigurationShouldWork()
+        public void SaveAndLoadConfigurationShouldWork()
         {
             var tester = new Tester(1, "17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
             var chamber = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
@@ -102,6 +102,84 @@ namespace UnitTest
             Utilities.LoadConfiguration(out conf2);
             Assert.True(conf1.Testers.Count == conf2.Testers.Count);
             Assert.True(conf1.Chambers.Count == conf2.Chambers.Count);
+        }
+
+        public static IEnumerable<object[]> GetTestPlanFolderTreeAndProjectName()
+        {
+            List<IChamber> chambers = new List<IChamber>();
+            List<ITester> testers = new List<ITester>();
+            for (int i = 1; i < 10; i++)
+            {
+                IChamber chamber = new Chamber(i, "Hongzhan", $"Chamber{i.ToString()}", 120, -40);
+                ITester tester = new Tester(i, $"Tester{i.ToString()}", 8);
+                chambers.Add(chamber);
+                testers.Add(tester);
+            }
+
+            Dictionary<IChamber, Dictionary<int, List<Channel>>> testPlanFolderTree1 = new Dictionary<IChamber, Dictionary<int, List<Channel>>>();
+            Dictionary<int, List<Channel>> dic1 = new Dictionary<int, List<Channel>>();
+            dic1.Add(1, new List<Channel>() { testers[0].Channels[0], testers[0].Channels[1], testers[0].Channels[2], testers[0].Channels[3] });
+            testPlanFolderTree1.Add(chambers[0], dic1);
+            yield return new object[] { testPlanFolderTree1, "Project3" };
+
+
+
+            Dictionary<IChamber, Dictionary<int, List<Channel>>> testPlanFolderTree2 = new Dictionary<IChamber, Dictionary<int, List<Channel>>>();
+            Dictionary<int, List<Channel>> dic2 = new Dictionary<int, List<Channel>>();
+            testPlanFolderTree2.Add(chambers[0], dic1);
+            dic2.Add(1, new List<Channel>() { testers[0].Channels[0], testers[0].Channels[1], testers[0].Channels[2], testers[0].Channels[3] });
+            dic2.Add(2, new List<Channel>() { testers[0].Channels[0], testers[0].Channels[1], testers[0].Channels[2], testers[0].Channels[3] });
+            dic2.Add(3, new List<Channel>() { testers[0].Channels[0], testers[0].Channels[1], testers[0].Channels[2], testers[0].Channels[3] });
+            dic2.Add(4, new List<Channel>() { testers[4].Channels[2], testers[5].Channels[3], testers[6].Channels[4] });
+            testPlanFolderTree2.Add(chambers[3], dic2);
+            yield return new object[] { testPlanFolderTree2, "Project4" };
+
+        }
+        [Theory]
+        [MemberData(nameof(GetTestPlanFolderTreeAndProjectName))]
+        public void CreateTestPlanFoldersShouldWork(Dictionary<IChamber, Dictionary<int, List<Channel>>> testPlanFolderTree, string projectName)
+        {
+            //Dictionary<Chamber, Dictionary<int, List<Channel>>> testPlanFolderTree = new Dictionary<Chamber, Dictionary<int, List<Channel>>>();
+            //Chamber chamber = new Chamber(1, "Hongzhan", "PUL80", 120, -40);
+            //Tester tester = new Tester(1, "17208M", 8);
+
+            //Dictionary<int, List<Channel>> value = new Dictionary<int, List<Channel>>();
+            //value.Add(1, new List<Channel>() { tester.Channels[0], tester.Channels[1], tester.Channels[2], tester.Channels[3] });
+            //testPlanFolderTree.Add(chamber, value);
+            //string projectName = "Project2";
+            Utilities.CreateTestPlanFolders(projectName, testPlanFolderTree);
+
+            List<bool> bList = new List<bool>();
+
+            string projectPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName);
+            bList.Add(Directory.Exists(projectPath));
+
+            foreach (var cmb in testPlanFolderTree.Keys)
+            {
+                string chamberPath = Path.Combine(projectPath, cmb.Name);
+                bList.Add(Directory.Exists(chamberPath));
+
+                Directory.CreateDirectory(projectPath);
+                foreach (var roundIndex in testPlanFolderTree[cmb].Keys)
+                {
+                    string roundPath = Path.Combine(chamberPath, roundIndex.ToString());
+                    bList.Add(Directory.Exists(roundPath));
+                    var testers = testPlanFolderTree[cmb][roundIndex].Select(ch => ch.Tester).Distinct().ToList();
+                    foreach (var tst in testers)
+                    {
+                        string testerPath = Path.Combine(roundPath, tst.Name);
+                        bList.Add(Directory.Exists(testerPath));
+                        var channels = testPlanFolderTree[cmb][roundIndex].Where(ch => ch.Tester == tst).ToList();
+                        foreach (var channel in channels)
+                        {
+                            string channelPath = Path.Combine(testerPath, channel.Index.ToString());
+                            bList.Add(Directory.Exists(channelPath));
+                        }
+                    }
+                }
+            }
+            var allExisted = bList.All(b => b == true);
+            Assert.True(allExisted);
         }
     }
 }

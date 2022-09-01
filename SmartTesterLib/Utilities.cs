@@ -57,6 +57,48 @@ namespace SmartTester
             }
         }
 
+        public static bool CreateTestPlanFolders(string projectName, Dictionary<IChamber, Dictionary<int, List<Channel>>> testPlanFolderTree)
+        {
+            string projectPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName);
+            if (Directory.Exists(projectName))
+            {
+                Console.WriteLine($"Error! {projectName} already existed.");
+                return false;
+            }
+            try
+            {
+                Directory.CreateDirectory(projectPath);
+                foreach (var chamber in testPlanFolderTree.Keys)
+                {
+                    string chamberPath = Path.Combine(projectPath, chamber.Name);
+                    Directory.CreateDirectory(chamberPath);
+                    foreach (var roundIndex in testPlanFolderTree[chamber].Keys)
+                    {
+                        string roundPath = Path.Combine(chamberPath, roundIndex.ToString());
+                        Directory.CreateDirectory(roundPath);
+                        var testers = testPlanFolderTree[chamber][roundIndex].Select(ch => ch.Tester).Distinct().ToList();
+                        foreach (var tester in testers)
+                        {
+                            string testerPath = Path.Combine(roundPath, tester.Name);
+                            Directory.CreateDirectory(testerPath);
+                            var channels = testPlanFolderTree[chamber][roundIndex].Where(ch => ch.Tester == tester).ToList();
+                            foreach (var channel in channels)
+                            {
+                                string channelPath = Path.Combine(testerPath, channel.Index.ToString());
+                                Directory.CreateDirectory(channelPath);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error! {e.Message}");
+                return false;
+            }
+            return true;
+        }
+
         internal static void CreateOutputFolder()
         {
             string outputFolder = Path.Combine(GlobalSettings.OutputFolder, GlobalSettings.ChamberRoundIndex.ToString());
@@ -347,10 +389,12 @@ namespace SmartTester
         }
 
 
-        public static List<Test> LoadTestFromFolder(string folderPath)
+        public static List<Test> LoadTestFromFolder(string folderPath, List<IChamber> chambers, List<ITester> testers)
         {
             List<Test> output = new List<Test>();
             var files = Directory.GetFiles(folderPath, "*.testplan");
+            //Channel channel = GetChannelFromFolderPath(folderPath, testers);
+            //Chamber chamber = GetChamberFromFolderPath(folderPath, chambers);
             foreach (var file in files)
             {
                 string json = File.ReadAllText(file);
@@ -374,24 +418,65 @@ namespace SmartTester
             return true;
         }
 
-        private static bool GetFolderPath(Chamber chamber, int index, out string folderPath)
+        private static string GetFolderPath(IChamber chamber, int index)
         {
-            folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, chamber.Name, index.ToString());
-            return Directory.Exists(folderPath);
+            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, chamber.Name, index.ToString());
+            return folderPath;
         }
-        public static bool LoadTests(Chamber chamber, int index, out List<Test> tests)
+        public static bool LoadTestsForOneRound(List<IChamber> chambers, List<ITester> testers, IChamber chamber, int index, out List<Test> tests)
         {
             tests = null;
-            string folderPath = null;
-            if (GetFolderPath(chamber, index, out folderPath))
+            string folderPath = GetFolderPath(chamber, index);
+            if (Directory.Exists(folderPath))
             {
-                tests = LoadTestFromFolder(folderPath);
+                tests = LoadTestFromFolder(folderPath, chambers, testers);
                 return ChamberGroupTestCheck(tests);
             }
             else
                 return false;
         }
 
+        public static bool TestPlanFullCheck(List<IChamber> chambers, List<ITester> testers)
+        {
+            string root = GlobalSettings.TestPlanFolderPath;
+            bool ret = true;
+            Console.WriteLine("Test Plan pre-check.");
+            foreach (var chamber in chambers)
+            {
+                var roundIndex = GlobalSettings.ChamberRoundIndex[chamber];
+                while (true)
+                {
+                    string folderPath = GetFolderPath(chamber, roundIndex);
+                    if (Directory.Exists(folderPath))
+                    {
+                        var tests = LoadTestFromFolder(folderPath, chambers, testers);
+                        if (!Utilities.ChamberGroupTestCheck(tests))
+                        {
+                            Console.WriteLine($"Round {roundIndex} failed!");
+                            ret &= false;
+                        }
+                        else
+                            Console.WriteLine($"Round {roundIndex} pass!");
+                        roundIndex++;
+                    }
+                    else
+                    {
+                        if (roundIndex == 1)
+                        {
+                            Console.WriteLine($"There's no test plan, please check.");
+                            ret = false;
+                            break;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"All rounds test plan check finished.");
+                            break;
+                        }
+                    }
+                }
+            }
+            return ret;
+        }
         public static bool SaveConfiguration(List<Chamber> chambers, List<Tester> testers)
         {
             try
@@ -419,7 +504,7 @@ namespace SmartTester
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error! Load Configuration Failed!");
+                Console.WriteLine($"Error! Load Configuration Failed! {e.Message}");
                 return false;
             }
             return true;

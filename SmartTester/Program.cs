@@ -9,8 +9,6 @@ namespace SmartTester
 {
     class Program
     {
-        public static Tester MyTester { get; set; }
-        public static Chamber MyChamber { get; set; }
         static void Main(string[] args)
         {
             string consoleOuputFile = $"Console Output {DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
@@ -20,9 +18,15 @@ namespace SmartTester
             var tempOut = Console.Out;
             Console.SetOut(sw);
 
-
             Automator amtr = new Automator();
             amtr.Init();
+            Dictionary<IChamber, Dictionary<int, List<Channel>>> testPlanFolderTree = new Dictionary<IChamber, Dictionary<int, List<Channel>>>();
+
+            Dictionary<int, List<Channel>> value = new Dictionary<int, List<Channel>>();
+            value.Add(1, new List<Channel>() { amtr.Testers[0].Channels[0], amtr.Testers[0].Channels[1], amtr.Testers[0].Channels[2], amtr.Testers[0].Channels[3] });
+            testPlanFolderTree.Add(amtr.Chambers[0], value);
+
+            Utilities.CreateTestPlanFolders("Project1", testPlanFolderTree);
             Task task = amtr.AutoRun();
             task.Wait();
 
