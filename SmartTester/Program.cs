@@ -15,24 +15,25 @@ namespace SmartTester
             FileStream fs = new FileStream(consoleOuputFile, FileMode.Create);
             StreamWriter sw = new StreamWriter(fs);
             sw.AutoFlush = true;
-            var tempOut = Console.Out;
-            Console.SetOut(sw);
+            //var tempOut = Console.Out;
+            //Console.SetOut(sw);
 
             Automator amtr = new Automator();
-            amtr.Init();
-            Dictionary<IChamber, Dictionary<int, List<Channel>>> testPlanFolderTree = new Dictionary<IChamber, Dictionary<int, List<Channel>>>();
+            if(!amtr.Init())
+                return;
+            //Dictionary<IChamber, Dictionary<int, List<IChannel>>> testPlanFolderTree = new Dictionary<IChamber, Dictionary<int, List<IChannel>>>();
 
-            Dictionary<int, List<Channel>> value = new Dictionary<int, List<Channel>>();
-            value.Add(1, new List<Channel>() { amtr.Testers[0].Channels[0], amtr.Testers[0].Channels[1], amtr.Testers[0].Channels[2], amtr.Testers[0].Channels[3] });
-            testPlanFolderTree.Add(amtr.Chambers[0], value);
+            //Dictionary<int, List<IChannel>> value = new Dictionary<int, List<IChannel>>();
+            //value.Add(1, new List<IChannel>() { amtr.Testers[0].Channels[0], amtr.Testers[0].Channels[1], amtr.Testers[0].Channels[2], amtr.Testers[0].Channels[3] });
+            //testPlanFolderTree.Add(amtr.Chambers[0], value);
 
-            Utilities.CreateTestPlanFolders("Project1", testPlanFolderTree);
-            Task task = amtr.AutoRun();
+            //Utilities.CreateTestPlanFolders("Project4", testPlanFolderTree);
+            Task task = amtr.AutoRun("Project4");
             task.Wait();
 
             sw.Close();
             fs.Close();
-            Console.SetOut(tempOut);
+            //Console.SetOut(tempOut);
             Console.WriteLine($"Demo program completed! Please check {consoleOuputFile} for the details.");
         }
 

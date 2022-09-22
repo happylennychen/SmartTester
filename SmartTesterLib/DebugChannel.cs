@@ -1,41 +1,26 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace SmartTester
 {
-    public class Channel: IChannel
+    public class DebugChannel : IChannel
     {
-        public Channel(string name, int index, ITester tester, Timer timer)
-        {
-            Name = name;
-            Index = index;
-            Tester = tester;
-            Timer = timer;
-            TempFileList = new List<string>();
-        }
-
         public int Index { get; set; }
-        [JsonIgnore]
-        public ITester Tester { get; set; }
         public string Name { get; set; }
         public Timer Timer { get; set; }
-        //public Stopwatch Stopwatch { get; internal set; }
         public DataLogger DataLogger { get; set; }
         public Queue<StandardRow> DataQueue { get; set; }
-        public Step CurrentStep { get; set; } //当前Step
-        public uint LastTimeInMS { get; set; }  //必须是整秒
-        public List<Step> FullStepsForOneTempPoint { get; set; }  //同一温度下的工步集合
+        public Step CurrentStep { get; set; }
+        public List<Step> FullStepsForOneTempPoint { get; set; }
         public bool IsTimerStart { get; set; }
         public bool ShouldTimerStart { get; set; }
         public double TargetTemperature { get; set; }
         public ChannelStatus Status { get; set; }
         public List<string> TempFileList { get; set; }
+        [JsonIgnore]
+        public ITester Tester { get; set; }
+        public uint LastTimeInMS { get; set; }
 
         public void GenerateFile(List<Step> fullSteps)
         {
@@ -51,8 +36,16 @@ namespace SmartTester
             IsTimerStart = false;
             LastTimeInMS = 0;
         }
+        public DebugChannel(string name, int index, ITester tester, Timer timer)
+        {
+            Name = name;
+            Index = index;
+            Tester = tester;
+            Timer = timer;
+            TempFileList = new List<string>();
+        }
         [JsonConstructor]
-        public Channel()
+        public DebugChannel()
         {
             ;
         }

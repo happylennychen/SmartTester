@@ -8,5 +8,6 @@
         bool SpecifyTestStep(Step step);
         bool Start();
         bool Stop();
+        bool Init(string ipAddress, int port, string sessionStr);
     }
 }

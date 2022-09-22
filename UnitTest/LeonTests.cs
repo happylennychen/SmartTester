@@ -11,7 +11,7 @@ using Assert = Xunit.Assert;
 
 namespace UnitTest
 {
-    public class Tests
+    public class LeonTests
     {
         [Theory]
         [InlineData(@"D:\BC_Lab\SW Design\Instrument Automation\File Converter\30T auto init\Chroma17208M-Ch1-20220630160748.csv", 7121060, @"D:\BC_Lab\SW Design\Instrument Automation\File Converter\30T auto init\Chroma17208M-Ch1-20220630160748-20220630180629.csv")]
@@ -62,11 +62,6 @@ namespace UnitTest
         }
 
         [Fact]
-        public void LoadFromFileShouldWork()
-        {
-            //Utilities.LoadTestFromFolder(@"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\");
-        }
-        [Fact]
         public void GetAdjustedRowShouldWork()
         {
             Step step = new Step();
@@ -90,10 +85,10 @@ namespace UnitTest
         [Fact]
         public void SaveAndLoadConfigurationShouldWork()
         {
-            var tester = new Tester(1, "17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
-            var chamber = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
-            List<Chamber> chambers = new List<Chamber>();
-            List<Tester> testers = new List<Tester>();
+            var tester = new DebugTester(1, "17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
+            var chamber = new DebugChamber(1, "Hongzhan", "PUL-80", 150, -40);
+            List<DebugChamber> chambers = new List<DebugChamber>();
+            List<DebugTester> testers = new List<DebugTester>();
             chambers.Add(chamber);
             testers.Add(tester);
             Configuration conf1 = new Configuration(chambers, testers);
@@ -116,28 +111,28 @@ namespace UnitTest
                 testers.Add(tester);
             }
 
-            Dictionary<IChamber, Dictionary<int, List<Channel>>> testPlanFolderTree1 = new Dictionary<IChamber, Dictionary<int, List<Channel>>>();
-            Dictionary<int, List<Channel>> dic1 = new Dictionary<int, List<Channel>>();
-            dic1.Add(1, new List<Channel>() { testers[0].Channels[0], testers[0].Channels[1], testers[0].Channels[2], testers[0].Channels[3] });
+            Dictionary<IChamber, Dictionary<int, List<IChannel>>> testPlanFolderTree1 = new Dictionary<IChamber, Dictionary<int, List<IChannel>>>();
+            Dictionary<int, List<IChannel>> dic1 = new Dictionary<int, List<IChannel>>();
+            dic1.Add(1, new List<IChannel>() { testers[0].Channels[0], testers[0].Channels[1], testers[0].Channels[2], testers[0].Channels[3] });
             testPlanFolderTree1.Add(chambers[0], dic1);
             yield return new object[] { testPlanFolderTree1, "Project3" };
 
 
 
-            Dictionary<IChamber, Dictionary<int, List<Channel>>> testPlanFolderTree2 = new Dictionary<IChamber, Dictionary<int, List<Channel>>>();
-            Dictionary<int, List<Channel>> dic2 = new Dictionary<int, List<Channel>>();
+            Dictionary<IChamber, Dictionary<int, List<IChannel>>> testPlanFolderTree2 = new Dictionary<IChamber, Dictionary<int, List<IChannel>>>();
+            Dictionary<int, List<IChannel>> dic2 = new Dictionary<int, List<IChannel>>();
             testPlanFolderTree2.Add(chambers[0], dic1);
-            dic2.Add(1, new List<Channel>() { testers[0].Channels[0], testers[0].Channels[1], testers[0].Channels[2], testers[0].Channels[3] });
-            dic2.Add(2, new List<Channel>() { testers[0].Channels[0], testers[0].Channels[1], testers[0].Channels[2], testers[0].Channels[3] });
-            dic2.Add(3, new List<Channel>() { testers[0].Channels[0], testers[0].Channels[1], testers[0].Channels[2], testers[0].Channels[3] });
-            dic2.Add(4, new List<Channel>() { testers[4].Channels[2], testers[5].Channels[3], testers[6].Channels[4] });
+            dic2.Add(1, new List<IChannel>() { testers[0].Channels[0], testers[0].Channels[1], testers[0].Channels[2], testers[0].Channels[3] });
+            dic2.Add(2, new List<IChannel>() { testers[0].Channels[0], testers[0].Channels[1], testers[0].Channels[2], testers[0].Channels[3] });
+            dic2.Add(3, new List<IChannel>() { testers[0].Channels[0], testers[0].Channels[1], testers[0].Channels[2], testers[0].Channels[3] });
+            dic2.Add(4, new List<IChannel>() { testers[4].Channels[2], testers[5].Channels[3], testers[6].Channels[4] });
             testPlanFolderTree2.Add(chambers[3], dic2);
             yield return new object[] { testPlanFolderTree2, "Project4" };
 
         }
         [Theory]
         [MemberData(nameof(GetTestPlanFolderTreeAndProjectName))]
-        public void CreateTestPlanFoldersShouldWork(Dictionary<IChamber, Dictionary<int, List<Channel>>> testPlanFolderTree, string projectName)
+        public void CreateTestPlanFoldersShouldWork(Dictionary<IChamber, Dictionary<int, List<IChannel>>> testPlanFolderTree, string projectName)
         {
             //Dictionary<Chamber, Dictionary<int, List<Channel>>> testPlanFolderTree = new Dictionary<Chamber, Dictionary<int, List<Channel>>>();
             //Chamber chamber = new Chamber(1, "Hongzhan", "PUL80", 120, -40);
@@ -180,6 +175,20 @@ namespace UnitTest
             }
             var allExisted = bList.All(b => b == true);
             Assert.True(allExisted);
+        }
+        [Fact]
+        public void LoadTestFromFolderShouldWork()
+        {
+            string folderPath = @"D:\BC_Lab\SW Design\Instrument Automation\Smart Tester\SmartTester\UnitTest\bin\Debug\Test Plan\Project4\PUL-80\4\17208Auto\5";
+            Configuration conf;
+            Utilities.LoadConfiguration(out conf);
+            List<Test> output;
+            Utilities.LoadTestFromFolder(folderPath, conf.Chambers.Select(cmb=>(IChamber)cmb).ToList(), conf.Testers.Select(tst=>(ITester)tst).ToList(), out output);
+            var count = output.Count;
+            Assert.Equal(1, count);
+            Assert.Equal("PUL-80", output[0].Chamber.Name);
+            Assert.Equal("17208Auto", output[0].Channel.Tester.Name);
+            Assert.Equal(5, output[0].Channel.Index);
         }
     }
 }

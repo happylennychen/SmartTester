@@ -1,5 +1,4 @@
-﻿#define debug
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 
 namespace SmartTester
@@ -13,13 +12,8 @@ namespace SmartTester
         public double HighestTemperature { get; set; }
         public string IpAddress { get; set; }
         public int Port { get; set; }
-#if debug
         [JsonIgnore]
         public IChamberExecutor Executor { get; set; }
-#else
-        [JsonIgnore]
-        public PUL80Executor Executor { get; set; }
-#endif
 
         public Chamber()
         { }
@@ -41,18 +35,12 @@ namespace SmartTester
             LowestTemperature = lowestTemperature;
             IpAddress = ipAddress;
             Port = port;
-#if debug
-            Executor = new DebugChamberExecutor();
-#else
             Executor = new PUL80Executor();
-#endif
-#if !debug
             if (!Executor.Init(ipAddress, port))
             {
                 Console.WriteLine("Error");
                 return;
             }
-#endif
         }
 
         public override string ToString()

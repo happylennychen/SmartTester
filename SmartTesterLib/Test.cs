@@ -5,8 +5,8 @@ namespace SmartTester
     public class Test
     {
         public List<Step> Steps { get; set; }
-        public Chamber Chamber { get; set; }
-        public Channel Channel { get; set; }
+        public IChamber Chamber { get; set; }
+        public IChannel Channel { get; set; }
         public double DischargeTemperature { get; set; }
     }
 }

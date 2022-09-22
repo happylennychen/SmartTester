@@ -1,4 +1,4 @@
-﻿#define debug
+﻿//#define debug
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,36 +11,38 @@ namespace SmartTester
 {
     public class Automator
     {
+        public string ProjectName { get; set; }
         public List<IChamber> Chambers { get; set; }
         public List<ITester> Testers { get; set; }
         public List<Test> Tests { get; set; }
 
-        public async Task Start(List<Test> tests)   //multiple chamber, one round
-        {
-            Console.WriteLine($"Automator Start. Begin in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
-            var testsGroupedbyChamber = tests.GroupBy(t => t.Chamber);
-            List<Task> tasks = new List<Task>();
-            foreach (var testGroup in testsGroupedbyChamber)        //Tests按Chamber分组
-            {
-                var chamber = testGroup.Key;
-                var testsInOneChamber = testGroup.ToList();
-                if (!Utilities.ChamberGroupTestCheck(testsInOneChamber))
-                {
-                    return;
-                }
-                Task t = AsyncStartChamberGroup(chamber, testsInOneChamber);
-                tasks.Add(t);
-            }
-            Console.WriteLine($"Automator Start. Waiting. Thread {CurrentThread.ManagedThreadId}, {CurrentThread.IsThreadPoolThread}");
-            await Task.WhenAll(tasks);
-            Console.WriteLine("All test done!");
-        }
+        //public async Task Start(List<Test> tests)   //multiple chamber, one round
+        //{
+        //    Console.WriteLine($"Automator Start. Begin in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
+        //    var testsGroupedbyChamber = tests.GroupBy(t => t.Chamber);
+        //    List<Task> tasks = new List<Task>();
+        //    foreach (var testGroup in testsGroupedbyChamber)        //Tests按Chamber分组
+        //    {
+        //        var chamber = testGroup.Key;
+        //        var testsInOneChamber = testGroup.ToList();
+        //        if (!Utilities.ChamberGroupTestCheck(testsInOneChamber))
+        //        {
+        //            return;
+        //        }
+        //        Task t = AsyncStartChamberGroup(chamber, testsInOneChamber);
+        //        tasks.Add(t);
+        //    }
+        //    Console.WriteLine($"Automator Start. Waiting. Thread {CurrentThread.ManagedThreadId}, {CurrentThread.IsThreadPoolThread}");
+        //    await Task.WhenAll(tasks);
+        //    Console.WriteLine("All test done!");
+        //}
 
-        public async Task AutoRun()
+        public async Task AutoRun(string projectName)
         {
+            ProjectName = projectName;
             if (!Directory.Exists(GlobalSettings.TestPlanFolderPath))
                 Directory.CreateDirectory(GlobalSettings.TestPlanFolderPath);
-            if (!Utilities.TestPlanFullCheck(Chambers, Testers))
+            if (!Utilities.TestPlanFullCheck(projectName, Chambers, Testers))
             {
                 Console.WriteLine($"Test Plan pre-check failed!");
                 return;
@@ -51,7 +53,7 @@ namespace SmartTester
             List<Task> tasks = new List<Task>();
             foreach (var chamber in Chambers)        //Tests按Chamber分组
             {
-                Task t = AsyncStartChamberGroup(chamber);
+                Task t = AsyncStartChamberGroup(projectName, chamber);
                 tasks.Add(t);
             }
             Console.WriteLine($"Automator Start. Waiting.");
@@ -59,27 +61,32 @@ namespace SmartTester
             Console.WriteLine("All test done!");
         }
 
-        public void Init()
+        public bool Init()
         {
             Configuration conf;
             if (!Utilities.LoadConfiguration(out conf))
             {
                 Console.WriteLine("Error! Load Configuration Failed!");
-                return;
+                return false;
             }
             else
             {
                 Chambers = conf.Chambers.Select(c=>(IChamber)c).ToList();
                 Testers = conf.Testers.Select(t=>(ITester)t).ToList();
+                foreach (var chamber in Chambers)
+                {
+                    GlobalSettings.ChamberRoundIndex.Add(chamber, 1);
+                }
+                return true;
             }
         }
 
-        private async Task AsyncStartChamberGroup(IChamber chamber, List<Test> testsInOneChamber)
+        private async Task AsyncStartOneRound(IChamber chamber, List<Test> testsInOneRound)
         {
             Console.WriteLine($"Start Chamber Group for {chamber.Name}. Thread {CurrentThread.ManagedThreadId}, {CurrentThread.IsThreadPoolThread}");
             Utilities.CreateOutputFolder();
-            List<KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>> sections = GetTestSections(testsInOneChamber);   //sections是每个温度点下的测试的集合
-            var channels = testsInOneChamber.Select(o => o.Channel).ToList();
+            List<KeyValuePair<TargetTemperature, Dictionary<IChannel, List<Step>>>> sections = GetTestSections(testsInOneRound);   //sections是每个温度点下的测试的集合
+            var channels = testsInOneRound.Select(o => o.Channel).ToList();
             bool ret;
             foreach (var channel in channels)
             {
@@ -111,7 +118,7 @@ namespace SmartTester
                 foreach (var channel in channels)
                 {
                     var steps = dic[channel];
-                    channel.FullSteps = steps;
+                    channel.FullStepsForOneTempPoint = steps;
                     channel.Tester.Start(channel.Index);
                 }
 
@@ -139,27 +146,30 @@ namespace SmartTester
             }
             //await Task.Delay(1000);
             Console.WriteLine($"Start file converting.");
-            foreach (var test in testsInOneChamber)
+            foreach (var test in testsInOneRound)
             {
                 test.Channel.GenerateFile(test.Steps);
             }
         }
 
-        private async Task AsyncStartChamberGroup(IChamber chamber)
+        private async Task AsyncStartChamberGroup(string projectName, IChamber chamber)
         {
             GlobalSettings.ChamberRoundIndex[chamber] = 1;
             while (true)
             {
                 List<Test> tests;
-                if (Utilities.LoadTestsForOneRound(Chambers, Testers, chamber, GlobalSettings.ChamberRoundIndex[chamber], out tests))
+                if (Utilities.LoadTestsForOneRound(projectName, Chambers, Testers, chamber, GlobalSettings.ChamberRoundIndex[chamber], out tests))
                 {
-                    Console.WriteLine($"Round {GlobalSettings.ChamberRoundIndex}");
-                    var folderPath = $@"{GlobalSettings.TestPlanFolderPath}{GlobalSettings.ChamberRoundIndex[chamber]}";
+                    if (Utilities.ChamberGroupTestCheck(tests))
+                    {
+                        Console.WriteLine($"Round {GlobalSettings.ChamberRoundIndex[chamber]}");
+                        var folderPath = $@"{GlobalSettings.TestPlanFolderPath}{GlobalSettings.ChamberRoundIndex[chamber]}";
 
-                    Console.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
-                    await Start(tests);
-                    Console.WriteLine($"Round {GlobalSettings.ChamberRoundIndex} programs in {folderPath} completed!");
-                    GlobalSettings.ChamberRoundIndex[chamber]++;
+                        Console.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
+                        await AsyncStartOneRound(chamber, tests);
+                        Console.WriteLine($"Round {GlobalSettings.ChamberRoundIndex[chamber]} programs in {folderPath} completed!");
+                        GlobalSettings.ChamberRoundIndex[chamber]++;
+                    }
                 }
                 else
                 {
@@ -169,7 +179,7 @@ namespace SmartTester
             }
         }
 
-        private async Task<bool> WaitForAllChannelsDone(List<Channel> channels)
+        private async Task<bool> WaitForAllChannelsDone(List<IChannel> channels)
         {
             while (!channels.All(ch => ch.Status != ChannelStatus.RUNNING))
             {
@@ -182,27 +192,27 @@ namespace SmartTester
                 return false;
         }
 
-        private List<KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>> GetTestSections(List<Test> testsInOneChamber)
+        private List<KeyValuePair<TargetTemperature, Dictionary<IChannel, List<Step>>>> GetTestSections(List<Test> testsInOneChamber)
         {
-            List<KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>> output = new List<KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>>();
+            List<KeyValuePair<TargetTemperature, Dictionary<IChannel, List<Step>>>> output = new List<KeyValuePair<TargetTemperature, Dictionary<IChannel, List<Step>>>>();
             List<TargetTemperature> tts = GetTemperaturePoints(testsInOneChamber);
             if (tts.Count == 1)
             {
                 TargetTemperature tt = new TargetTemperature();
                 tt.Temperature = 25;
                 tt.IsCritical = true;
-                Dictionary<Channel, List<Step>> dic = new Dictionary<Channel, List<Step>>();
+                Dictionary<IChannel, List<Step>> dic = new Dictionary<IChannel, List<Step>>();
                 foreach (var t in testsInOneChamber)
                 {
                     dic.Add(t.Channel, t.Steps);
                 }
-                KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>> pair = new KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>(tt, dic);
+                KeyValuePair<TargetTemperature, Dictionary<IChannel, List<Step>>> pair = new KeyValuePair<TargetTemperature, Dictionary<IChannel, List<Step>>>(tt, dic);
                 output.Add(pair);
             }
             else
                 foreach (var tt in tts)
                 {
-                    Dictionary<Channel, List<Step>> dic = new Dictionary<Channel, List<Step>>();
+                    Dictionary<IChannel, List<Step>> dic = new Dictionary<IChannel, List<Step>>();
                     foreach (var t in testsInOneChamber)
                     {
                         List<Step> steps = null;
@@ -230,7 +240,7 @@ namespace SmartTester
                         }
                         dic.Add(t.Channel, steps);
                     }
-                    KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>> pair = new KeyValuePair<TargetTemperature, Dictionary<Channel, List<Step>>>(tt, dic);
+                    KeyValuePair<TargetTemperature, Dictionary<IChannel, List<Step>>> pair = new KeyValuePair<TargetTemperature, Dictionary<IChannel, List<Step>>>(tt, dic);
                     output.Add(pair);
                 }
             return output;

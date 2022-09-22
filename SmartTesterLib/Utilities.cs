@@ -57,7 +57,7 @@ namespace SmartTester
             }
         }
 
-        public static bool CreateTestPlanFolders(string projectName, Dictionary<IChamber, Dictionary<int, List<Channel>>> testPlanFolderTree)
+        public static bool CreateTestPlanFolders(string projectName, Dictionary<IChamber, Dictionary<int, List<IChannel>>> testPlanFolderTree)
         {
             string projectPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName);
             if (Directory.Exists(projectName))
@@ -389,20 +389,50 @@ namespace SmartTester
         }
 
 
-        public static List<Test> LoadTestFromFolder(string folderPath, List<IChamber> chambers, List<ITester> testers)
+        public static bool LoadTestFromFolder(string folderPath, List<IChamber> chambers, List<ITester> testers, out List<Test> output)
         {
-            List<Test> output = new List<Test>();
-            var files = Directory.GetFiles(folderPath, "*.testplan");
-            //Channel channel = GetChannelFromFolderPath(folderPath, testers);
-            //Chamber chamber = GetChamberFromFolderPath(folderPath, chambers);
-            foreach (var file in files)
+            output = new List<Test>();
+            try
             {
-                string json = File.ReadAllText(file);
-                var test = JsonConvert.DeserializeObject<Test>(json);
-                output.Add(test);
+                var files = Directory.GetFiles(folderPath, "*.testplan");
+                IChannel channel = GetChannelFromFolderPath(folderPath, testers);
+                IChamber chamber = GetChamberFromFolderPath(folderPath, chambers);
+                foreach (var file in files)
+                {
+                    string json = File.ReadAllText(file);
+                    var test = JsonConvert.DeserializeObject<Test>(json);
+                    test.Chamber = chamber;
+                    test.Channel = channel;
+                    output.Add(test);
+                }
             }
-            return output;
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error! {e.Message}");
+                return false;
+            }
+            return true;
         }
+
+        private static IChamber GetChamberFromFolderPath(string folderPath, List<IChamber> chambers)
+        {
+            var path = folderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty);
+            var chamberName = path.Split('\\')[1];
+            var chamber = chambers.SingleOrDefault(cmb => cmb.Name == chamberName);
+            return chamber;
+
+        }
+
+        private static IChannel GetChannelFromFolderPath(string folderPath, List<ITester> testers)
+        {
+            var path = folderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty);
+            var testerName = path.Split('\\')[3];
+            var channelIndex = Convert.ToInt32(path.Split('\\')[4]);
+            var tester = testers.SingleOrDefault(tst => tst.Name == testerName);
+            var channel = tester.Channels.SingleOrDefault(ch => ch.Index == channelIndex);
+            return channel;
+        }
+
         public static bool ChamberGroupTestCheck(List<Test> tests)
         {
             if (tests.GroupBy(t => t.DischargeTemperature).Count() != 1)
@@ -418,66 +448,81 @@ namespace SmartTester
             return true;
         }
 
-        private static string GetFolderPath(IChamber chamber, int index)
+        public static string GetTestPlanOneRoundFolderPath(string projectName, IChamber chamber, int index)
         {
-            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, chamber.Name, index.ToString());
+            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName, chamber.Name, index.ToString());
             return folderPath;
         }
-        public static bool LoadTestsForOneRound(List<IChamber> chambers, List<ITester> testers, IChamber chamber, int index, out List<Test> tests)
+
+        public static string GetTestPlanProjectFolderPath(string projectName)
+        {
+            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName);
+            return folderPath;
+        }
+
+        public static string GetTestPlanChamberFolderPath(string projectName, IChamber chamber)
+        {
+            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName, chamber.Name);
+            return folderPath;
+        }
+        public static bool LoadTestsForOneRound(string projectName, List<IChamber> chambers, List<ITester> testers, IChamber chamber, int index, out List<Test> tests)
         {
             tests = null;
-            string folderPath = GetFolderPath(chamber, index);
+            string folderPath = GetTestPlanOneRoundFolderPath(projectName, chamber, index);
             if (Directory.Exists(folderPath))
             {
-                tests = LoadTestFromFolder(folderPath, chambers, testers);
-                return ChamberGroupTestCheck(tests);
+                if (!LoadTestFromFolder(folderPath, chambers, testers, out tests))
+                    return false;
+                return true;
             }
             else
                 return false;
         }
 
-        public static bool TestPlanFullCheck(List<IChamber> chambers, List<ITester> testers)
+        public static bool TestPlanFullCheck(string projectName, List<IChamber> chambers, List<ITester> testers)
         {
             string root = GlobalSettings.TestPlanFolderPath;
             bool ret = true;
-            Console.WriteLine("Test Plan pre-check.");
-            foreach (var chamber in chambers)
-            {
-                var roundIndex = GlobalSettings.ChamberRoundIndex[chamber];
-                while (true)
-                {
-                    string folderPath = GetFolderPath(chamber, roundIndex);
-                    if (Directory.Exists(folderPath))
-                    {
-                        var tests = LoadTestFromFolder(folderPath, chambers, testers);
-                        if (!Utilities.ChamberGroupTestCheck(tests))
-                        {
-                            Console.WriteLine($"Round {roundIndex} failed!");
-                            ret &= false;
-                        }
-                        else
-                            Console.WriteLine($"Round {roundIndex} pass!");
-                        roundIndex++;
-                    }
-                    else
-                    {
-                        if (roundIndex == 1)
-                        {
-                            Console.WriteLine($"There's no test plan, please check.");
-                            ret = false;
-                            break;
-                        }
-                        else
-                        {
-                            Console.WriteLine($"All rounds test plan check finished.");
-                            break;
-                        }
-                    }
-                }
-            }
+            //Console.WriteLine("Test Plan pre-check.");
+            //foreach (var chamber in chambers)
+            //{
+            //    var roundIndex = GlobalSettings.ChamberRoundIndex[chamber];
+            //    while (true)
+            //    {
+            //        string folderPath = GetTestPlanOneRoundFolderPath(projectName, chamber, roundIndex);
+            //        if (Directory.Exists(folderPath))
+            //        {
+            //            List<Test> tests;
+            //            if (!LoadTestFromFolder(folderPath, chambers, testers, out tests))
+            //                return false;
+            //            if (!Utilities.ChamberGroupTestCheck(tests))
+            //            {
+            //                Console.WriteLine($"Round {roundIndex} failed!");
+            //                ret &= false;
+            //            }
+            //            else
+            //                Console.WriteLine($"Round {roundIndex} pass!");
+            //            roundIndex++;
+            //        }
+            //        else
+            //        {
+            //            if (roundIndex == 1)
+            //            {
+            //                Console.WriteLine($"There's no test plan, please check.");
+            //                ret = false;
+            //                break;
+            //            }
+            //            else
+            //            {
+            //                Console.WriteLine($"All rounds test plan check finished.");
+            //                break;
+            //            }
+            //        }
+            //    }
+            //}
             return ret;
         }
-        public static bool SaveConfiguration(List<Chamber> chambers, List<Tester> testers)
+        public static bool SaveConfiguration(List<DebugChamber> chambers, List<DebugTester> testers)
         {
             try
             {
