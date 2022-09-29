@@ -64,21 +64,31 @@ namespace SmartTester
         {
             bool ret;
             int counter = (int)i % Channels.Count;
+            string gap = string.Empty;
+            for (int j = 0; j < counter; j++)
+            {
+                gap += " ";
+            }
             int channelIndex = counter + 1;
             Channel channel = Channels.SingleOrDefault(ch => ch.Index == channelIndex);
             //long data;
             #region read data
             StandardRow stdRow;
             uint channelEvents;
-            ret = Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
-            if (!ret)
+            if (channel.Offset == 0)        //工步的第一次
             {
-                channel.Reset();
-                channel.Status = ChannelStatus.ERROR;
-                Console.WriteLine("Cannot read row from tester. Please check cable connection.");
-                return;
+                ret = Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
+                if (!ret)
+                {
+                    channel.Reset();
+                    channel.Status = ChannelStatus.ERROR;
+                    Console.WriteLine("Cannot read row from tester. Please check cable connection.");
+                    return;
+                }
+                var startPoint = stdRow.TimeInMS % 1000;
+                channel.Offset = startPoint + 15;
+                Console.WriteLine($"Set offset to {channel.Offset}.");
             }
-            var startPoint = stdRow.TimeInMS % 1000;
             do
             {
                 ret = Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
@@ -90,9 +100,10 @@ namespace SmartTester
                     return;
                 }
                 //data = stdRow.TimeInMS % 1000;
+                Console.WriteLine($"{stdRow.ToString(),-60}Ch{gap}{channelIndex}.");
             }
             //while (data > 100 && stdRow.Status == RowStatus.RUNNING);
-            while (stdRow.TimeInMS < (1000 + channel.LastTimeInMS) && stdRow.Status == RowStatus.RUNNING);
+            while (stdRow.TimeInMS < (1000 + channel.LastTimeInMS + channel.Offset) && stdRow.Status == RowStatus.RUNNING);
 
             channel.LastTimeInMS = stdRow.TimeInMS / 1000 * 1000;
             double temperature;
@@ -110,7 +121,8 @@ namespace SmartTester
                 stdRow = GetAdjustedRow(channel.DataQueue.ToList(), channel.Step);
             if (channel.DataQueue.Count >= 4)
                 channel.DataQueue.Dequeue();
-            var strRow = stdRow.ToString();
+            //var strRow = stdRow.ToString();
+            var strRow = GetRowString(stdRow, channel.Offset);
             #endregion
 
             #region log data
@@ -118,11 +130,6 @@ namespace SmartTester
             #endregion
 
             #region display data
-            string gap = string.Empty;
-            for (int j = 0; j < counter; j++)
-            {
-                gap += " ";
-            }
             Console.WriteLine($"{strRow,-60}Ch{gap}{channelIndex}.");
             #endregion
 
@@ -180,10 +187,17 @@ namespace SmartTester
             }
             #endregion
 
-            if (channel.ShouldTimerStart) //开启下一次计时
-            {
-                channel.Timer.Change(950, 0);
-            }
+            //if (channel.ShouldTimerStart) //开启下一次计时
+            //{
+            //    channel.Timer.Change(950, 0);
+            //}
+        }
+
+        private string GetRowString(StandardRow stdRow, uint offset)
+        {
+            var newRow = stdRow.Clone();
+            newRow.TimeInMS -= offset;
+            return newRow.ToString();
         }
 
         private StandardRow GetAdjustedRow(List<StandardRow> standardRows, Step step)
@@ -280,7 +294,7 @@ namespace SmartTester
                 channel.Step = channel.FullSteps.First();
                 Executor.SpecifyTestStep(channel.Step);
                 Executor.Start();
-                channel.Timer.Change(980, 0);
+                channel.Timer.Change(980, 1000);
                 channel.IsTimerStart = true;
             }
             _counter++;

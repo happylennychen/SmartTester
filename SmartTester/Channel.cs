@@ -28,6 +28,7 @@ namespace SmartTester
         public Queue<StandardRow> DataQueue { get; set; }
         public Step Step { get; internal set; } //当前Step
         public uint LastTimeInMS { get; set; }  //必须是整秒
+        public uint Offset { get; set; }  //记录每个工步的初始时间偏差
         public List<Step> FullSteps { get; internal set; }  //同一温度下的工步集合
         public bool IsTimerStart { get; internal set; }
         public bool ShouldTimerStart { get; internal set; }
@@ -43,6 +44,7 @@ namespace SmartTester
 
         internal void Reset()
         {
+            Timer.Change(Timeout.Infinite, Timeout.Infinite);
             DataQueue.Clear();
             DataLogger.Close();
             ShouldTimerStart = false;

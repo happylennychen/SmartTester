@@ -1,4 +1,6 @@
-﻿namespace SmartTester
+﻿using System;
+
+namespace SmartTester
 {
     public class StandardRow
     {
@@ -53,6 +55,11 @@
             this.Capacity = Capacity;
             this.TotalCapacity = TotalCapacity;
             this.Status = Status;
+        }
+
+        internal StandardRow Clone()
+        {
+            return (StandardRow)this.MemberwiseClone();
         }
     }
 }
