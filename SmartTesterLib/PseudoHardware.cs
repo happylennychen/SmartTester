@@ -14,22 +14,23 @@ namespace SmartTester
         public Step Step { get; set; }
         public PseudoBattery Battery { get; set; }
         public int TimerIntervalInMS { get; set; }
+        public Timer Timer { get; set; }
 
-        public PseudoHardware()
+        public PseudoHardware(int interval)
         {
             Stopwatch = new Stopwatch();
             DataLength = 20;
             DataQueues = new Queue<StandardRow>();
-            Battery = new PseudoBattery(3600, 3100, 0, 3200, 20);
-            Battery.ChargeCurrentSlope = 1;
-            Battery.ChargeVoltageSlope = 1;
-            Battery.DischargeVoltageSlope = 1;
-            Battery.EnvTemperature = 30;
-            Battery.DischargeTemperatureSlope = 1;
-            Battery.NonDischargeTemperatureSlope = 1;
-            TimerIntervalInMS = 500;
+            Battery = new PseudoBattery(3600, 0, 0, 4100, 20);
+            Battery.ChargeCurrentSlope = 100;
+            Battery.ChargeVoltageSlope = 25;
+            Battery.DischargeVoltageSlope = 25;
+            Battery.EnvTemperature = 0;
+            Battery.DischargeTemperatureSlope = 5;
+            Battery.NonDischargeTemperatureSlope = 5;
+            TimerIntervalInMS = interval;
             //var timer = new Timer(_ => TimerCallback(), null, 100, TimerIntervalInMS);
-            var timer = new Timer(_ => TimerCallback(), null, Timeout.Infinite, TimerIntervalInMS);
+            Timer = new Timer(_ => TimerCallback());
         }
 
         private void TimerCallback()
@@ -71,6 +72,7 @@ namespace SmartTester
                         Battery.Voltage = Step.CutOffBehaviors.SingleOrDefault(cob => cob.Condition.Parameter == Parameter.VOLTAGE).Condition.Value;
                         Battery.Current = 0;
                     }
+                    Battery.RemainCapacity -= Battery.Current / 1000 * (TimerIntervalInMS / 1000.0) / 3600;
                     break;
                 case ActionMode.CP_DISCHARGE:
                     if (Battery.Voltage > Step.CutOffBehaviors.SingleOrDefault(cob => cob.Condition.Parameter == Parameter.VOLTAGE).Condition.Value)
@@ -84,6 +86,7 @@ namespace SmartTester
                         Battery.Voltage = Step.CutOffBehaviors.SingleOrDefault(cob => cob.Condition.Parameter == Parameter.VOLTAGE).Condition.Value;
                         Battery.Current = 0;
                     }
+                    Battery.RemainCapacity -= Battery.Current / 1000 * (TimerIntervalInMS / 1000.0) / 3600;
                     break;
                 case ActionMode.REST:       //
                     Battery.Current = 0;
@@ -94,6 +97,116 @@ namespace SmartTester
                         Battery.Temperature = Battery.EnvTemperature;
                     break;
             }
+            foreach (var cob in Step.CutOffBehaviors)
+            {
+                double leftValue, rightValue;
+                switch(cob.Condition.Parameter)
+                {
+                    case Parameter.CURRENT:
+                        leftValue = Battery.Current;
+                        rightValue = cob.Condition.Value;
+                        break;
+                    case Parameter.POWER:
+                        leftValue = Battery.Voltage * Battery.Current / 1000;
+                        rightValue = cob.Condition.Value;
+                        break;
+                    case Parameter.TEMPERATURE:
+                        leftValue = Battery.Temperature;
+                        rightValue = cob.Condition.Value;
+                        break;
+                    case Parameter.TIME:
+                        leftValue = Stopwatch.Elapsed.TotalMilliseconds;
+                        rightValue = cob.Condition.Value * 1000;
+                        break;
+                    case Parameter.VOLTAGE:
+                        leftValue = Battery.Voltage;
+                        rightValue = cob.Condition.Value;
+                        break;
+                    default:
+                        return; //不可能
+                }
+                if (ConditionCheck(leftValue, rightValue, cob.Condition.Mark))
+                {
+                    Stop();
+                }
+            }
+        }
+
+        private bool ConditionCheck(double leftValue, double rightValue, CompareMarkEnum mark)
+        {
+            switch (mark)
+            {
+                case CompareMarkEnum.LargerThan:
+                    return leftValue >= rightValue;
+                case CompareMarkEnum.SmallerThan:
+                    return leftValue <= rightValue;
+                case CompareMarkEnum.EqualTo:
+                    return leftValue == rightValue;
+            }
+            return false;
+        }
+
+        internal StandardRow GetStandardRow()
+        {
+            StandardRow output = new StandardRow();
+            output.TimeInMS = (uint)Stopwatch.ElapsedMilliseconds;
+            output.Current = Battery.Current;
+            output.Mode = Step.Action.Mode;
+            output.Temperature = Battery.Temperature;
+            output.Voltage = Battery.Voltage;
+            output.Capacity = Battery.RemainCapacity;
+            RowStatus rowStatus;
+            foreach (var cob in Step.CutOffBehaviors)
+            {
+                double leftValue, rightValue;
+                switch (cob.Condition.Parameter)
+                {
+                    case Parameter.CURRENT:
+                        leftValue = Battery.Current;
+                        rightValue = cob.Condition.Value;
+                        rowStatus = RowStatus.CUT_OFF_BY_CURRENT;
+                        break;
+                    case Parameter.POWER:
+                        leftValue = Battery.Voltage * Battery.Current / 1000;
+                        rightValue = cob.Condition.Value;
+                        rowStatus = RowStatus.CUT_OFF_BY_POWER;
+                        break;
+                    case Parameter.TEMPERATURE:
+                        leftValue = Battery.Temperature;
+                        rightValue = cob.Condition.Value;
+                        rowStatus = RowStatus.CUT_OFF_BY_TEMPERATURE;
+                        break;
+                    case Parameter.TIME:
+                        leftValue = output.TimeInMS;
+                        rightValue = cob.Condition.Value * 1000;
+                        rowStatus = RowStatus.CUT_OFF_BY_TIME;
+                        break;
+                    case Parameter.VOLTAGE:
+                        leftValue = Battery.Voltage;
+                        rightValue = cob.Condition.Value;
+                        rowStatus = RowStatus.CUT_OFF_BY_VOLTAGE;
+                        break;
+                    default:
+                        return null; //不可能
+                }
+                if (ConditionCheck(leftValue, rightValue, cob.Condition.Mark))
+                {
+                    output.Status = rowStatus;
+                }
+            }
+            return output;
+        }
+
+        internal void Start()
+        {
+            Stopwatch.Restart();
+            Timer.Change(TimerIntervalInMS, TimerIntervalInMS);
+        }
+
+        private void Stop()
+        {
+            Stopwatch.Stop();
+            Timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
     }
 }

@@ -467,16 +467,72 @@ namespace SmartTester
         }
         public static bool LoadTestsForOneRound(string projectName, List<IChamber> chambers, List<ITester> testers, IChamber chamber, int index, out List<Test> tests)
         {
-            tests = null;
-            string folderPath = GetTestPlanOneRoundFolderPath(projectName, chamber, index);
-            if (Directory.Exists(folderPath))
+            tests = new List<Test>();
+            string oneRoundFolderPath = GetTestPlanOneRoundFolderPath(projectName, chamber, index);
+            foreach (var testerFolderPath in Directory.EnumerateDirectories(oneRoundFolderPath))
             {
-                if (!LoadTestFromFolder(folderPath, chambers, testers, out tests))
+                ITester tester = GetTesterFromFolderPath(testerFolderPath, testers);
+                if (tester == null)
+                {
+                    Console.WriteLine($"There's no available tester in {testerFolderPath}");
                     return false;
-                return true;
+                }
+                foreach (var channelFolderPath in Directory.EnumerateDirectories(testerFolderPath))
+                {
+                    IChannel channel = GetChannelFromFolderPath(channelFolderPath, tester);
+                    if (channel == null)
+                    {
+                        Console.WriteLine($"There's no available channel in {channelFolderPath}");
+                        return false;
+                    }
+                    Test test;
+                    if (!LoadTestFromFolder(channelFolderPath, chamber, tester, channel, out test))
+                        return false;
+                    tests.Add(test);
+                }
             }
-            else
+            return true;
+            //if (Directory.Exists(folderPath))
+            //{
+            //    if (!LoadTestFromFolder(folderPath, chambers, testers, out tests))
+            //        return false;
+            //    return true;
+            //}
+            //else
+            //    return false;
+        }
+
+        private static bool LoadTestFromFolder(string channelFolderPath, IChamber chamber, ITester tester, IChannel channel, out Test test)
+        {
+            test = null;
+            try
+            {
+                var files = Directory.GetFiles(channelFolderPath, "*.testplan");
+                if (files.Count() != 1)
+                    return false;
+                string json = File.ReadAllText(files[0]);
+                test = JsonConvert.DeserializeObject<Test>(json);
+                test.Chamber = chamber;
+                test.Channel = channel;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error! {e.Message}");
                 return false;
+            }
+            return true;
+        }
+
+        private static IChannel GetChannelFromFolderPath(string channelFolderPath, ITester tester)
+        {
+            var channelIndex = Convert.ToInt32(channelFolderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty).Split('\\')[4]);
+            return tester.Channels.SingleOrDefault(ch => ch.Index == channelIndex);
+        }
+
+        private static ITester GetTesterFromFolderPath(string testerFolderPath, List<ITester> testers)
+        {
+            var testerName = testerFolderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty).Split('\\')[3];
+            return testers.SingleOrDefault(tst => tst.Name == testerName);
         }
 
         public static bool TestPlanFullCheck(string projectName, List<IChamber> chambers, List<ITester> testers)

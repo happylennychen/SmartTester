@@ -13,7 +13,7 @@
         public RowStatus Status { get; set; }
         public override string ToString()
         {
-            return $@"{Index},{TimeInMS},{(byte)Mode},{Current},{Voltage},{Temperature},{Capacity},{TotalCapacity},{(byte)Status}";
+            return $@"{Index},{TimeInMS},{(byte)Mode},{Current},{Voltage},{Temperature},{Capacity.ToString("f5")},{TotalCapacity},{(byte)Status}";
         }
         public StandardRow()
         {

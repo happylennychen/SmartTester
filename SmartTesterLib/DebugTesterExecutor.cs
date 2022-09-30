@@ -26,8 +26,13 @@ namespace SmartTester
             PseudoHardwares = new PseudoHardware[ChannelNunber];
             for (int i = 0; i < ChannelNunber; i++)
             {
-                PseudoHardwares[i] = new PseudoHardware();
+                PseudoHardwares[i] = new PseudoHardware(500);
             }
+            //Stopwatches = new Stopwatch[ChannelNunber];
+            //for (int i = 0; i < ChannelNunber; i++)
+            //{
+            //    Stopwatches[i] = new Stopwatch();
+            //}
         }
         public bool ReadRow(int channelIndex, out StandardRow stdRow, out uint channelEvents)
         {
@@ -39,11 +44,12 @@ namespace SmartTester
                 //    Console.WriteLine("Channel 3 spend a long time reading.");
                 //    Thread.Sleep(3000);
                 //}
-                Console.WriteLine($"Channel {channelIndex} read row");
-                stdRow = new StandardRow();
-                stdRow.TimeInMS = (uint)Stopwatches[channelIndex - 1].ElapsedMilliseconds;
-                if (stdRow.TimeInMS > 3000)
-                    stdRow.Status = RowStatus.STOP;
+                //Console.WriteLine($"Channel {channelIndex} read row");
+                //stdRow = new StandardRow();
+                //stdRow.TimeInMS = (uint)PseudoHardwares[channelIndex - 1].Stopwatch.ElapsedMilliseconds;
+                //if (stdRow.TimeInMS > 3000)
+                //    stdRow.Status = RowStatus.STOP;
+                stdRow = PseudoHardwares[channelIndex - 1].GetStandardRow();
                 AccessFile($"Channel {channelIndex}, Time: {stdRow.TimeInMS}, Thread:{CurrentThread.ManagedThreadId}");
                 channelEvents = 0;
                 return true;
@@ -62,7 +68,7 @@ namespace SmartTester
 
         public bool ReadTemperarture(int channelIndex, out double temperature)
         {
-            temperature = 0;
+            temperature = PseudoHardwares[channelIndex-1].Battery.Temperature;
             return true;
         }
 
@@ -80,7 +86,7 @@ namespace SmartTester
 
         public bool Start()
         {
-            PseudoHardwares[ChannelIndex - 1].Stopwatch.Start();
+            PseudoHardwares[ChannelIndex - 1].Start();
             return true;
         }
 

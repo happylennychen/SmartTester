@@ -35,6 +35,7 @@ namespace SmartTester
             fs.Close();
             //Console.SetOut(tempOut);
             Console.WriteLine($"Demo program completed! Please check {consoleOuputFile} for the details.");
+            Console.ReadLine();
         }
 
         private static bool TestPlanPreCheck()
