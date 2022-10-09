@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -8,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace SmartTester
 {
-    public class Channel
+    public class Channel: IChannel
     {
-        public Channel(string name, int index, Tester tester, Timer timer)
+        public Channel(string name, int index, ITester tester, Timer timer)
         {
             Name = name;
             Index = index;
@@ -20,21 +21,22 @@ namespace SmartTester
         }
 
         public int Index { get; set; }
-        public Tester Tester { get; set; }
+        [JsonIgnore]
+        public ITester Tester { get; set; }
         public string Name { get; set; }
         public Timer Timer { get; set; }
         //public Stopwatch Stopwatch { get; internal set; }
-        public DataLogger DataLogger { get; internal set; }
+        public DataLogger DataLogger { get; set; }
         public Queue<StandardRow> DataQueue { get; set; }
-        public Step Step { get; internal set; } //当前Step
+        public Step CurrentStep { get; set; } //当前Step
         public uint LastTimeInMS { get; set; }  //必须是整秒
         public uint Offset { get; set; }  //记录每个工步的初始时间偏差
-        public List<Step> FullSteps { get; internal set; }  //同一温度下的工步集合
-        public bool IsTimerStart { get; internal set; }
-        public bool ShouldTimerStart { get; internal set; }
-        public double TargetTemperature { get; internal set; }
-        public ChannelStatus Status { get; internal set; }
-        public List<string> TempFileList { get; internal set; }
+        public List<Step> FullStepsForOneTempPoint { get; set; }  //同一温度下的工步集合
+        public bool IsTimerStart { get; set; }
+        public bool ShouldTimerStart { get; set; }
+        public double TargetTemperature { get; set; }
+        public ChannelStatus Status { get; set; }
+        public List<string> TempFileList { get; set; }
 
         public void GenerateFile(List<Step> fullSteps)
         {
@@ -42,7 +44,7 @@ namespace SmartTester
             TempFileList.Clear();
         }
 
-        internal void Reset()
+        public void Reset()
         {
             Timer.Change(Timeout.Infinite, Timeout.Infinite);
             DataQueue.Clear();
@@ -50,6 +52,11 @@ namespace SmartTester
             ShouldTimerStart = false;
             IsTimerStart = false;
             LastTimeInMS = 0;
+        }
+        [JsonConstructor]
+        public Channel()
+        {
+            ;
         }
     }
 }

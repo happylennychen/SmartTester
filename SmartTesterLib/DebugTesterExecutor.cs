@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -13,15 +14,25 @@ namespace SmartTester
 
         public string FilePath { get; set; }
         public int ChannelIndex { get; set; }
-        public Stopwatch[] Stopwatches { get; set; }
-        public DebugTesterExecutor()
+        private int ChannelNunber { get; set; }
+        private Stopwatch[] Stopwatches { get; set; }   //用秒表来控制每个通道的状态
+        private Queue<StandardRow>[] DataQueues { get; set; }    //用来记录历史数据，以便推演新数据
+        private uint DataLength { get; set; }       //DataQueue的长度
+        private PseudoHardware[] PseudoHardwares { get; set; }
+        public DebugTesterExecutor(string name)
         {
-            FilePath = $@"debug{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
-            Stopwatches = new Stopwatch[8];
-            for (int i = 0; i < Stopwatches.Length; i++)
+            FilePath = $@"{name} debug {DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
+            ChannelNunber = 8;
+            PseudoHardwares = new PseudoHardware[ChannelNunber];
+            for (int i = 0; i < ChannelNunber; i++)
             {
-                Stopwatches[i] = new Stopwatch();
+                PseudoHardwares[i] = new PseudoHardware(500);
             }
+            //Stopwatches = new Stopwatch[ChannelNunber];
+            //for (int i = 0; i < ChannelNunber; i++)
+            //{
+            //    Stopwatches[i] = new Stopwatch();
+            //}
         }
         public bool ReadRow(int channelIndex, out StandardRow stdRow, out uint channelEvents)
         {
@@ -33,11 +44,12 @@ namespace SmartTester
                 //    Console.WriteLine("Channel 3 spend a long time reading.");
                 //    Thread.Sleep(3000);
                 //}
-                Console.WriteLine($"Channel {channelIndex} read row");
-                stdRow = new StandardRow();
-                stdRow.TimeInMS = (uint)Stopwatches[channelIndex - 1].ElapsedMilliseconds;
-                if (stdRow.TimeInMS > 3000)
-                    stdRow.Status = RowStatus.STOP;
+                //Console.WriteLine($"Channel {channelIndex} read row");
+                //stdRow = new StandardRow();
+                //stdRow.TimeInMS = (uint)PseudoHardwares[channelIndex - 1].Stopwatch.ElapsedMilliseconds;
+                //if (stdRow.TimeInMS > 3000)
+                //    stdRow.Status = RowStatus.STOP;
+                stdRow = PseudoHardwares[channelIndex - 1].GetStandardRow();
                 AccessFile($"Channel {channelIndex}, Time: {stdRow.TimeInMS}, Thread:{CurrentThread.ManagedThreadId}");
                 channelEvents = 0;
                 return true;
@@ -56,7 +68,7 @@ namespace SmartTester
 
         public bool ReadTemperarture(int channelIndex, out double temperature)
         {
-            temperature = 0;
+            temperature = PseudoHardwares[channelIndex-1].Battery.Temperature;
             return true;
         }
 
@@ -68,18 +80,24 @@ namespace SmartTester
 
         public bool SpecifyTestStep(Step step)
         {
+            PseudoHardwares[ChannelIndex - 1].Step = step;
             return true;
         }
 
         public bool Start()
         {
-            Stopwatches[ChannelIndex - 1].Start();
+            PseudoHardwares[ChannelIndex - 1].Start();
             return true;
         }
 
         public bool Stop()
         {
-            Stopwatches[ChannelIndex - 1].Reset();
+            PseudoHardwares[ChannelIndex - 1].Stopwatch.Reset();
+            return true;
+        }
+
+        public bool Init(string ipAddress, int port, string sessionStr)
+        {
             return true;
         }
     }

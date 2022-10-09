@@ -9,119 +9,84 @@ namespace SmartTester
 {
     class Program
     {
-        public static Tester MyTester { get; set; }
-        public static Chamber MyChamber { get; set; }
         static void Main(string[] args)
         {
             string consoleOuputFile = $"Console Output {DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
             FileStream fs = new FileStream(consoleOuputFile, FileMode.Create);
             StreamWriter sw = new StreamWriter(fs);
             sw.AutoFlush = true;
-            var tempOut = Console.Out;
-            Console.SetOut(sw);
-            MyTester = new Tester("17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
-            MyChamber = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
-            //var root = @"D:\BC_Lab\SW Design\Instrument Automation\Test Plan Json\";
-            var root = Path.Combine(System.Environment.CurrentDirectory, "Test Plan\\");
-            if (!Directory.Exists(root))
-                Directory.CreateDirectory(root);
-            GlobalSettings.RoundIndex = 1;
-            if (!TestPlanPreCheck(root))
-            {
-                Console.WriteLine($"Test Plan pre-check failed!");
-                return;
-            }
-            GlobalSettings.OutputFolder = CreateOutputFolderRoot(DateTime.Now.ToString("yyyyMMddHHmmss"));
-            while(true)
-            {
-                var dirs = Directory.GetDirectories(root);
-                if (dirs.Contains($@"{root}{GlobalSettings.RoundIndex}"))
-                {
-                    Console.WriteLine($"Round {GlobalSettings.RoundIndex}");
-                    var folderPath = $@"{root}{GlobalSettings.RoundIndex}";
+            //var tempOut = Console.Out;
+            //Console.SetOut(sw);
 
-                    List<Test> tests = Utilities.LoadTestFromFile(folderPath);
-                    foreach (var test in tests)
-                    {
-                        if (test.Chamber.Name == MyChamber.Name)
-                            test.Chamber = MyChamber;
-                        if (test.Channel.Tester.Name == "17208Auto")
-                            test.Channel = MyTester.Channels.SingleOrDefault(ch => ch.Index == GetChannelIndex(test.Channel.Name));
-                    }
-                    Automator automator = new Automator();
-                    Console.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
-                    Task t = automator.Start(tests);
-                    t.Wait();
-                    Console.WriteLine($"Round {GlobalSettings.RoundIndex} programs in {folderPath} completed!");
-                    GlobalSettings.RoundIndex++;
-                }
-                else
-                {
-                    Console.WriteLine($"All rounds finished.");
-                    break;
-                }
-            }
+            Automator amtr = new Automator();
+            if(!amtr.Init())
+                return;
+            //Dictionary<IChamber, Dictionary<int, List<IChannel>>> testPlanFolderTree = new Dictionary<IChamber, Dictionary<int, List<IChannel>>>();
+
+            //Dictionary<int, List<IChannel>> value = new Dictionary<int, List<IChannel>>();
+            //value.Add(1, new List<IChannel>() { amtr.Testers[0].Channels[0], amtr.Testers[0].Channels[1], amtr.Testers[0].Channels[2], amtr.Testers[0].Channels[3] });
+            //testPlanFolderTree.Add(amtr.Chambers[0], value);
+
+            //Utilities.CreateTestPlanFolders("Project4", testPlanFolderTree);
+            Task task = amtr.AutoRun("Project4");
+            task.Wait();
 
             sw.Close();
             fs.Close();
-            Console.SetOut(tempOut);
+            //Console.SetOut(tempOut);
             Console.WriteLine($"Demo program completed! Please check {consoleOuputFile} for the details.");
+            Console.ReadLine();
         }
 
-        private static string CreateOutputFolderRoot(string v)
+        private static bool TestPlanPreCheck()
         {
-            Directory.CreateDirectory(v);
-            return v;
-        }
-
-        private static bool TestPlanPreCheck(string root)
-        {
+            string root = GlobalSettings.TestPlanFolderPath;
             bool ret = true;
-            Console.WriteLine("Test Plan pre-check.");
-            int roundIndex = 1;
-            while (true)
-            {
-                var dirs = Directory.GetDirectories(root);
-                if (dirs.Contains($@"{root}{roundIndex}"))
-                {
-                    var folderPath = $@"{root}{roundIndex}";
+            //Console.WriteLine("Test Plan pre-check.");
+            //int roundIndex = 1;
+            //while (true)
+            //{
+            //    var dirs = Directory.GetDirectories(root);
+            //    if (dirs.Contains($@"{root}{roundIndex}"))
+            //    {
+            //        var folderPath = $@"{root}{roundIndex}";
 
-                    List<Test> tests = Utilities.LoadTestFromFile(folderPath);
-                    foreach (var test in tests)
-                    {
-                        if (test.Chamber.Name == MyChamber.Name)
-                            test.Chamber = MyChamber;
-                        if (test.Channel.Tester.Name == "17208Auto")
-                            test.Channel = MyTester.Channels.SingleOrDefault(ch => ch.Index == GetChannelIndex(test.Channel.Name));
-                    }
-                    var testsGroupedbyChamber = tests.GroupBy(t => t.Chamber);
-                    foreach (var tst in testsGroupedbyChamber)
-                    {
-                        if (!Automator.ChamberGroupTestCheck(tst.ToList()))
-                        {
-                            Console.WriteLine($"Round {roundIndex} failed!");
-                            ret &= false;
-                        }
-                        else
-                            Console.WriteLine($"Round {roundIndex} pass!");
-                    }
-                    roundIndex++;
-                }
-                else
-                {
-                    if (roundIndex == 1)
-                    {
-                        Console.WriteLine($"There's no test plan, please check.");
-                        ret = false;
-                        break;
-                    }
-                    else
-                    {
-                    Console.WriteLine($"All rounds test plan check finished.");
-                    break;
-                    }
-                }
-            }
+            //        List<Test> tests = Utilities.LoadTestFromFile(folderPath);
+            //        foreach (var test in tests)
+            //        {
+            //            if (test.Chamber.Name == MyChamber.Name)
+            //                test.Chamber = MyChamber;
+            //            if (test.Channel.Tester.Name == "17208Auto")
+            //                test.Channel = MyTester.Channels.SingleOrDefault(ch => ch.Index == GetChannelIndex(test.Channel.Name));
+            //        }
+            //        var testsGroupedbyChamber = tests.GroupBy(t => t.Chamber);
+            //        foreach (var tst in testsGroupedbyChamber)
+            //        {
+            //            if (!Automator.ChamberGroupTestCheck(tst.ToList()))
+            //            {
+            //                Console.WriteLine($"Round {roundIndex} failed!");
+            //                ret &= false;
+            //            }
+            //            else
+            //                Console.WriteLine($"Round {roundIndex} pass!");
+            //        }
+            //        roundIndex++;
+            //    }
+            //    else
+            //    {
+            //        if (roundIndex == 1)
+            //        {
+            //            Console.WriteLine($"There's no test plan, please check.");
+            //            ret = false;
+            //            break;
+            //        }
+            //        else
+            //        {
+            //        Console.WriteLine($"All rounds test plan check finished.");
+            //        break;
+            //        }
+            //    }
+            //}
             return ret;
         }
 

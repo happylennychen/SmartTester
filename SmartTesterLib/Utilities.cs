@@ -57,9 +57,51 @@ namespace SmartTester
             }
         }
 
+        public static bool CreateTestPlanFolders(string projectName, Dictionary<IChamber, Dictionary<int, List<IChannel>>> testPlanFolderTree)
+        {
+            string projectPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName);
+            if (Directory.Exists(projectName))
+            {
+                Console.WriteLine($"Error! {projectName} already existed.");
+                return false;
+            }
+            try
+            {
+                Directory.CreateDirectory(projectPath);
+                foreach (var chamber in testPlanFolderTree.Keys)
+                {
+                    string chamberPath = Path.Combine(projectPath, chamber.Name);
+                    Directory.CreateDirectory(chamberPath);
+                    foreach (var roundIndex in testPlanFolderTree[chamber].Keys)
+                    {
+                        string roundPath = Path.Combine(chamberPath, roundIndex.ToString());
+                        Directory.CreateDirectory(roundPath);
+                        var testers = testPlanFolderTree[chamber][roundIndex].Select(ch => ch.Tester).Distinct().ToList();
+                        foreach (var tester in testers)
+                        {
+                            string testerPath = Path.Combine(roundPath, tester.Name);
+                            Directory.CreateDirectory(testerPath);
+                            var channels = testPlanFolderTree[chamber][roundIndex].Where(ch => ch.Tester == tester).ToList();
+                            foreach (var channel in channels)
+                            {
+                                string channelPath = Path.Combine(testerPath, channel.Index.ToString());
+                                Directory.CreateDirectory(channelPath);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error! {e.Message}");
+                return false;
+            }
+            return true;
+        }
+
         internal static void CreateOutputFolder()
         {
-            string outputFolder = Path.Combine(GlobalSettings.OutputFolder, GlobalSettings.RoundIndex.ToString());
+            string outputFolder = Path.Combine(GlobalSettings.OutputFolder, GlobalSettings.ChamberRoundIndex.ToString());
             Directory.CreateDirectory(outputFolder);
         }
 
@@ -116,7 +158,7 @@ namespace SmartTester
                                         if (lastRow.Status != RowStatus.RUNNING)
                                         {
                                             timeOffset = lastRow.TimeInMS;
-                                            if (capacityShouldContinue(lastRow, currentRow))
+                                            if (ShouldCapacityContinue(lastRow, currentRow))
                                             {
                                                 capacityOffset = lastRow.Capacity;
                                             }
@@ -176,7 +218,7 @@ namespace SmartTester
                 }
         }
 
-        private static bool capacityShouldContinue(StandardRow lastRow, StandardRow stdRow)
+        private static bool ShouldCapacityContinue(StandardRow lastRow, StandardRow stdRow)
         {
             return lastRow.Mode == stdRow.Mode;
         }
@@ -347,17 +389,241 @@ namespace SmartTester
         }
 
 
-        public static List<Test> LoadTestFromFile(string folderPath)
+        public static bool LoadTestFromFolder(string folderPath, List<IChamber> chambers, List<ITester> testers, out List<Test> output)
         {
-            List<Test> output = new List<Test>();
-            var files = Directory.GetFiles(folderPath, "*.testplan");
-            foreach (var file in files)
+            output = new List<Test>();
+            try
             {
-                string json = File.ReadAllText(file);
-                var test = JsonConvert.DeserializeObject<Test>(json);
-                output.Add(test);
+                var files = Directory.GetFiles(folderPath, "*.testplan");
+                IChannel channel = GetChannelFromFolderPath(folderPath, testers);
+                IChamber chamber = GetChamberFromFolderPath(folderPath, chambers);
+                foreach (var file in files)
+                {
+                    string json = File.ReadAllText(file);
+                    var test = JsonConvert.DeserializeObject<Test>(json);
+                    test.Chamber = chamber;
+                    test.Channel = channel;
+                    output.Add(test);
+                }
             }
-            return output;
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error! {e.Message}");
+                return false;
+            }
+            return true;
+        }
+
+        private static IChamber GetChamberFromFolderPath(string folderPath, List<IChamber> chambers)
+        {
+            var path = folderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty);
+            var chamberName = path.Split('\\')[1];
+            var chamber = chambers.SingleOrDefault(cmb => cmb.Name == chamberName);
+            return chamber;
+
+        }
+
+        private static IChannel GetChannelFromFolderPath(string folderPath, List<ITester> testers)
+        {
+            var path = folderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty);
+            var testerName = path.Split('\\')[3];
+            var channelIndex = Convert.ToInt32(path.Split('\\')[4]);
+            var tester = testers.SingleOrDefault(tst => tst.Name == testerName);
+            var channel = tester.Channels.SingleOrDefault(ch => ch.Index == channelIndex);
+            return channel;
+        }
+
+        public static bool ChamberGroupTestCheck(List<Test> tests)
+        {
+            if (tests.GroupBy(t => t.DischargeTemperature).Count() != 1)
+            {
+                Console.WriteLine("Error. No unified discharge temperature.");
+                return false;
+            }
+            if (tests.GroupBy(t => t.Channel).Where(g => g.Count() > 1).Count() > 0)
+            {
+                Console.WriteLine("Error. Multiple tests used same channel(s).");
+                return false;
+            }
+            return true;
+        }
+
+        public static string GetTestPlanOneRoundFolderPath(string projectName, IChamber chamber, int index)
+        {
+            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName, chamber.Name, index.ToString());
+            return folderPath;
+        }
+
+        public static string GetTestPlanProjectFolderPath(string projectName)
+        {
+            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName);
+            return folderPath;
+        }
+
+        public static string GetTestPlanChamberFolderPath(string projectName, IChamber chamber)
+        {
+            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName, chamber.Name);
+            return folderPath;
+        }
+        public static bool LoadTestsForOneRound(string projectName, List<IChamber> chambers, List<ITester> testers, IChamber chamber, int index, out List<Test> tests)
+        {
+            tests = new List<Test>();
+            string oneRoundFolderPath = GetTestPlanOneRoundFolderPath(projectName, chamber, index);
+            foreach (var testerFolderPath in Directory.EnumerateDirectories(oneRoundFolderPath))
+            {
+                ITester tester = GetTesterFromFolderPath(testerFolderPath, testers);
+                if (tester == null)
+                {
+                    Console.WriteLine($"There's no available tester in {testerFolderPath}");
+                    return false;
+                }
+                foreach (var channelFolderPath in Directory.EnumerateDirectories(testerFolderPath))
+                {
+                    IChannel channel = GetChannelFromFolderPath(channelFolderPath, tester);
+                    if (channel == null)
+                    {
+                        Console.WriteLine($"There's no available channel in {channelFolderPath}");
+                        return false;
+                    }
+                    Test test;
+                    if (!LoadTestFromFolder(channelFolderPath, chamber, tester, channel, out test))
+                        return false;
+                    tests.Add(test);
+                }
+            }
+            return true;
+            //if (Directory.Exists(folderPath))
+            //{
+            //    if (!LoadTestFromFolder(folderPath, chambers, testers, out tests))
+            //        return false;
+            //    return true;
+            //}
+            //else
+            //    return false;
+        }
+
+        private static bool LoadTestFromFolder(string channelFolderPath, IChamber chamber, ITester tester, IChannel channel, out Test test)
+        {
+            test = null;
+            try
+            {
+                var files = Directory.GetFiles(channelFolderPath, "*.testplan");
+                if (files.Count() != 1)
+                    return false;
+                string json = File.ReadAllText(files[0]);
+                test = JsonConvert.DeserializeObject<Test>(json);
+                test.Chamber = chamber;
+                test.Channel = channel;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error! {e.Message}");
+                return false;
+            }
+            return true;
+        }
+
+        private static IChannel GetChannelFromFolderPath(string channelFolderPath, ITester tester)
+        {
+            var channelIndex = Convert.ToInt32(channelFolderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty).Split('\\')[4]);
+            return tester.Channels.SingleOrDefault(ch => ch.Index == channelIndex);
+        }
+
+        private static ITester GetTesterFromFolderPath(string testerFolderPath, List<ITester> testers)
+        {
+            var testerName = testerFolderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty).Split('\\')[3];
+            return testers.SingleOrDefault(tst => tst.Name == testerName);
+        }
+
+        public static bool TestPlanFullCheck(string projectName, List<IChamber> chambers, List<ITester> testers)
+        {
+            string root = GlobalSettings.TestPlanFolderPath;
+            bool ret = true;
+            //Console.WriteLine("Test Plan pre-check.");
+            //foreach (var chamber in chambers)
+            //{
+            //    var roundIndex = GlobalSettings.ChamberRoundIndex[chamber];
+            //    while (true)
+            //    {
+            //        string folderPath = GetTestPlanOneRoundFolderPath(projectName, chamber, roundIndex);
+            //        if (Directory.Exists(folderPath))
+            //        {
+            //            List<Test> tests;
+            //            if (!LoadTestFromFolder(folderPath, chambers, testers, out tests))
+            //                return false;
+            //            if (!Utilities.ChamberGroupTestCheck(tests))
+            //            {
+            //                Console.WriteLine($"Round {roundIndex} failed!");
+            //                ret &= false;
+            //            }
+            //            else
+            //                Console.WriteLine($"Round {roundIndex} pass!");
+            //            roundIndex++;
+            //        }
+            //        else
+            //        {
+            //            if (roundIndex == 1)
+            //            {
+            //                Console.WriteLine($"There's no test plan, please check.");
+            //                ret = false;
+            //                break;
+            //            }
+            //            else
+            //            {
+            //                Console.WriteLine($"All rounds test plan check finished.");
+            //                break;
+            //            }
+            //        }
+            //    }
+            //}
+            return ret;
+        }
+        public static bool SaveConfiguration(List<DebugChamber> chambers, List<DebugTester> testers)
+        {
+            try
+            {
+                Configuration conf = new Configuration(chambers, testers);
+                //string jsonString = System.Text.Json.JsonSerializer.Serialize(conf);
+                string jsonString = JsonConvert.SerializeObject(conf, Formatting.Indented);
+                File.WriteAllText(GlobalSettings.ConfigurationFilePath, jsonString);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error! Create Configuration Failed!");
+                return false;
+            }
+            return true;
+        }
+
+        public static bool LoadConfiguration(out Configuration conf)
+        {
+            conf = null;
+            try
+            {
+                string jsonString = File.ReadAllText(GlobalSettings.ConfigurationFilePath);
+                conf = JsonConvert.DeserializeObject<Configuration>(jsonString);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error! Load Configuration Failed! {e.Message}");
+                return false;
+            }
+            return true;
+        }
+
+        public static bool CreateOutputFolderRoot()
+        {
+            try
+            {
+                GlobalSettings.OutputFolder = DateTime.Now.ToString("yyyyMMddHHmmss");
+                Directory.CreateDirectory(GlobalSettings.OutputFolder);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error! " + e.Message);
+                return false;
+            }
+            return true;
         }
     }
 }
