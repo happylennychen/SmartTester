@@ -15,7 +15,7 @@ namespace SmartTester
         public RowStatus Status { get; set; }
         public override string ToString()
         {
-            return $@"{Index},{TimeInMS},{(byte)Mode},{Current},{Voltage},{Temperature},{Capacity.ToString("f5")},{TotalCapacity},{(byte)Status}";
+            return $@"{Index},{TimeInMS},{(byte)Mode},{Current.ToString("f4")},{Voltage.ToString("f4")},{Temperature.ToString("f4")},{Capacity.ToString("f4")},{TotalCapacity.ToString("f4")},{(byte)Status}";
         }
         public StandardRow()
         {

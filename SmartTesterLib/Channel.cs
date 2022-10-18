@@ -23,6 +23,7 @@ namespace SmartTester
         public int Index { get; set; }
         [JsonIgnore]
         public ITester Tester { get; set; }
+        public IChamber Chamber { get; set; }
         public string Name { get; set; }
         public Timer Timer { get; set; }
         //public Stopwatch Stopwatch { get; internal set; }

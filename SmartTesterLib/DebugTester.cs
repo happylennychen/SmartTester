@@ -23,74 +23,6 @@ namespace SmartTester
         private int _counter { get; set; } = 0;
         private Stopwatch mainWatch { get; set; }
 
-        public string GetData(int index)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void SetStep(Step step, int index)
-        {
-            if (!Executor.SpecifyChannel(index))
-            {
-                Console.WriteLine("Error");
-                return;
-            }
-            if (!Executor.SpecifyTestStep(step))
-            {
-                Console.WriteLine("Error");
-                return;
-            }
-        }
-
-        public void Start(int index)
-        {
-            var channel = Channels.SingleOrDefault(ch => ch.Index == index);
-            channel.ShouldTimerStart = true;
-            channel.Status = ChannelStatus.RUNNING;
-        }
-
-        public void Stop(int index)
-        {
-            var channel = Channels.SingleOrDefault(ch => ch.Index == index);
-            channel.ShouldTimerStart = false;
-
-            Console.WriteLine($"Stop channel {index - 1 + 1}");
-            Executor.SpecifyChannel(index);
-            Executor.Stop();
-            channel.Timer.Change(Timeout.Infinite, Timeout.Infinite);
-            channel.IsTimerStart = false;
-        }
-        private void MainCounter()
-        {
-            long data;
-            do
-            {
-                data = mainWatch.ElapsedMilliseconds % 125;
-            }
-            while (data > 10);
-            mainTimer.Change(100, 0);
-
-            var counter = _counter % Channels.Count;
-            var channel = Channels.SingleOrDefault(ch => ch.Index == counter + 1);
-            if (channel.ShouldTimerStart && !channel.IsTimerStart)     //应该开启且还没开启
-            {
-                channel.DataQueue = new Queue<StandardRow>();
-                string fileName = $"{Name}-{channel.Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
-                channel.DataLogger = new DataLogger(counter + 1, fileName);
-                channel.TempFileList.Add(channel.DataLogger.FilePath);
-                Executor.SpecifyChannel(counter + 1);
-                channel.CurrentStep = channel.FullStepsForOneTempPoint.First();
-                Executor.SpecifyTestStep(channel.CurrentStep);
-                Executor.Start();
-                channel.Timer.Change(980, 0);
-                channel.IsTimerStart = true;
-            }
-            _counter++;
-            if (_counter == Channels.Count * 10)
-            {
-                _counter = 0;
-            }
-        }
         [JsonConstructor]
         public DebugTester(int id, string name, int channelNumber, string ipAddress, int port, string sessionStr)
         {
@@ -123,19 +55,26 @@ namespace SmartTester
             int counter = (int)i % Channels.Count;
             int channelIndex = counter + 1;
             IChannel channel = Channels.SingleOrDefault(ch => ch.Index == channelIndex);
+            //Console.WriteLine($"CH{channel.Index},{DateTime.Now.ToString("ss.fff")},{Math.Round(mainWatch.Elapsed.TotalMilliseconds, 0)}");
+            //return;
             //long data;
             #region read data
             StandardRow stdRow;
             uint channelEvents;
-            ret = Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
-            if (!ret)
+            if (channel.Offset == 0)        //工步的第一次
             {
-                channel.Reset();
-                channel.Status = ChannelStatus.ERROR;
-                Console.WriteLine("Cannot read row from tester. Please check cable connection.");
-                return;
+                ret = Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
+                if (!ret)
+                {
+                    channel.Reset();
+                    channel.Status = ChannelStatus.ERROR;
+                    Console.WriteLine("Cannot read row from tester. Please check cable connection.");
+                    return;
+                }
+                var startPoint = stdRow.TimeInMS % 1000;
+                //channel.Offset = startPoint + 15;
+                //Console.WriteLine($"Set offset to {channel.Offset}.");
             }
-            var startPoint = stdRow.TimeInMS % 1000;
             do
             {
                 ret = Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
@@ -149,7 +88,7 @@ namespace SmartTester
                 //data = stdRow.TimeInMS % 1000;
             }
             //while (data > 100 && stdRow.Status == RowStatus.RUNNING);
-            while (stdRow.TimeInMS < (1000 + channel.LastTimeInMS) && stdRow.Status == RowStatus.RUNNING);
+            while (stdRow.TimeInMS < (1000 + channel.LastTimeInMS + channel.Offset) && stdRow.Status == RowStatus.RUNNING);
 
             channel.LastTimeInMS = stdRow.TimeInMS / 1000 * 1000;
             double temperature;
@@ -167,7 +106,8 @@ namespace SmartTester
                 stdRow = GetAdjustedRow(channel.DataQueue.ToList(), channel.CurrentStep);
             if (channel.DataQueue.Count >= 4)
                 channel.DataQueue.Dequeue();
-            var strRow = stdRow.ToString();
+            //var strRow = stdRow.ToString();
+            var strRow = GetRowString(stdRow, channel.Offset);
             #endregion
 
             #region log data
@@ -242,6 +182,12 @@ namespace SmartTester
                 channel.Timer.Change(950, 0);
             }
         }
+        private string GetRowString(StandardRow stdRow, uint offset)
+        {
+            var newRow = stdRow.Clone();
+            newRow.TimeInMS -= offset;
+            return newRow.ToString();
+        }
 
         private StandardRow GetAdjustedRow(List<StandardRow> standardRows, Step step)
         {
@@ -313,6 +259,76 @@ namespace SmartTester
             var output = Math.Round((slope * x + offset), 6);
             Console.WriteLine($"x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}, x:{x}, y:{output}");
             return output;
+        }
+
+        private void MainCounter()
+        {
+            long data;
+            do
+            {
+                data = mainWatch.ElapsedMilliseconds % 125;
+            }
+            while (data > 10);
+            mainTimer.Change(100, 0);
+
+            var counter = _counter % Channels.Count;
+            var channel = Channels.SingleOrDefault(ch => ch.Index == counter + 1);
+            if (channel.ShouldTimerStart && !channel.IsTimerStart)     //应该开启且还没开启
+            {
+                channel.DataQueue = new Queue<StandardRow>();
+                string fileName = $"{Name}-{channel.Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
+                channel.DataLogger = new DataLogger(channel.Chamber, counter + 1, fileName);
+                channel.TempFileList.Add(channel.DataLogger.FilePath);
+                Executor.SpecifyChannel(counter + 1);
+                channel.CurrentStep = channel.FullStepsForOneTempPoint.First();
+                Executor.SpecifyTestStep(channel.CurrentStep);
+                Executor.Start();
+                channel.Timer.Change(980,Timeout.Infinite);
+                channel.IsTimerStart = true;
+            }
+            _counter++;
+            if (_counter == Channels.Count * 10)
+            {
+                _counter = 0;
+            }
+        }
+
+        public void SetStep(Step step, int index)
+        {
+            if (!Executor.SpecifyChannel(index))
+            {
+                Console.WriteLine("Error");
+                return;
+            }
+            if (!Executor.SpecifyTestStep(step))
+            {
+                Console.WriteLine("Error");
+                return;
+            }
+        }
+
+        public void Start(int index)
+        {
+            var channel = Channels.SingleOrDefault(ch => ch.Index == index);
+            channel.ShouldTimerStart = true;
+            channel.Status = ChannelStatus.RUNNING;
+        }
+
+        public void Stop(int index)
+        {
+            var channel = Channels.SingleOrDefault(ch => ch.Index == index);
+            channel.ShouldTimerStart = false;
+
+            Console.WriteLine($"Stop channel {index - 1 + 1}");
+            Executor.SpecifyChannel(index);
+            Executor.Stop();
+            channel.Timer.Change(Timeout.Infinite, Timeout.Infinite);
+            channel.IsTimerStart = false;
+        }
+
+        public string GetData(int index)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

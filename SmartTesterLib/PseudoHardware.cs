@@ -16,18 +16,18 @@ namespace SmartTester
         public int TimerIntervalInMS { get; set; }
         public Timer Timer { get; set; }
 
-        public PseudoHardware(int interval)
+        public PseudoHardware(int interval, double ccs, double cvs, double dvs, double dts, double ndts)
         {
             Stopwatch = new Stopwatch();
             DataLength = 20;
             DataQueues = new Queue<StandardRow>();
             Battery = new PseudoBattery(3600, 0, 0, 4100, 20);
-            Battery.ChargeCurrentSlope = 100;
-            Battery.ChargeVoltageSlope = 25;
-            Battery.DischargeVoltageSlope = 25;
+            Battery.ChargeCurrentSlope = ccs;
+            Battery.ChargeVoltageSlope = cvs;
+            Battery.DischargeVoltageSlope = dvs;
             Battery.EnvTemperature = 0;
-            Battery.DischargeTemperatureSlope = 5;
-            Battery.NonDischargeTemperatureSlope = 5;
+            Battery.DischargeTemperatureSlope = dts;
+            Battery.NonDischargeTemperatureSlope = ndts;
             TimerIntervalInMS = interval;
             //var timer = new Timer(_ => TimerCallback(), null, 100, TimerIntervalInMS);
             Timer = new Timer(_ => TimerCallback());
@@ -40,32 +40,37 @@ namespace SmartTester
 
         private void UpdateBatteryParameters()
         {
+            Random random = new Random();
+
+            double voltageOffset = random.Next(-10, 10);
+            double currentOffset = random.Next(-5, 5);
+            double temperatureOffset = random.Next(-1, 1);
             switch (Step.Action.Mode)
             {
                 case ActionMode.CC_CV_CHARGE:       //
                     if (Battery.Voltage < Step.Action.Voltage)
                     {
                         Battery.Current = Step.Action.Current;
-                        Battery.Voltage += Battery.ChargeVoltageSlope * TimerIntervalInMS / 1000.0;
+                        Battery.Voltage += Battery.ChargeVoltageSlope * TimerIntervalInMS / 1000.0 + voltageOffset;
                         if (Battery.Voltage > Step.Action.Voltage)
                             Battery.Voltage = Step.Action.Voltage;
                     }
                     else
-                        Battery.Current -= Battery.ChargeCurrentSlope * TimerIntervalInMS / 1000.0;
+                        Battery.Current -= Battery.ChargeCurrentSlope * TimerIntervalInMS / 1000.0 + currentOffset;
 
                     Battery.RemainCapacity += Battery.Current / 1000 * (TimerIntervalInMS / 1000.0) / 3600;
 
                     if (Battery.Temperature > Battery.EnvTemperature)
-                        Battery.Temperature -= Battery.NonDischargeTemperatureSlope * TimerIntervalInMS / 1000.0;
+                        Battery.Temperature -= Battery.NonDischargeTemperatureSlope * TimerIntervalInMS / 1000.0 + temperatureOffset;
                     else
                         Battery.Temperature = Battery.EnvTemperature;
                     break;
                 case ActionMode.CC_DISCHARGE:
                     if (Battery.Voltage > Step.CutOffBehaviors.SingleOrDefault(cob => cob.Condition.Parameter == Parameter.VOLTAGE).Condition.Value)
                     {
-                        Battery.Voltage -= Battery.DischargeVoltageSlope * TimerIntervalInMS / 1000.0;
+                        Battery.Voltage -= Battery.DischargeVoltageSlope * TimerIntervalInMS / 1000.0 + voltageOffset;
                         Battery.Current = Step.Action.Current;
-                        Battery.Temperature += Battery.DischargeTemperatureSlope * TimerIntervalInMS / 1000.0;
+                        Battery.Temperature += Battery.DischargeTemperatureSlope * TimerIntervalInMS / 1000.0 + temperatureOffset;
                     }
                     else
                     {
@@ -77,9 +82,9 @@ namespace SmartTester
                 case ActionMode.CP_DISCHARGE:
                     if (Battery.Voltage > Step.CutOffBehaviors.SingleOrDefault(cob => cob.Condition.Parameter == Parameter.VOLTAGE).Condition.Value)
                     {
-                        Battery.Voltage -= Battery.DischargeVoltageSlope * TimerIntervalInMS / 1000.0;
+                        Battery.Voltage -= Battery.DischargeVoltageSlope * TimerIntervalInMS / 1000.0 + voltageOffset;
                         Battery.Current = Step.Action.Power / Battery.Voltage * 1000;
-                        Battery.Temperature += Battery.DischargeTemperatureSlope * TimerIntervalInMS / 1000.0;
+                        Battery.Temperature += Battery.DischargeTemperatureSlope * TimerIntervalInMS / 1000.0 + temperatureOffset;
                     }
                     else
                     {
@@ -92,7 +97,7 @@ namespace SmartTester
                     Battery.Current = 0;
 
                     if (Battery.Temperature > Battery.EnvTemperature)
-                        Battery.Temperature -= Battery.NonDischargeTemperatureSlope * TimerIntervalInMS / 1000.0;
+                        Battery.Temperature -= Battery.NonDischargeTemperatureSlope * TimerIntervalInMS / 1000.0 + temperatureOffset;
                     else
                         Battery.Temperature = Battery.EnvTemperature;
                     break;
@@ -100,7 +105,7 @@ namespace SmartTester
             foreach (var cob in Step.CutOffBehaviors)
             {
                 double leftValue, rightValue;
-                switch(cob.Condition.Parameter)
+                switch (cob.Condition.Parameter)
                 {
                     case Parameter.CURRENT:
                         leftValue = Battery.Current;

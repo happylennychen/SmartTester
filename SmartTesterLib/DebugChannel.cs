@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 
 namespace SmartTester
@@ -20,7 +21,10 @@ namespace SmartTester
         public List<string> TempFileList { get; set; }
         [JsonIgnore]
         public ITester Tester { get; set; }
+        public IChamber Chamber { get; set; }
         public uint LastTimeInMS { get; set; }
+        public uint Offset { get; set; }  //记录每个工步的初始时间偏差
+        //public Stopwatch Anchor { get; set; }
 
         public void GenerateFile(List<Step> fullSteps)
         {

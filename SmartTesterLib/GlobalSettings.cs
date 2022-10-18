@@ -13,5 +13,6 @@ namespace SmartTester
         public static Dictionary<IChamber, int> ChamberRoundIndex { get; set; } = new Dictionary<IChamber, int>();
         public static string ConfigurationFilePath { get; internal set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Configuration.json");
         public static string TestPlanFolderPath { get; set; } = Path.Combine(System.Environment.CurrentDirectory, "Test Plan\\");
+        public static string ConsoleFolderPath { get; set; } = Path.Combine(System.Environment.CurrentDirectory, "Console\\");
     }
 }

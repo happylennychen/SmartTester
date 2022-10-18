@@ -18,7 +18,9 @@ namespace SmartTester
         ChannelStatus Status { get; set; }
         List<string> TempFileList { get; set; }
         ITester Tester { get; set; }
+        IChamber Chamber { get; set; }
         uint LastTimeInMS { get; set; }
+        uint Offset { get; set; }
 
         void GenerateFile(System.Collections.Generic.List<Step> fullSteps);
         void Reset();

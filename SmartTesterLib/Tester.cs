@@ -21,18 +21,18 @@ namespace SmartTester
     public class Tester : ITester
     {
         public int Id { get; set; }
+        [JsonIgnore]
+        public List<IChannel> Channels { get; set; }
         public string Name { get; set; }
         public int ChannelNumber { get; set; }
         public string IpAddress { get; set; }
         public int Port { get; set; }
         public string SessionStr { get; set; }
         [JsonIgnore]
-        public List<IChannel> Channels { get; set; }
+        public ITesterExecutor Executor { get; set; }
         private Timer mainTimer { get; set; }
         private int _counter { get; set; } = 0;
         private Stopwatch mainWatch { get; set; }
-        [JsonIgnore]
-        public ITesterExecutor Executor { get; set; }
         public Tester()
         {
             ;
@@ -81,13 +81,8 @@ namespace SmartTester
         {
             bool ret;
             int counter = (int)i % Channels.Count;
-            string gap = string.Empty;
-            for (int j = 0; j < counter; j++)
-            {
-                gap += " ";
-            }
             int channelIndex = counter + 1;
-            Channel channel = (Channel)Channels.SingleOrDefault(ch => ch.Index == channelIndex);
+            IChannel channel = Channels.SingleOrDefault(ch => ch.Index == channelIndex);
             //long data;
             #region read data
             StandardRow stdRow;
@@ -117,7 +112,7 @@ namespace SmartTester
                     return;
                 }
                 //data = stdRow.TimeInMS % 1000;
-                Console.WriteLine($"{stdRow.ToString(),-60}Ch{gap}{channelIndex}.");
+                //Console.WriteLine($"{stdRow.ToString(),-60}Ch{gap}{channelIndex}.");
             }
             //while (data > 100 && stdRow.Status == RowStatus.RUNNING);
             while (stdRow.TimeInMS < (1000 + channel.LastTimeInMS + channel.Offset) && stdRow.Status == RowStatus.RUNNING);
@@ -147,6 +142,11 @@ namespace SmartTester
             #endregion
 
             #region display data
+            string gap = string.Empty;
+            for (int j = 0; j < counter; j++)
+            {
+                gap += " ";
+            }
             Console.WriteLine($"{strRow,-60}Ch{gap}{channelIndex}.");
             #endregion
 
@@ -305,13 +305,13 @@ namespace SmartTester
             {
                 channel.DataQueue = new Queue<StandardRow>();
                 string fileName = $"{Name}-{channel.Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
-                channel.DataLogger = new DataLogger(counter + 1, fileName);
+                channel.DataLogger = new DataLogger(channel.Chamber, counter + 1, fileName);
                 channel.TempFileList.Add(channel.DataLogger.FilePath);
                 Executor.SpecifyChannel(counter + 1);
                 channel.CurrentStep = channel.FullStepsForOneTempPoint.First();
                 Executor.SpecifyTestStep(channel.CurrentStep);
                 Executor.Start();
-                channel.Timer.Change(980, 1000);
+                channel.Timer.Change(980, 950);
                 channel.IsTimerStart = true;
             }
             _counter++;
@@ -358,8 +358,5 @@ namespace SmartTester
         {
             throw new NotImplementedException();
         }
-
-
-
     }
 }

@@ -1,4 +1,4 @@
-﻿//#define debug
+﻿#define debug
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -84,13 +84,14 @@ namespace SmartTester
         private async Task AsyncStartOneRound(IChamber chamber, List<Test> testsInOneRound)
         {
             Console.WriteLine($"Start Chamber Group for {chamber.Name}. Thread {CurrentThread.ManagedThreadId}, {CurrentThread.IsThreadPoolThread}");
-            Utilities.CreateOutputFolder();
+            Utilities.CreateOutputFolder(chamber);
             List<KeyValuePair<TargetTemperature, Dictionary<IChannel, List<Step>>>> sections = GetTestSections(testsInOneRound);   //sections是每个温度点下的测试的集合
             var channels = testsInOneRound.Select(o => o.Channel).ToList();
             bool ret;
             foreach (var channel in channels)
             {
                 channel.Tester.Stop(channel.Index);     //先停止前面的实验。
+                channel.Chamber = chamber;              //指定使用的chamber
                 //channel.DataLogger.Folder = outputFolder;
             }
             foreach (var ts in sections)

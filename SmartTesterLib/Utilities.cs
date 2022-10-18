@@ -99,9 +99,9 @@ namespace SmartTester
             return true;
         }
 
-        internal static void CreateOutputFolder()
+        internal static void CreateOutputFolder(IChamber chamber)
         {
-            string outputFolder = Path.Combine(GlobalSettings.OutputFolder, GlobalSettings.ChamberRoundIndex.ToString());
+            string outputFolder = Path.Combine(GlobalSettings.OutputFolder, GlobalSettings.ChamberRoundIndex[chamber].ToString());
             Directory.CreateDirectory(outputFolder);
         }
 
@@ -615,8 +615,22 @@ namespace SmartTester
         {
             try
             {
-                GlobalSettings.OutputFolder = DateTime.Now.ToString("yyyyMMddHHmmss");
+                GlobalSettings.OutputFolder = Path.Combine("Output",DateTime.Now.ToString("yyyyMMddHHmmss"));
                 Directory.CreateDirectory(GlobalSettings.OutputFolder);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error! " + e.Message);
+                return false;
+            }
+            return true;
+        }
+
+        public static bool CreateConsoleFolder()
+        {
+            try
+            {
+                Directory.CreateDirectory(GlobalSettings.ConsoleFolderPath);
             }
             catch (Exception e)
             {

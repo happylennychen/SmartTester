@@ -11,28 +11,23 @@ namespace SmartTester
     {
         static void Main(string[] args)
         {
-            string consoleOuputFile = $"Console Output {DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
-            FileStream fs = new FileStream(consoleOuputFile, FileMode.Create);
-            StreamWriter sw = new StreamWriter(fs);
-            sw.AutoFlush = true;
+            Utilities.CreateConsoleFolder();
+            string consoleOuputFile = Path.Combine(GlobalSettings.ConsoleFolderPath, $"{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt");
+            //FileStream fs = new FileStream(consoleOuputFile, FileMode.Create);
+            //StreamWriter sw = new StreamWriter(fs);
+            //sw.AutoFlush = true;
             //var tempOut = Console.Out;
             //Console.SetOut(sw);
 
             Automator amtr = new Automator();
             if(!amtr.Init())
                 return;
-            //Dictionary<IChamber, Dictionary<int, List<IChannel>>> testPlanFolderTree = new Dictionary<IChamber, Dictionary<int, List<IChannel>>>();
 
-            //Dictionary<int, List<IChannel>> value = new Dictionary<int, List<IChannel>>();
-            //value.Add(1, new List<IChannel>() { amtr.Testers[0].Channels[0], amtr.Testers[0].Channels[1], amtr.Testers[0].Channels[2], amtr.Testers[0].Channels[3] });
-            //testPlanFolderTree.Add(amtr.Chambers[0], value);
-
-            //Utilities.CreateTestPlanFolders("Project4", testPlanFolderTree);
             Task task = amtr.AutoRun("Project4");
             task.Wait();
 
-            sw.Close();
-            fs.Close();
+            //sw.Close();
+            //fs.Close();
             //Console.SetOut(tempOut);
             Console.WriteLine($"Demo program completed! Please check {consoleOuputFile} for the details.");
             Console.ReadLine();

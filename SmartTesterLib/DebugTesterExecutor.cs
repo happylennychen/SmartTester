@@ -15,9 +15,9 @@ namespace SmartTester
         public string FilePath { get; set; }
         public int ChannelIndex { get; set; }
         private int ChannelNunber { get; set; }
-        private Stopwatch[] Stopwatches { get; set; }   //用秒表来控制每个通道的状态
-        private Queue<StandardRow>[] DataQueues { get; set; }    //用来记录历史数据，以便推演新数据
-        private uint DataLength { get; set; }       //DataQueue的长度
+        //private Stopwatch[] Stopwatches { get; set; }   //用秒表来控制每个通道的状态
+        //private Queue<StandardRow>[] DataQueues { get; set; }    //用来记录历史数据，以便推演新数据
+        //private uint DataLength { get; set; }       //DataQueue的长度
         private PseudoHardware[] PseudoHardwares { get; set; }
         public DebugTesterExecutor(string name)
         {
@@ -26,7 +26,7 @@ namespace SmartTester
             PseudoHardwares = new PseudoHardware[ChannelNunber];
             for (int i = 0; i < ChannelNunber; i++)
             {
-                PseudoHardwares[i] = new PseudoHardware(500);
+                PseudoHardwares[i] = new PseudoHardware(500, 100 - i, 25 + 0.3 * i, 25 + 0.5 * i, 5 + 0.2 * i, 5 + 0.1 * i);
             }
             //Stopwatches = new Stopwatch[ChannelNunber];
             //for (int i = 0; i < ChannelNunber; i++)
@@ -68,7 +68,7 @@ namespace SmartTester
 
         public bool ReadTemperarture(int channelIndex, out double temperature)
         {
-            temperature = PseudoHardwares[channelIndex-1].Battery.Temperature;
+            temperature = PseudoHardwares[channelIndex - 1].Battery.Temperature;
             return true;
         }
 

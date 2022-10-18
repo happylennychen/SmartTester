@@ -205,23 +205,29 @@ namespace SmartTester
 
         public bool SpecifyChannel(int channel)
         {
-            return SCPIWrite($"CHAN {channel.ToString()}");
+            lock (ChromaLock)
+            {
+                return SCPIWrite($"CHAN {channel.ToString()}");
+            }
         }
 
         public bool SpecifyTestStep(Step step)
         {
-            bool ret;
-            ret = SCPIWrite($"SOUR:CURR:RANGE:AUTO ON");
-            if (!ret)
-                return ret;
-            var current = step.Action.Mode == ActionMode.CP_DISCHARGE ? 30 : step.Action.Current / 1000.0;
-            return SCPIWrite($"SOUR:ALL {ActionModeToString(step.Action.Mode)}," +
-                $"{GetCutOffTime(step)}," +
-                $"{(step.Action.Voltage / 1000.0).ToString()}," +
-                $"{(current).ToString()}," +
-                $"{(step.Action.Power / 1000.0).ToString()}," +
-                $"{GetCutOffVoltage(step)}," +
-                $"{GetCutOffCurrent(step)}");
+            lock (ChromaLock)
+            {
+                bool ret;
+                ret = SCPIWrite($"SOUR:CURR:RANGE:AUTO ON");
+                if (!ret)
+                    return ret;
+                var current = step.Action.Mode == ActionMode.CP_DISCHARGE ? 30 : step.Action.Current / 1000.0;
+                return SCPIWrite($"SOUR:ALL {ActionModeToString(step.Action.Mode)}," +
+                    $"{GetCutOffTime(step)}," +
+                    $"{(step.Action.Voltage / 1000.0).ToString()}," +
+                    $"{(current).ToString()}," +
+                    $"{(step.Action.Power / 1000.0).ToString()}," +
+                    $"{GetCutOffVoltage(step)}," +
+                    $"{GetCutOffCurrent(step)}");
+            }
         }
 
         private string GetCutOffCurrent(Step step)
@@ -277,12 +283,18 @@ namespace SmartTester
 
         public bool Start()
         {
-            return SCPIWrite("OUTP:STAT ON");
+            lock (ChromaLock)
+            {
+                return SCPIWrite("OUTP:STAT ON");
+            }
         }
 
         public bool Stop()
         {
-            return SCPIWrite("OUTP:STAT OFF");
+            lock (ChromaLock)
+            {
+                return SCPIWrite("OUTP:STAT OFF");
+            }
         }
         private static bool SCPIQuary(string quaryCmd, out string output)
         {
