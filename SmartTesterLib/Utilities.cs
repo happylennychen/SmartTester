@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿//#define debug
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -578,7 +579,11 @@ namespace SmartTester
             //}
             return ret;
         }
+#if debug
         public static bool SaveConfiguration(List<DebugChamber> chambers, List<DebugTester> testers)
+#else
+        public static bool SaveConfiguration(List<Chamber> chambers, List<Tester> testers)
+#endif
         {
             try
             {

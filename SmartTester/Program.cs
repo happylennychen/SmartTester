@@ -13,22 +13,22 @@ namespace SmartTester
         {
             Utilities.CreateConsoleFolder();
             string consoleOuputFile = Path.Combine(GlobalSettings.ConsoleFolderPath, $"{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt");
-            //FileStream fs = new FileStream(consoleOuputFile, FileMode.Create);
-            //StreamWriter sw = new StreamWriter(fs);
-            //sw.AutoFlush = true;
-            //var tempOut = Console.Out;
-            //Console.SetOut(sw);
+            FileStream fs = new FileStream(consoleOuputFile, FileMode.Create);
+            StreamWriter sw = new StreamWriter(fs);
+            sw.AutoFlush = true;
+            var tempOut = Console.Out;
+            Console.SetOut(sw);
 
             Automator amtr = new Automator();
             if(!amtr.Init())
                 return;
 
-            Task task = amtr.AutoRun("Project4");
+            Task task = amtr.AutoRun(DateTime.Now.ToString("yyyyMMDD"));
             task.Wait();
 
-            //sw.Close();
-            //fs.Close();
-            //Console.SetOut(tempOut);
+            sw.Close();
+            fs.Close();
+            Console.SetOut(tempOut);
             Console.WriteLine($"Demo program completed! Please check {consoleOuputFile} for the details.");
             Console.ReadLine();
         }
