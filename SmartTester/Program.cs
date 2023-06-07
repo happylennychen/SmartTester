@@ -11,6 +11,7 @@ namespace SmartTester
     {
         static void Main(string[] args)
         {
+#if UseFileInsteadOfConsole
             Utilities.CreateConsoleFolder();
             string consoleOuputFile = Path.Combine(GlobalSettings.ConsoleFolderPath, $"{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt");
             FileStream fs = new FileStream(consoleOuputFile, FileMode.Create);
@@ -18,18 +19,23 @@ namespace SmartTester
             sw.AutoFlush = true;
             var tempOut = Console.Out;
             Console.SetOut(sw);
+#endif
 
             Automator amtr = new Automator();
             if(!amtr.Init())
                 return;
 
-            Task task = amtr.AutoRun(DateTime.Now.ToString("yyyyMMDD"));
+            //Task task = amtr.AutoRun(DateTime.Now.ToString("yyyyMMdd"));
+            //Task task = amtr.AutoRun("2Chambers2Testers");
+            Task task = amtr.AutoRun("2Chambers1Tester_2");
             task.Wait();
 
+#if UseFileInsteadOfConsole
             sw.Close();
             fs.Close();
             Console.SetOut(tempOut);
             Console.WriteLine($"Demo program completed! Please check {consoleOuputFile} for the details.");
+#endif
             Console.ReadLine();
         }
 

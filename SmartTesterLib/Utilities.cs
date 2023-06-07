@@ -1,4 +1,4 @@
-﻿//#define debug
+﻿#define debug
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -102,7 +102,7 @@ namespace SmartTester
 
         internal static void CreateOutputFolder(IChamber chamber)
         {
-            string outputFolder = Path.Combine(GlobalSettings.OutputFolder, GlobalSettings.ChamberRoundIndex[chamber].ToString());
+            string outputFolder = Path.Combine(GlobalSettings.OutputFolder,chamber.Name, "R" + GlobalSettings.ChamberRoundIndex[chamber].ToString());
             Directory.CreateDirectory(outputFolder);
         }
 
@@ -451,7 +451,7 @@ namespace SmartTester
 
         public static string GetTestPlanOneRoundFolderPath(string projectName, IChamber chamber, int index)
         {
-            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName, chamber.Name, index.ToString());
+            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName, chamber.Name, "R"+index.ToString());
             return folderPath;
         }
 
@@ -470,6 +470,8 @@ namespace SmartTester
         {
             tests = new List<Test>();
             string oneRoundFolderPath = GetTestPlanOneRoundFolderPath(projectName, chamber, index);
+            if (!Directory.Exists(oneRoundFolderPath))
+                return false;
             foreach (var testerFolderPath in Directory.EnumerateDirectories(oneRoundFolderPath))
             {
                 ITester tester = GetTesterFromFolderPath(testerFolderPath, testers);
@@ -526,7 +528,7 @@ namespace SmartTester
 
         private static IChannel GetChannelFromFolderPath(string channelFolderPath, ITester tester)
         {
-            var channelIndex = Convert.ToInt32(channelFolderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty).Split('\\')[4]);
+            var channelIndex = Convert.ToInt32(channelFolderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty).Split('\\')[4].Replace("CH",""));
             return tester.Channels.SingleOrDefault(ch => ch.Index == channelIndex);
         }
 
@@ -616,11 +618,11 @@ namespace SmartTester
             return true;
         }
 
-        public static bool CreateOutputFolderRoot()
+        public static bool CreateOutputFolderRoot(string project)
         {
             try
             {
-                GlobalSettings.OutputFolder = Path.Combine("Output",DateTime.Now.ToString("yyyyMMddHHmmss"));
+                GlobalSettings.OutputFolder = Path.Combine("Output",DateTime.Now.ToString("yyyyMMddHHmmss"), project);
                 Directory.CreateDirectory(GlobalSettings.OutputFolder);
             }
             catch (Exception e)

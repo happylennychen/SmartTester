@@ -26,7 +26,8 @@ namespace SmartTester
             PseudoHardwares = new PseudoHardware[ChannelNunber];
             for (int i = 0; i < ChannelNunber; i++)
             {
-                PseudoHardwares[i] = new PseudoHardware(500, 100 - i, 25 + 0.3 * i, 25 + 0.5 * i, 5 + 0.2 * i, 5 + 0.1 * i);
+                //PseudoHardwares[i] = new PseudoHardware(500, 100 - i, 25 + 0.3 * i, 25 + 0.5 * i, 5 + 0.2 * i, 5 + 0.1 * i);
+                PseudoHardwares[i] = new PseudoHardware(500, 150 - i, 35 + 0.3 * i, 35 + 0.5 * i, 15 + 0.2 * i, 15 + 0.1 * i);
             }
             //Stopwatches = new Stopwatch[ChannelNunber];
             //for (int i = 0; i < ChannelNunber; i++)

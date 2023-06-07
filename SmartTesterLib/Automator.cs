@@ -48,7 +48,7 @@ namespace SmartTester
                 return;
             }
 
-            Utilities.CreateOutputFolderRoot();
+            Utilities.CreateOutputFolderRoot(projectName);
 
             List<Task> tasks = new List<Task>();
             foreach (var chamber in Chambers)        //Tests按Chamber分组
@@ -164,7 +164,7 @@ namespace SmartTester
                     if (Utilities.ChamberGroupTestCheck(tests))
                     {
                         Console.WriteLine($"Round {GlobalSettings.ChamberRoundIndex[chamber]}");
-                        var folderPath = $@"{GlobalSettings.TestPlanFolderPath}{GlobalSettings.ChamberRoundIndex[chamber]}";
+                        var folderPath = $@"{GlobalSettings.TestPlanFolderPath}R{GlobalSettings.ChamberRoundIndex[chamber]}";
 
                         Console.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
                         await AsyncStartOneRound(chamber, tests);
