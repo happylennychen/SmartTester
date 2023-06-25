@@ -102,7 +102,7 @@ namespace SmartTester
 
         internal static void CreateOutputFolder(IChamber chamber)
         {
-            string outputFolder = Path.Combine(GlobalSettings.OutputFolder,chamber.Name, "R" + GlobalSettings.ChamberRoundIndex[chamber].ToString());
+            string outputFolder = Path.Combine(GlobalSettings.OutputFolder, chamber.Name, "R" + GlobalSettings.ChamberRoundIndex[chamber].ToString());
             Directory.CreateDirectory(outputFolder);
         }
 
@@ -451,7 +451,7 @@ namespace SmartTester
 
         public static string GetTestPlanOneRoundFolderPath(string projectName, IChamber chamber, int index)
         {
-            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName, chamber.Name, "R"+index.ToString());
+            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName, chamber.Name, "R" + index.ToString());
             return folderPath;
         }
 
@@ -468,11 +468,16 @@ namespace SmartTester
         }
         public static bool LoadTestsForOneRound(string projectName, List<IChamber> chambers, List<ITester> testers, IChamber chamber, int index, out List<Test> tests)
         {
+            bool ret = false;
             tests = new List<Test>();
             string oneRoundFolderPath = GetTestPlanOneRoundFolderPath(projectName, chamber, index);
             if (!Directory.Exists(oneRoundFolderPath))
                 return false;
-            foreach (var testerFolderPath in Directory.EnumerateDirectories(oneRoundFolderPath))
+            //foreach (var testerFolderPath in Directory.EnumerateDirectories(oneRoundFolderPath))
+            var folders = Directory.EnumerateDirectories(oneRoundFolderPath);
+            if (folders.Count() == 0)
+                return false;
+            foreach (var testerFolderPath in folders)
             {
                 ITester tester = GetTesterFromFolderPath(testerFolderPath, testers);
                 if (tester == null)
@@ -489,12 +494,16 @@ namespace SmartTester
                         return false;
                     }
                     Test test;
-                    if (!LoadTestFromFolder(channelFolderPath, chamber, tester, channel, out test))
-                        return false;
-                    tests.Add(test);
+                    //if (!LoadTestFromFolder(channelFolderPath, chamber, tester, channel, out test))
+                    //return false;
+                    //tests.Add(test);
+                    var ret1 = LoadTestFromFolder(channelFolderPath, chamber, tester, channel, out test);
+                    if (ret1)
+                        tests.Add(test);
+                    ret |= ret1;
                 }
             }
-            return true;
+            return ret;
             //if (Directory.Exists(folderPath))
             //{
             //    if (!LoadTestFromFolder(folderPath, chambers, testers, out tests))
@@ -528,7 +537,7 @@ namespace SmartTester
 
         private static IChannel GetChannelFromFolderPath(string channelFolderPath, ITester tester)
         {
-            var channelIndex = Convert.ToInt32(channelFolderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty).Split('\\')[4].Replace("CH",""));
+            var channelIndex = Convert.ToInt32(channelFolderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty).Split('\\')[4].Replace("CH", ""));
             return tester.Channels.SingleOrDefault(ch => ch.Index == channelIndex);
         }
 
@@ -622,7 +631,7 @@ namespace SmartTester
         {
             try
             {
-                GlobalSettings.OutputFolder = Path.Combine("Output",DateTime.Now.ToString("yyyyMMddHHmmss"), project);
+                GlobalSettings.OutputFolder = Path.Combine("Output", DateTime.Now.ToString("yyyyMMddHHmmss"), project);
                 Directory.CreateDirectory(GlobalSettings.OutputFolder);
             }
             catch (Exception e)
