@@ -9,12 +9,12 @@ using static System.Threading.Thread;
 
 namespace SmartTester
 {
-    public class Automator
+    public class Automator//提供Automator顶层数据结构及API（Init, AutoRun），不关心具体的硬件
     {
         public string ProjectName { get; set; }
         public List<IChamber> Chambers { get; set; }
         public List<ITester> Testers { get; set; }
-        public List<Test> Tests { get; set; }
+        //public List<Test> Tests { get; set; }
 
         //public async Task Start(List<Test> tests)   //multiple chamber, one round
         //{
@@ -37,7 +37,7 @@ namespace SmartTester
         //    Console.WriteLine("All test done!");
         //}
 
-        public async Task AutoRun(string projectName)
+        public async Task AutoRun(string projectName)//从目录结构中加载Test，控制温箱分组，控制温箱中各实验的同步工作。
         {
             ProjectName = projectName;
             if (!Directory.Exists(GlobalSettings.TestPlanFolderPath))
@@ -61,7 +61,7 @@ namespace SmartTester
             Console.WriteLine("All test done!");
         }
 
-        public bool Init()
+        public bool Init()//从配置文件中创建HW Driver
         {
             Configuration conf;
             if (!Utilities.LoadConfiguration(out conf))
