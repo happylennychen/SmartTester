@@ -1,4 +1,4 @@
-﻿//#define debug
+﻿#define debug
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SmartTester;
 using System;

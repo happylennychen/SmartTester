@@ -26,7 +26,8 @@ namespace SmartTester
             PseudoHardwares = new PseudoHardware[ChannelNunber];
             for (int i = 0; i < ChannelNunber; i++)
             {
-                PseudoHardwares[i] = new PseudoHardware(500, 100 - i, 25 + 0.3 * i, 25 + 0.5 * i, 5 + 0.2 * i, 5 + 0.1 * i);
+                //PseudoHardwares[i] = new PseudoHardware(500, 100 - i, 25 + 0.3 * i, 25 + 0.5 * i, 5 + 0.2 * i, 5 + 0.1 * i);
+                PseudoHardwares[i] = new PseudoHardware(500, 150 - i, 35 + 0.3 * i, 35 + 0.5 * i, 15 + 0.2 * i, 15 + 0.1 * i);
             }
             //Stopwatches = new Stopwatch[ChannelNunber];
             //for (int i = 0; i < ChannelNunber; i++)
@@ -81,11 +82,6 @@ namespace SmartTester
         public bool SpecifyTestStep(Step step)
         {
             PseudoHardwares[ChannelIndex - 1].Step = step;
-            return true;
-        }
-        public bool ChangeCurrent(double current)   //unit: A
-        {
-            PseudoHardwares[ChannelIndex - 1].Step.Action.Current = Convert.ToInt32(current * 1000);
             return true;
         }
 
