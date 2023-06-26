@@ -61,20 +61,15 @@ namespace SmartTester
             #region read data
             StandardRow stdRow;
             uint channelEvents;
-            if (channel.Offset == 0)        //工步的第一次
+            ret = Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
+            if (!ret)
             {
-                ret = Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
-                if (!ret)
-                {
-                    channel.Reset();
-                    channel.Status = ChannelStatus.ERROR;
-                    Console.WriteLine("Cannot read row from tester. Please check cable connection.");
-                    return;
-                }
-                var startPoint = stdRow.TimeInMS % 1000;
-                //channel.Offset = startPoint + 15;
-                //Console.WriteLine($"Set offset to {channel.Offset}.");
+                channel.Reset();
+                channel.Status = ChannelStatus.ERROR;
+                Console.WriteLine("Cannot read row from tester. Please check cable connection.");
+                return;
             }
+            var startPoint = stdRow.TimeInMS % 1000;
             do
             {
                 ret = Executor.ReadRow(channelIndex, out stdRow, out channelEvents);
@@ -88,7 +83,7 @@ namespace SmartTester
                 //data = stdRow.TimeInMS % 1000;
             }
             //while (data > 100 && stdRow.Status == RowStatus.RUNNING);
-            while (stdRow.TimeInMS < (1000 + channel.LastTimeInMS + channel.Offset) && stdRow.Status == RowStatus.RUNNING);
+            while (stdRow.TimeInMS < (1000 + channel.LastTimeInMS) && stdRow.Status == RowStatus.RUNNING);
 
             channel.LastTimeInMS = stdRow.TimeInMS / 1000 * 1000;
             double temperature;
@@ -106,8 +101,7 @@ namespace SmartTester
                 stdRow = GetAdjustedRow(channel.DataQueue.ToList(), channel.CurrentStep);
             if (channel.DataQueue.Count >= 4)
                 channel.DataQueue.Dequeue();
-            //var strRow = stdRow.ToString();
-            var strRow = GetRowString(stdRow, channel.Offset);
+            var strRow = stdRow.ToString();
             #endregion
 
             #region log data
@@ -181,12 +175,6 @@ namespace SmartTester
             {
                 channel.Timer.Change(950, 0);
             }
-        }
-        private string GetRowString(StandardRow stdRow, uint offset)
-        {
-            var newRow = stdRow.Clone();
-            newRow.TimeInMS -= offset;
-            return newRow.ToString();
         }
 
         private StandardRow GetAdjustedRow(List<StandardRow> standardRows, Step step)
@@ -283,7 +271,7 @@ namespace SmartTester
                 channel.CurrentStep = channel.FullStepsForOneTempPoint.First();
                 Executor.SpecifyTestStep(channel.CurrentStep);
                 Executor.Start();
-                channel.Timer.Change(980,Timeout.Infinite);
+                channel.Timer.Change(980, 0);
                 channel.IsTimerStart = true;
             }
             _counter++;

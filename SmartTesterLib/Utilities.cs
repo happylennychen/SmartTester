@@ -177,6 +177,7 @@ namespace SmartTester
                         catch (Exception e)
                         {
                             Console.WriteLine($"Cannot open file {filePath}.\n{e.Message}");
+                            return;
                         }
                     }
                     //处理最后一行数据
