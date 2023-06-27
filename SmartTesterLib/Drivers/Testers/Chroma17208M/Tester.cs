@@ -308,42 +308,23 @@ namespace SmartTester
             }
         }
 
-        public void SetStep(Step step, int index)
-        {
-            if (!Executor.SpecifyChannel(index))
-            {
-                Console.WriteLine("Error");
-                return;
-            }
-            if (!Executor.SpecifyTestStep(step))
-            {
-                Console.WriteLine("Error");
-                return;
-            }
-        }
+        //public void Start(int index)
+        //{
+        //    var channel = Channels.SingleOrDefault(ch => ch.Index == index);
+        //    channel.ShouldTimerStart = true;
+        //    channel.Status = ChannelStatus.RUNNING;
+        //}
 
-        public void Start(int index)
-        {
-            var channel = Channels.SingleOrDefault(ch => ch.Index == index);
-            channel.ShouldTimerStart = true;
-            channel.Status = ChannelStatus.RUNNING;
-        }
+        //public void Stop(int index)
+        //{
+        //    var channel = Channels.SingleOrDefault(ch => ch.Index == index);
+        //    channel.ShouldTimerStart = false;
 
-        public void Stop(int index)
-        {
-            var channel = Channels.SingleOrDefault(ch => ch.Index == index);
-            channel.ShouldTimerStart = false;
-
-            Console.WriteLine($"Stop channel {index - 1 + 1}");
-            Executor.SpecifyChannel(index);
-            Executor.Stop();
-            channel.Timer.Change(Timeout.Infinite, Timeout.Infinite);
-            channel.IsTimerStart = false;
-        }
-
-        public string GetData(int index)
-        {
-            throw new NotImplementedException();
-        }
+        //    Console.WriteLine($"Stop channel {index - 1 + 1}");
+        //    Executor.SpecifyChannel(index);
+        //    Executor.Stop();
+        //    channel.Timer.Change(Timeout.Infinite, Timeout.Infinite);
+        //    channel.IsTimerStart = false;
+        //}
     }
 }

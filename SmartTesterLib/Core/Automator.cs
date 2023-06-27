@@ -90,7 +90,8 @@ namespace SmartTester
             bool ret;
             foreach (var channel in channels)
             {
-                channel.Tester.Stop(channel.Index);     //先停止前面的实验。
+                //channel.Tester.Stop(channel.Index);     //先停止前面的实验。
+                channel.Stop();
                 channel.Chamber = chamber;              //指定使用的chamber
                 //channel.DataLogger.Folder = outputFolder;
             }
@@ -120,7 +121,8 @@ namespace SmartTester
                 {
                     var steps = dic[channel];
                     channel.FullStepsForOneTempPoint = steps;
-                    channel.Tester.Start(channel.Index);
+                    //channel.Tester.Start(channel.Index);
+                    channel.Start();
                 }
 
                 Console.WriteLine($"Wait for all channels done. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");

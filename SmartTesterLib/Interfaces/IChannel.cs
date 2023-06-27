@@ -20,9 +20,11 @@ namespace SmartTester
         ITester Tester { get; set; }
         IChamber Chamber { get; set; }
         uint LastTimeInMS { get; set; }
-        uint Offset { get; set; }
+        //uint Offset { get; set; }
 
         void GenerateFile(System.Collections.Generic.List<Step> fullSteps);
         void Reset();
+        void Stop();
+        void Start();
     }
 }

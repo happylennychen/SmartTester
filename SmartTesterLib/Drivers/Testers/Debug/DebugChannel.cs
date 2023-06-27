@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -23,7 +24,7 @@ namespace SmartTester
         public ITester Tester { get; set; }
         public IChamber Chamber { get; set; }
         public uint LastTimeInMS { get; set; }
-        public uint Offset { get; set; }  //记录每个工步的初始时间偏差
+        //public uint Offset { get; set; }  //记录每个工步的初始时间偏差
         //public Stopwatch Anchor { get; set; }
 
         public void GenerateFile(List<Step> fullSteps)
@@ -40,6 +41,24 @@ namespace SmartTester
             IsTimerStart = false;
             LastTimeInMS = 0;
         }
+
+        public void Stop()
+        {
+            ShouldTimerStart = false;
+
+            Console.WriteLine($"Stop channel {Index - 1 + 1}");
+            Tester.Executor.SpecifyChannel(Index);
+            Tester.Executor.Stop();
+            Timer.Change(Timeout.Infinite, Timeout.Infinite);
+            IsTimerStart = false;
+        }
+
+        public void Start()
+        {
+            ShouldTimerStart = true;
+            Status = ChannelStatus.RUNNING;
+        }
+
         public DebugChannel(string name, int index, ITester tester, Timer timer)
         {
             Name = name;
