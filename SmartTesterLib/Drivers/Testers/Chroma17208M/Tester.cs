@@ -24,10 +24,10 @@ namespace SmartTester
         [JsonIgnore]
         public List<IChannel> Channels { get; set; }
         public string Name { get; set; }
-        public int ChannelNumber { get; set; }
-        public string IpAddress { get; set; }
-        public int Port { get; set; }
-        public string SessionStr { get; set; }
+        //public int ChannelNumber { get; set; }
+        //public string IpAddress { get; set; }
+        //public int Port { get; set; }
+        //public string SessionStr { get; set; }
         [JsonIgnore]
         public ITesterExecutor Executor { get; set; }
         private Timer mainTimer { get; set; }
@@ -42,10 +42,10 @@ namespace SmartTester
         {
             Id = id;
             Name = name;
-            ChannelNumber = channelNumber;
-            IpAddress = ipAddress;
-            Port = port;
-            SessionStr = sessionStr;
+            //ChannelNumber = channelNumber;
+            //IpAddress = ipAddress;
+            //Port = port;
+            //SessionStr = sessionStr;
             Executor = new Chroma17208Executor();
             mainWatch = new Stopwatch();
             Channels = new List<IChannel>();
@@ -68,7 +68,7 @@ namespace SmartTester
         {
             Id = id;
             Name = name;
-            ChannelNumber = channelNumber;
+            //ChannelNumber = channelNumber;
             Channels = new List<IChannel>();
             for (int i = 1; i <= channelNumber; i++)
             {
