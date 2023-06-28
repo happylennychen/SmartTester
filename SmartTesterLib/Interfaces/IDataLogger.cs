@@ -2,7 +2,7 @@
 {
     public interface IDataLogger
     {
-        int Id { get; set; }
+        //int Id { get; set; }
         string FilePath { get; set; }
         void AddData(string log);
         void Flush();

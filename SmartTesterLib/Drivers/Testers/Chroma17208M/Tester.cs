@@ -30,9 +30,7 @@ namespace SmartTester
         //public string SessionStr { get; set; }
         [JsonIgnore]
         public ITesterExecutor Executor { get; set; }
-        private Timer mainTimer { get; set; }
-        private int _counter { get; set; } = 0;
-        private Stopwatch mainWatch { get; set; }
+        private Scheduler Scheduler { get; set; }
         public Tester()
         {
             ;
@@ -46,14 +44,15 @@ namespace SmartTester
             //IpAddress = ipAddress;
             //Port = port;
             //SessionStr = sessionStr;
+            Scheduler = new Scheduler(channelNumber);
             Executor = new Chroma17208Executor();
-            mainWatch = new Stopwatch();
             Channels = new List<IChannel>();
 
             for (int i = 1; i <= channelNumber; i++)
             {
-                //Channel ch = new Channel($"Ch{i}", i, this, new Timer(WorkerCallback, i - 1, Timeout.Infinite, Timeout.Infinite));
-                Channel ch = new Channel($"Ch{i}", i, this);
+                Token token;
+                Channel ch = new Channel($"Ch{i}", i, this, out token);
+                Scheduler.RegisterToken(token);
                 Channels.Add(ch);
             }
             if (!Executor.Init(ipAddress, port, sessionStr))
@@ -61,73 +60,21 @@ namespace SmartTester
                 Console.WriteLine("Error");
                 return;
             }
-            mainTimer = new Timer(_ => MainCounter(), null, 100, 0);
-            mainWatch.Start();
+            Scheduler.Activate();
         }
 
         public Tester(int id, string name, int channelNumber)
         {
             Id = id;
             Name = name;
-            //ChannelNumber = channelNumber;
             Channels = new List<IChannel>();
             for (int i = 1; i <= channelNumber; i++)
             {
-                //Channel ch = new Channel($"Ch{i}", i, this, new Timer(WorkerCallback, i - 1, Timeout.Infinite, Timeout.Infinite));
-                Channel ch = new Channel($"Ch{i}", i, this);
+                Token token;
+                Channel ch = new Channel($"Ch{i}", i, this, out token);
+                Scheduler.RegisterToken(token);
                 Channels.Add(ch);
             }
         }
-
-        private void MainCounter()
-        {
-            long data;
-            do
-            {
-                data = mainWatch.ElapsedMilliseconds % 125;
-            }
-            while (data > 10);
-            mainTimer.Change(100, 0);
-
-            var counter = _counter % Channels.Count;
-            var channel = Channels.SingleOrDefault(ch => ch.Index == counter + 1);
-            if (channel.ShouldTimerStart && !channel.IsTimerStart)     //应该开启且还没开启
-            {
-                channel.DataQueue = new Queue<StandardRow>();
-                string fileName = $"{Name}-{channel.Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
-                channel.DataLogger = new DataLogger(channel.Chamber, counter + 1, fileName);
-                channel.TempFileList.Add(channel.DataLogger.FilePath);
-                Executor.SpecifyChannel(counter + 1);
-                channel.CurrentStep = channel.FullStepsForOneTempPoint.First();
-                Executor.SpecifyTestStep(channel.CurrentStep);
-                Executor.Start();
-                channel.Timer.Change(980, 0);
-                channel.IsTimerStart = true;
-            }
-            _counter++;
-            if (_counter == Channels.Count * 10)
-            {
-                _counter = 0;
-            }
-        }
-
-        //public void Start(int index)
-        //{
-        //    var channel = Channels.SingleOrDefault(ch => ch.Index == index);
-        //    channel.ShouldTimerStart = true;
-        //    channel.Status = ChannelStatus.RUNNING;
-        //}
-
-        //public void Stop(int index)
-        //{
-        //    var channel = Channels.SingleOrDefault(ch => ch.Index == index);
-        //    channel.ShouldTimerStart = false;
-
-        //    Console.WriteLine($"Stop channel {index - 1 + 1}");
-        //    Executor.SpecifyChannel(index);
-        //    Executor.Stop();
-        //    channel.Timer.Change(Timeout.Infinite, Timeout.Infinite);
-        //    channel.IsTimerStart = false;
-        //}
     }
 }

@@ -25,19 +25,16 @@ namespace SmartTester
         public ITester Tester { get; set; }
         public IChamber Chamber { get; set; }
         public string Name { get; set; }
-        public Timer Timer { get; set; }
-        //public Stopwatch Stopwatch { get; internal set; }
-        public DataLogger DataLogger { get; set; }
-        public Queue<StandardRow> DataQueue { get; set; }
+        private Timer Timer { get; set; }
+        private DataLogger DataLogger { get; set; }
+        private Queue<StandardRow> DataQueue { get; set; }
         public Step CurrentStep { get; set; } //当前Step
-        public uint LastTimeInMS { get; set; }  //必须是整秒
-        //public uint Offset { get; set; }  //记录每个工步的初始时间偏差
+        private uint LastTimeInMS { get; set; }  //必须是整秒
         public List<Step> FullStepsForOneTempPoint { get; set; }  //同一温度下的工步集合
-        public bool IsTimerStart { get; set; }
-        public bool ShouldTimerStart { get; set; }
-        public double TargetTemperature { get; set; }
+        private double TargetTemperature { get; set; }
         public ChannelStatus Status { get; set; }
-        public List<string> TempFileList { get; set; }
+        private List<string> TempFileList { get; set; }
+        private Token Token { get; set; }
 
         public void GenerateFile(List<Step> fullSteps)
         {
@@ -50,25 +47,25 @@ namespace SmartTester
             Timer.Change(Timeout.Infinite, Timeout.Infinite);
             DataQueue.Clear();
             DataLogger.Close();
-            ShouldTimerStart = false;
-            IsTimerStart = false;
+            Token.ShouldTimerStart = false;
+            Token.IsTimerStart = false;
             LastTimeInMS = 0;
         }
 
         public void Stop()
         {
-            ShouldTimerStart = false;
+            Token.ShouldTimerStart = false;
 
             Console.WriteLine($"Stop channel {Index - 1 + 1}");
             Tester.Executor.SpecifyChannel(Index);
             Tester.Executor.Stop();
             Timer.Change(Timeout.Infinite, Timeout.Infinite);
-            IsTimerStart = false;
+            Token.IsTimerStart = false;
         }
 
         public void Start()
         {
-            ShouldTimerStart = true;
+            Token.ShouldTimerStart = true;
             Status = ChannelStatus.RUNNING;
         }
 
@@ -77,16 +74,30 @@ namespace SmartTester
         {
             ;
         }
-        public Channel(string name, int index, ITester tester)
+        public Channel(string name, int index, ITester tester, out Token token)
         {
             Name = name;
             Index = index;
             Tester = tester;
-            Timer = new Timer(WorkerCallback, null, Timeout.Infinite, Timeout.Infinite);
+            Timer = new Timer(TimerCallback, null, Timeout.Infinite, Timeout.Infinite);
             TempFileList = new List<string>();
+            token = new Token(index, $"Channel {Index} Token", TokenCallback);
+            Token = token;
+        }
+        private void TokenCallback()
+        {
+            DataQueue = new Queue<StandardRow>();
+            string fileName = $"{Tester.Name}-{Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
+            DataLogger = new DataLogger(Chamber, Index, fileName);
+            TempFileList.Add(DataLogger.FilePath);
+            Tester.Executor.SpecifyChannel(Index);
+            CurrentStep = FullStepsForOneTempPoint.First();
+            Tester.Executor.SpecifyTestStep(CurrentStep);
+            Tester.Executor.Start();
+            Timer.Change(980, 0);
         }
 
-        private void WorkerCallback(object i)
+        private void TimerCallback(object i)
         {
             bool ret;
             //int counter = (int)i % Channels.Count;
@@ -207,7 +218,7 @@ namespace SmartTester
             }
             #endregion
 
-            if (ShouldTimerStart) //开启下一次计时
+            if (Token.ShouldTimerStart) //开启下一次计时
             {
                 Timer.Change(950, 0);
             }

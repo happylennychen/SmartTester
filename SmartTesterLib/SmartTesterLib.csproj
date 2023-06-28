@@ -56,10 +56,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Token.cs" />
     <Compile Include="Drivers\Chambers\Debug\DebugChamber.cs" />
     <Compile Include="Drivers\Chambers\Debug\DebugChamberExecutor.cs" />
     <Compile Include="Drivers\Testers\Debug\PseudoBattery.cs" />
     <Compile Include="Drivers\Testers\Debug\PseudoHardware.cs" />
+    <Compile Include="Core\Scheduler.cs" />
     <Compile Include="Recipe Logic\ActionMode.cs" />
     <Compile Include="Core\Automator.cs" />
     <Compile Include="Drivers\Chambers\PUL80\Chamber.cs" />
