@@ -12,7 +12,7 @@ namespace SmartTester
 
         private FileStream fileStream;
         private StreamWriter streamWriter;
-        public DataLogger(IChamber chamber, int id, string fileName)
+        public DataLogger(IChamber chamber, string fileName)
         {
             //this.Id = id;
             this.FilePath = Path.Combine(GlobalSettings.OutputFolder, chamber.Name, "R" + GlobalSettings.ChamberRoundIndex[chamber].ToString(), fileName);

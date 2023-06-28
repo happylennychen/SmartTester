@@ -88,7 +88,7 @@ namespace SmartTester
         {
             DataQueue = new Queue<StandardRow>();
             string fileName = $"{Tester.Name}-{Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
-            DataLogger = new DataLogger(Chamber, Index, fileName);
+            DataLogger = new DataLogger(Chamber, fileName);
             TempFileList.Add(DataLogger.FilePath);
             Tester.Executor.SpecifyChannel(Index);
             CurrentStep = FullStepsForOneTempPoint.First();
