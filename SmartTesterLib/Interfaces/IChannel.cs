@@ -7,12 +7,13 @@ namespace SmartTester
     {
         int Index { get; set; }
         string Name { get; set; }
+        Recipe Recipe { get; set; }
         Step CurrentStep { get; set; }
-        List<Step> FullStepsForOneTempPoint { get; set; }
+        List<Step> StepsForOneTempPoint { get; set; }
         ChannelStatus Status { get; set; }
         ITester Tester { get; set; }
         IChamber Chamber { get; set; }
-        void GenerateFile(System.Collections.Generic.List<Step> fullSteps);
+        void GenerateFile();
         void Reset();
         void Stop();
         void Start();

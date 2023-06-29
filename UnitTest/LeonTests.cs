@@ -190,7 +190,7 @@ namespace UnitTest
             string folderPath = @"D:\BC_Lab\SW Design\Instrument Automation\Smart Tester\SmartTester\UnitTest\bin\Debug\Test Plan\Project4\PUL-80\4\17208Auto\5";
             Configuration conf;
             Utilities.LoadConfiguration(out conf);
-            List<Test> output;
+            List<Recipe> output;
             Utilities.LoadTestFromFolder(folderPath, conf.Chambers.Select(cmb=>(IChamber)cmb).ToList(), conf.Testers.Select(tst=>(ITester)tst).ToList(), out output);
             var count = output.Count;
             Assert.Equal(1, count);

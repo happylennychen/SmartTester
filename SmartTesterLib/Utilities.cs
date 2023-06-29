@@ -391,9 +391,9 @@ namespace SmartTester
         }
 
 
-        public static bool LoadTestFromFolder(string folderPath, List<IChamber> chambers, List<ITester> testers, out List<Test> output)
+        public static bool LoadTestFromFolder(string folderPath, List<IChamber> chambers, List<ITester> testers, out List<Recipe> output)
         {
-            output = new List<Test>();
+            output = new List<Recipe>();
             try
             {
                 var files = Directory.GetFiles(folderPath, "*.testplan");
@@ -402,7 +402,7 @@ namespace SmartTester
                 foreach (var file in files)
                 {
                     string json = File.ReadAllText(file);
-                    var test = JsonConvert.DeserializeObject<Test>(json);
+                    var test = JsonConvert.DeserializeObject<Recipe>(json);
                     test.Chamber = chamber;
                     test.Channel = channel;
                     output.Add(test);
@@ -435,13 +435,13 @@ namespace SmartTester
             return channel;
         }
 
-        public static bool ChamberGroupTestCheck(List<Test> tests)
+        public static bool ChamberGroupTestCheck(List<Recipe> tests)
         {
-            if (tests.GroupBy(t => t.DischargeTemperature).Count() != 1)
-            {
-                Console.WriteLine("Error. No unified discharge temperature.");
-                return false;
-            }
+            //if (tests.GroupBy(t => t.DischargeTemperature).Count() != 1)
+            //{
+            //    Console.WriteLine("Error. No unified discharge temperature.");
+            //    return false;
+            //}
             if (tests.GroupBy(t => t.Channel).Where(g => g.Count() > 1).Count() > 0)
             {
                 Console.WriteLine("Error. Multiple tests used same channel(s).");
@@ -467,10 +467,10 @@ namespace SmartTester
             string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName, chamber.Name);
             return folderPath;
         }
-        public static bool LoadTestsForOneRound(string projectName, List<IChamber> chambers, List<ITester> testers, IChamber chamber, int index, out List<Test> tests)
+        public static bool LoadTestsForOneRound(string projectName, List<IChamber> chambers, List<ITester> testers, IChamber chamber, int index, out List<Recipe> tests)
         {
             bool ret = false;
-            tests = new List<Test>();
+            tests = new List<Recipe>();
             string oneRoundFolderPath = GetTestPlanOneRoundFolderPath(projectName, chamber, index);
             if (!Directory.Exists(oneRoundFolderPath))
                 return false;
@@ -494,7 +494,7 @@ namespace SmartTester
                         Console.WriteLine($"There's no available channel in {channelFolderPath}");
                         return false;
                     }
-                    Test test;
+                    Recipe test;
                     //if (!LoadTestFromFolder(channelFolderPath, chamber, tester, channel, out test))
                     //return false;
                     //tests.Add(test);
@@ -515,7 +515,7 @@ namespace SmartTester
             //    return false;
         }
 
-        private static bool LoadTestFromFolder(string channelFolderPath, IChamber chamber, ITester tester, IChannel channel, out Test test)
+        private static bool LoadTestFromFolder(string channelFolderPath, IChamber chamber, ITester tester, IChannel channel, out Recipe test)
         {
             test = null;
             try
@@ -523,8 +523,7 @@ namespace SmartTester
                 var files = Directory.GetFiles(channelFolderPath, "*.testplan");
                 if (files.Count() != 1)
                     return false;
-                string json = File.ReadAllText(files[0]);
-                test = JsonConvert.DeserializeObject<Test>(json);
+                test = LoadRecipeFromFile(files[0]);
                 test.Chamber = chamber;
                 test.Channel = channel;
             }
@@ -534,6 +533,12 @@ namespace SmartTester
                 return false;
             }
             return true;
+        }
+
+        public static Recipe LoadRecipeFromFile(string filePath)
+        {
+            string json = File.ReadAllText(filePath);
+            return JsonConvert.DeserializeObject<Recipe>(json);
         }
 
         private static IChannel GetChannelFromFolderPath(string channelFolderPath, ITester tester)

@@ -7,6 +7,7 @@ namespace SmartTester
         public int Id { get; set; }
         public int Index { get; set; }
         public TesterAction Action { get; set; }
+        public TargetTemperature Temperature { get; set; }
         public List<CutOffBehavior> CutOffBehaviors { get; set; }
         public Step()
         {
@@ -14,7 +15,7 @@ namespace SmartTester
         }
         public override string ToString()
         {
-            string output = $"STEP Index={Index} Mode={Action.Mode} Voltage={Action.Voltage} Current={Action.Current} Power={Action.Power}\n";
+            string output = $"STEP Index={Index} Mode={Action.Mode} Voltage={Action.Voltage} Current={Action.Current} Power={Action.Power} Temperature={Temperature.Temperature}\n";
             foreach (var cob in CutOffBehaviors)
             {
                 output += $"\tCOB {cob.Condition.Parameter} {cob.Condition.Mark} {cob.Condition.Value}\n";

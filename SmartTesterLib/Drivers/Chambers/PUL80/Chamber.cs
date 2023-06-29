@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace SmartTester
 {
@@ -14,6 +15,8 @@ namespace SmartTester
         public int Port { get; set; }
         [JsonIgnore]
         public IChamberExecutor Executor { get; set; }
+        public List<IChannel> Channels { get; set; }
+        public TestPlanScheduler TestScheduler { get; set; }
 
         public Chamber()
         { }

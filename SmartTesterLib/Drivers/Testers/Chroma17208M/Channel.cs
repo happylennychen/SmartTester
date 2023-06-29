@@ -24,21 +24,22 @@ namespace SmartTester
         [JsonIgnore]
         public ITester Tester { get; set; }
         public IChamber Chamber { get; set; }
+        public Recipe Recipe { get; set; }
         public string Name { get; set; }
+        public ChannelStatus Status { get; set; }
         private Timer Timer { get; set; }
         private DataLogger DataLogger { get; set; }
         private Queue<StandardRow> DataQueue { get; set; }
         public Step CurrentStep { get; set; } //当前Step
         private uint LastTimeInMS { get; set; }  //必须是整秒
-        public List<Step> FullStepsForOneTempPoint { get; set; }  //同一温度下的工步集合
+        public List<Step> StepsForOneTempPoint { get; set; }  //同一温度下的工步集合
         private double TargetTemperature { get; set; }
-        public ChannelStatus Status { get; set; }
         private List<string> TempFileList { get; set; }
         private Token Token { get; set; }
 
-        public void GenerateFile(List<Step> fullSteps)
+        public void GenerateFile()
         {
-            Utilities.FileConvert(TempFileList, fullSteps, TargetTemperature);
+            Utilities.FileConvert(TempFileList, Recipe.Steps, TargetTemperature);
             TempFileList.Clear();
         }
 
@@ -91,7 +92,7 @@ namespace SmartTester
             DataLogger = new DataLogger(Chamber, fileName);
             TempFileList.Add(DataLogger.FilePath);
             Tester.Executor.SpecifyChannel(Index);
-            CurrentStep = FullStepsForOneTempPoint.First();
+            CurrentStep = StepsForOneTempPoint.First();
             Tester.Executor.SpecifyTestStep(CurrentStep);
             Tester.Executor.Start();
             Timer.Change(980, 0);
@@ -184,12 +185,12 @@ namespace SmartTester
             #region change step
             if (stdRow.Status != RowStatus.RUNNING)
             {
-                CurrentStep = Utilities.GetNewTargetStep(CurrentStep, FullStepsForOneTempPoint, TargetTemperature, stdRow.TimeInMS, stdRow);
+                CurrentStep = Utilities.GetNewTargetStep(CurrentStep, StepsForOneTempPoint, TargetTemperature, stdRow.TimeInMS, stdRow);
                 if (CurrentStep == null)
                 {
                     Reset();
                     Console.WriteLine($"CH{Index} Done!");
-                    Status = ChannelStatus.IDLE;
+                    Status = ChannelStatus.COMPLETED;
                     //Task task = Task.Run(() => FileTransfer(DataLogger.FilePath));
                     return;
                 }

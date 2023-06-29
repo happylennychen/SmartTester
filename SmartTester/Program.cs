@@ -22,13 +22,44 @@ namespace SmartTester
 #endif
 
             Automator amtr = new Automator();
-            if(!amtr.Init())
+            //TestPlanScheduler scheduler = new TestPlanScheduler();
+            if(!amtr.InitHW())
                 return;
+
+            //amtr.PutChannelInChamber(amtr.Testers[0].Channels.Where(ch=>ch.Index<=4), amtr.Chambers[0]);
+            //amtr.PutChannelInChamber(amtr.Testers[0].Channels.Where(ch => ch.Index > 4), amtr.Chambers[1]);
+            var recipe1 = Utilities.LoadRecipeFromFile("");
+            var recipe2 = Utilities.LoadRecipeFromFile("");
+            var recipe3 = Utilities.LoadRecipeFromFile("");
+            var recipe4 = Utilities.LoadRecipeFromFile("");
+            var recipe5 = Utilities.LoadRecipeFromFile("");
+            var recipe6 = Utilities.LoadRecipeFromFile("");
+            var recipe7 = Utilities.LoadRecipeFromFile("");
+            var recipe8 = Utilities.LoadRecipeFromFile("");
+            Dictionary<IChannel, Recipe> channelRecipes = new Dictionary<IChannel, Recipe>();
+            channelRecipes.Add(amtr.Testers[0].Channels[0], recipe1);
+            channelRecipes.Add(amtr.Testers[0].Channels[1], recipe2);
+            channelRecipes.Add(amtr.Testers[0].Channels[2], recipe3);
+            channelRecipes.Add(amtr.Testers[0].Channels[3], recipe4);
+
+            TestRound testRound = new TestRound(channelRecipes);
+            amtr.Chambers[0].TestScheduler.AppendTestRound(testRound);
+
+            channelRecipes.Clear();
+            channelRecipes.Add(amtr.Testers[0].Channels[4], recipe5);
+            channelRecipes.Add(amtr.Testers[0].Channels[5], recipe6);
+            channelRecipes.Add(amtr.Testers[0].Channels[6], recipe7);
+            channelRecipes.Add(amtr.Testers[0].Channels[7], recipe8); 
+            testRound = new TestRound(channelRecipes);
+            amtr.Chambers[1].TestScheduler.AppendTestRound(testRound);
+
+            //amtr.AssignRecipeToChannel(amtr.Testers[0].Channels[0], recipe);
+            Task task = amtr.StartTestsInChambers(amtr.Chambers);
 
             //Task task = amtr.AutoRun(DateTime.Now.ToString("yyyyMMdd"));
             //Task task = amtr.AutoRun("2Chambers2Testers");
-            Task task = amtr.AutoRun("2Chambers1Tester_2");
-            task.Wait();
+            //Task task = amtr.AutoRun("2Chambers1Tester_2");
+            //task.Wait();
 
 #if UseFileInsteadOfConsole
             sw.Close();

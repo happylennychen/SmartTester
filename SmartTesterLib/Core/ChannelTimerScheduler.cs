@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace SmartTester
 {
-    public class Scheduler
+    public class ChannelTimerScheduler
     {
         //public DebugTester Tester { get; set; }
         private Timer mainTimer { get; set; }
@@ -17,7 +17,7 @@ namespace SmartTester
         private int _margin { get; set; }
         private int _threshold { get; set; }
         private Token[] TokenArrary { get; set; }
-        public Scheduler(int count)
+        public ChannelTimerScheduler(int count)
         {
             _count = count;
             _slice = 1000 / count;
