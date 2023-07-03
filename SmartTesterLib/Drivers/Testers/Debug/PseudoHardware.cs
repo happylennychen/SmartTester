@@ -11,7 +11,7 @@ namespace SmartTester
         public Stopwatch Stopwatch { get; set; }   //用秒表来控制每个通道的状态
         public Queue<StandardRow> DataQueues { get; set; }    //用来记录历史数据，以便推演新数据
         public uint DataLength { get; set; }       //DataQueue的长度
-        public Step Step { get; set; }
+        public SmartTesterStep Step { get; set; }
         public PseudoBattery Battery { get; set; }
         public int TimerIntervalInMS { get; set; }
         public Timer Timer { get; set; }

@@ -7,9 +7,9 @@ namespace SmartTester
     {
         int Index { get; set; }
         string Name { get; set; }
-        Recipe Recipe { get; set; }
-        Step CurrentStep { get; set; }
-        List<Step> StepsForOneTempPoint { get; set; }
+        SmartTesterRecipe Recipe { get; set; }
+        SmartTesterStep CurrentStep { get; set; }
+        //List<Step> StepsForOneTempPoint { get; set; }
         ChannelStatus Status { get; set; }
         ITester Tester { get; set; }
         IChamber Chamber { get; set; }
@@ -17,5 +17,6 @@ namespace SmartTester
         void Reset();
         void Stop();
         void Start();
+        void SetStepsForOneTempPoint();
     }
 }

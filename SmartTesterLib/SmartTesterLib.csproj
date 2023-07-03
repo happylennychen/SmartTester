@@ -56,15 +56,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\TemperatureUnit.cs" />
     <Compile Include="Core\TestPlanScheduler.cs" />
     <Compile Include="Core\TestRound.cs" />
+    <Compile Include="Core\TestSection.cs" />
     <Compile Include="Core\Token.cs" />
     <Compile Include="Drivers\Chambers\Debug\DebugChamber.cs" />
     <Compile Include="Drivers\Chambers\Debug\DebugChamberExecutor.cs" />
     <Compile Include="Drivers\Testers\Debug\PseudoBattery.cs" />
     <Compile Include="Drivers\Testers\Debug\PseudoHardware.cs" />
-    <Compile Include="Core\ChannelTimerScheduler.cs" />
+    <Compile Include="Core\TimerSliceScheduler.cs" />
+    <Compile Include="Enums\TemperatureStatus.cs" />
     <Compile Include="Enums\RoundStatus.cs" />
+    <Compile Include="Core\TemperatureScheduler.cs" />
     <Compile Include="Recipe Logic\ActionMode.cs" />
     <Compile Include="Core\Automator.cs" />
     <Compile Include="Drivers\Chambers\PUL80\Chamber.cs" />
@@ -95,9 +99,9 @@
     <Compile Include="Drivers\Chambers\PUL80\PUL80Executor.cs" />
     <Compile Include="Enums\RowStatus.cs" />
     <Compile Include="Core\StandardRow.cs" />
-    <Compile Include="Recipe Logic\Step.cs" />
-    <Compile Include="Core\TargetTemperature.cs" />
-    <Compile Include="Core\Recipe.cs" />
+    <Compile Include="Recipe Logic\SmartTesterStep.cs" />
+    <Compile Include="Core\TemperatureTarget.cs" />
+    <Compile Include="Recipe Logic\SmartTesterRecipe.cs" />
     <Compile Include="Drivers\Testers\Chroma17208M\Tester.cs" />
     <Compile Include="Recipe Logic\TesterAction.cs" />
     <Compile Include="Utilities.cs" />

@@ -19,7 +19,7 @@ namespace SmartTester
         //public string SessionStr { get; set; }
         [JsonIgnore]
         public ITesterExecutor Executor { get; set; }
-        private ChannelTimerScheduler Scheduler { get; set; }
+        private TimerSliceScheduler Scheduler { get; set; }
 
         [JsonConstructor]
         public DebugTester(int id, string name, int channelNumber, string ipAddress, int port, string sessionStr)
@@ -30,7 +30,7 @@ namespace SmartTester
             //IpAddress = ipAddress;
             //Port = port;
             //SessionStr = sessionStr;
-            Scheduler = new ChannelTimerScheduler(channelNumber);
+            Scheduler = new TimerSliceScheduler(channelNumber);
             Executor = new DebugTesterExecutor(Name);
             Channels = new List<IChannel>();
 

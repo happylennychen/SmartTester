@@ -7,11 +7,15 @@ namespace SmartTester
     public class TestPlanScheduler
     {
         private List<TestRound> TestRoundList { get; set; }
+        public TestPlanScheduler()
+        {
+            TestRoundList = new List<TestRound>();
+        }
         public bool IsCompleted 
         {
             get 
             {
-                return !TestRoundList.Any(tr => tr.Status == RoundStatus.WAITING);
+                return !TestRoundList.Any(tr => tr.Status == RoundStatus.WAITING) || TestRoundList.Count == 0;
             } 
         }
 

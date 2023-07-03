@@ -30,7 +30,7 @@ namespace SmartTester
         //public string SessionStr { get; set; }
         [JsonIgnore]
         public ITesterExecutor Executor { get; set; }
-        private ChannelTimerScheduler Scheduler { get; set; }
+        private TimerSliceScheduler Scheduler { get; set; }
         public Tester()
         {
             ;
@@ -44,7 +44,7 @@ namespace SmartTester
             //IpAddress = ipAddress;
             //Port = port;
             //SessionStr = sessionStr;
-            Scheduler = new ChannelTimerScheduler(channelNumber);
+            Scheduler = new TimerSliceScheduler(channelNumber);
             Executor = new Chroma17208Executor();
             Channels = new List<IChannel>();
 

@@ -211,7 +211,7 @@ namespace SmartTester
             }
         }
 
-        public bool SpecifyTestStep(Step step)
+        public bool SpecifyTestStep(SmartTesterStep step)
         {
             lock (ChromaLock)
             {
@@ -230,7 +230,7 @@ namespace SmartTester
             }
         }
 
-        private string GetCutOffCurrent(Step step)
+        private string GetCutOffCurrent(SmartTesterStep step)
         {
             var cob = step.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.CURRENT);
             if (cob != null)
@@ -239,7 +239,7 @@ namespace SmartTester
                 return "0";
         }
 
-        private string GetCutOffVoltage(Step step)
+        private string GetCutOffVoltage(SmartTesterStep step)
         {
             var cob = step.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.VOLTAGE);
             if (cob != null)
@@ -248,7 +248,7 @@ namespace SmartTester
                 return "0";
         }
 
-        private string GetCutOffTime(Step step)
+        private string GetCutOffTime(SmartTesterStep step)
         {
             var cob = step.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
             if (cob != null)
@@ -364,7 +364,7 @@ namespace SmartTester
                 {
                     return false;
                 }
-                catch (Exception exp)
+                catch (Exception)
                 {
                     return false;
                 }

@@ -14,6 +14,7 @@ namespace SmartTester
         string Name { get; set; }
         TemperatureScheduler TempScheduler { get; set; }
 
-        bool Start();   //根据TempScheduler开始调温
+        bool StartNextUnit();   //根据TempScheduler开始调温
+        bool Stop();
     }
 }

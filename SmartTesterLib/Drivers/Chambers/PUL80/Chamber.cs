@@ -17,6 +17,7 @@ namespace SmartTester
         public IChamberExecutor Executor { get; set; }
         public List<IChannel> Channels { get; set; }
         public TestPlanScheduler TestScheduler { get; set; }
+        public TemperatureScheduler TempScheduler { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public Chamber()
         { }
@@ -49,6 +50,16 @@ namespace SmartTester
         public override string ToString()
         {
             return this.Name;
+        }
+
+        public bool StartNextUnit()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Stop()
+        {
+            throw new NotImplementedException();
         }
     }
 }

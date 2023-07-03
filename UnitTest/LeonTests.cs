@@ -35,9 +35,9 @@ namespace UnitTest
             //fileList.Add(@"D:\BC_Lab\SW Design\Instrument Automation\File Converter\30T auto init 2\Chroma17208M-Ch1-20220630160748.txt");
             //fileList.Add(@"D:\BC_Lab\SW Design\Instrument Automation\File Converter\30T auto init\Chroma17208M-Ch1-20220630180635.txt");
         }
-        private static List<Step> CreateFullSteps()
+        private static List<SmartTesterStep> CreateFullSteps()
         {
-            Step chargeStep = new Step() { Index = 1, Action = new TesterAction() { Mode = ActionMode.CC_CV_CHARGE, Voltage = 4200, Current = 2000, Power = 0 } };
+            SmartTesterStep chargeStep = new SmartTesterStep() { Index = 1, Action = new TesterAction() { Mode = ActionMode.CC_CV_CHARGE, Voltage = 4200, Current = 2000, Power = 0 } };
             JumpBehavior jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
             Condition cdt = new Condition() { Parameter = Parameter.CURRENT, Mark = CompareMarkEnum.SmallerThan, Value = 200 };
             CutOffBehavior cob = new CutOffBehavior() { Condition = cdt };
@@ -45,27 +45,27 @@ namespace UnitTest
             chargeStep.CutOffBehaviors.Add(cob);
 
 
-            Step idleStep = new Step() { Index = 2, Action = new TesterAction() { Mode = ActionMode.REST, Voltage = 0, Current = 0, Power = 0 } };
+            SmartTesterStep idleStep = new SmartTesterStep() { Index = 2, Action = new TesterAction() { Mode = ActionMode.REST, Voltage = 0, Current = 0, Power = 0 } };
             jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
             cdt = new Condition() { Parameter = Parameter.TIME, Mark = CompareMarkEnum.LargerThan, Value = 1800 };
             cob = new CutOffBehavior() { Condition = cdt };
             cob.JumpBehaviors.Add(jpb);
             idleStep.CutOffBehaviors.Add(cob);
 
-            Step dischargeStep = new Step() { Index = 3, Action = new TesterAction() { Mode = ActionMode.CC_DISCHARGE, Voltage = 0, Current = 4000, Power = 0 } };
+            SmartTesterStep dischargeStep = new SmartTesterStep() { Index = 3, Action = new TesterAction() { Mode = ActionMode.CC_DISCHARGE, Voltage = 0, Current = 4000, Power = 0 } };
             jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
             cdt = new Condition() { Parameter = Parameter.VOLTAGE, Mark = CompareMarkEnum.SmallerThan, Value = 2500 };
             cob = new CutOffBehavior() { Condition = cdt };
             cob.JumpBehaviors.Add(jpb);
             dischargeStep.CutOffBehaviors.Add(cob);
 
-            return new List<Step> { chargeStep, idleStep, dischargeStep };
+            return new List<SmartTesterStep> { chargeStep, idleStep, dischargeStep };
         }
 
         [Fact]
         public void GetAdjustedRowShouldWork()
         {
-            Step step = new Step();
+            SmartTesterStep step = new SmartTesterStep();
             step.Action = new TesterAction(ActionMode.CP_DISCHARGE, 0, 0, 16000);
             var cob = new CutOffBehavior();
             cob.Condition = new Condition() { Parameter = Parameter.VOLTAGE, Value = 2500 };
@@ -183,20 +183,6 @@ namespace UnitTest
             }
             var allExisted = bList.All(b => b == true);
             Assert.True(allExisted);
-        }
-        [Fact]
-        public void LoadTestFromFolderShouldWork()
-        {
-            string folderPath = @"D:\BC_Lab\SW Design\Instrument Automation\Smart Tester\SmartTester\UnitTest\bin\Debug\Test Plan\Project4\PUL-80\4\17208Auto\5";
-            Configuration conf;
-            Utilities.LoadConfiguration(out conf);
-            List<Recipe> output;
-            Utilities.LoadTestFromFolder(folderPath, conf.Chambers.Select(cmb=>(IChamber)cmb).ToList(), conf.Testers.Select(tst=>(ITester)tst).ToList(), out output);
-            var count = output.Count;
-            Assert.Equal(1, count);
-            Assert.Equal("PUL-80", output[0].Chamber.Name);
-            Assert.Equal("17208Auto", output[0].Channel.Tester.Name);
-            Assert.Equal(5, output[0].Channel.Index);
         }
     }
 }

@@ -3,16 +3,16 @@ using System.Linq;
 
 namespace SmartTester
 {
-    public class Recipe
+    public class SmartTesterRecipe
     {
         public string Name { get; set; }
-        public List<Step> Steps { get; set; }
+        public List<SmartTesterStep> Steps { get; set; }
 
-        public List<TargetTemperature> GetTemperaturePoints()
+        public List<TemperatureTarget> GetUniqueTemperaturePoints()
         {
-            var temps = Steps.Select(st => st.Temperature).ToList();
-            List<TargetTemperature> uniqueTemps = new List<TargetTemperature>();    //去掉连续重复的温度点
-            TargetTemperature lastTemp = null;
+            var temps = Steps.Select(st => st.Target).ToList();
+            List<TemperatureTarget> uniqueTemps = new List<TemperatureTarget>();    //去掉连续重复的温度点
+            TemperatureTarget lastTemp = null;
             foreach (var temp in temps)
             {
                 if (uniqueTemps.Count == 0)
@@ -22,7 +22,7 @@ namespace SmartTester
                 }
                 else
                 {
-                    if (temp.IsCritical != lastTemp.IsCritical || temp.Temperature == lastTemp.Temperature)
+                    if (temp.IsCritical != lastTemp.IsCritical || temp.Value != lastTemp.Value)
                     {
                         uniqueTemps.Add(temp);
                         lastTemp = temp;
@@ -31,8 +31,8 @@ namespace SmartTester
             }
             return uniqueTemps;
         }
-        public IChamber Chamber { get; set; }   //尝试去掉
-        public IChannel Channel { get; set; }   //尝试去掉
+        //public IChamber Chamber { get; set; }   //尝试去掉
+        //public IChannel Channel { get; set; }   //尝试去掉
         //public double DischargeTemperature { get; set; }
     }
 }

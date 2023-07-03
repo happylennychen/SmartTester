@@ -21,40 +21,79 @@ namespace SmartTester
             Console.SetOut(sw);
 #endif
 
+            Utilities.CreateOutputFolderRoot();
             Automator amtr = new Automator();
             //TestPlanScheduler scheduler = new TestPlanScheduler();
             if(!amtr.InitHW())
                 return;
 
-            //amtr.PutChannelInChamber(amtr.Testers[0].Channels.Where(ch=>ch.Index<=4), amtr.Chambers[0]);
-            //amtr.PutChannelInChamber(amtr.Testers[0].Channels.Where(ch => ch.Index > 4), amtr.Chambers[1]);
-            var recipe1 = Utilities.LoadRecipeFromFile("");
-            var recipe2 = Utilities.LoadRecipeFromFile("");
-            var recipe3 = Utilities.LoadRecipeFromFile("");
-            var recipe4 = Utilities.LoadRecipeFromFile("");
-            var recipe5 = Utilities.LoadRecipeFromFile("");
-            var recipe6 = Utilities.LoadRecipeFromFile("");
-            var recipe7 = Utilities.LoadRecipeFromFile("");
-            var recipe8 = Utilities.LoadRecipeFromFile("");
-            Dictionary<IChannel, Recipe> channelRecipes = new Dictionary<IChannel, Recipe>();
-            channelRecipes.Add(amtr.Testers[0].Channels[0], recipe1);
-            channelRecipes.Add(amtr.Testers[0].Channels[1], recipe2);
-            channelRecipes.Add(amtr.Testers[0].Channels[2], recipe3);
-            channelRecipes.Add(amtr.Testers[0].Channels[3], recipe4);
+            amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch=>ch.Index<=4), amtr.Chambers[0]);
+            amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch => ch.Index > 4), amtr.Chambers[1]);
+            #region Chamber1
+            var  chm1_r1_ch3= Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R1\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm1_r2_ch1 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH1\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm1_r2_ch2 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH2\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm1_r2_ch3 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm1_r2_ch4 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH4\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            Dictionary<IChannel, SmartTesterRecipe> channelRecipes = new Dictionary<IChannel, SmartTesterRecipe>();
+            channelRecipes.Add(amtr.Testers[0].Channels[2], chm1_r1_ch3);
 
             TestRound testRound = new TestRound(channelRecipes);
             amtr.Chambers[0].TestScheduler.AppendTestRound(testRound);
 
-            channelRecipes.Clear();
-            channelRecipes.Add(amtr.Testers[0].Channels[4], recipe5);
-            channelRecipes.Add(amtr.Testers[0].Channels[5], recipe6);
-            channelRecipes.Add(amtr.Testers[0].Channels[6], recipe7);
-            channelRecipes.Add(amtr.Testers[0].Channels[7], recipe8); 
+            channelRecipes=new Dictionary<IChannel, SmartTesterRecipe>();
+            channelRecipes.Add(amtr.Testers[0].Channels[0], chm1_r2_ch1);
+            channelRecipes.Add(amtr.Testers[0].Channels[1], chm1_r2_ch2);
+            channelRecipes.Add(amtr.Testers[0].Channels[2], chm1_r2_ch3);
+            channelRecipes.Add(amtr.Testers[0].Channels[3], chm1_r2_ch4); 
+            
             testRound = new TestRound(channelRecipes);
-            amtr.Chambers[1].TestScheduler.AppendTestRound(testRound);
+            amtr.Chambers[0].TestScheduler.AppendTestRound(testRound);
+            #endregion
+
+            #region Chamber2
+            var chm2_r1_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r1_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r1_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r1_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+
+            var chm2_r2_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r2_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r2_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r2_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+
+            var chm2_r3_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r3_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r3_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r3_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+
+            channelRecipes = new Dictionary<IChannel, SmartTesterRecipe>();
+            channelRecipes.Add(amtr.Testers[0].Channels[4], chm2_r1_ch5);
+            channelRecipes.Add(amtr.Testers[0].Channels[5], chm2_r1_ch6);
+            channelRecipes.Add(amtr.Testers[0].Channels[6], chm2_r1_ch7);
+            channelRecipes.Add(amtr.Testers[0].Channels[7], chm2_r1_ch8); 
+            testRound = new TestRound(channelRecipes);
+            //amtr.Chambers[1].TestScheduler.AppendTestRound(testRound);
+
+            //channelRecipes = new Dictionary<IChannel, SmartTesterRecipe>();
+            //channelRecipes.Add(amtr.Testers[0].Channels[4], chm2_r2_ch5);
+            //channelRecipes.Add(amtr.Testers[0].Channels[5], chm2_r2_ch6);
+            //channelRecipes.Add(amtr.Testers[0].Channels[6], chm2_r2_ch7);
+            //channelRecipes.Add(amtr.Testers[0].Channels[7], chm2_r2_ch8);
+            //testRound = new TestRound(channelRecipes);
+            //amtr.Chambers[1].TestScheduler.AppendTestRound(testRound);
+
+            //channelRecipes = new Dictionary<IChannel, SmartTesterRecipe>();
+            //channelRecipes.Add(amtr.Testers[0].Channels[4], chm2_r3_ch5);
+            //channelRecipes.Add(amtr.Testers[0].Channels[5], chm2_r3_ch6);
+            //channelRecipes.Add(amtr.Testers[0].Channels[6], chm2_r3_ch7);
+            //channelRecipes.Add(amtr.Testers[0].Channels[7], chm2_r3_ch8);
+            //testRound = new TestRound(channelRecipes);
+            //amtr.Chambers[1].TestScheduler.AppendTestRound(testRound);
+            #endregion
 
             //amtr.AssignRecipeToChannel(amtr.Testers[0].Channels[0], recipe);
-            Task task = amtr.StartTestsInChambers(amtr.Chambers);
+            Task task = amtr.StartTestsInChambers();
 
             //Task task = amtr.AutoRun(DateTime.Now.ToString("yyyyMMdd"));
             //Task task = amtr.AutoRun("2Chambers2Testers");
@@ -127,9 +166,9 @@ namespace SmartTester
             return int.Parse(System.Text.RegularExpressions.Regex.Replace(name, @"[^0-9]+", ""));
         }
 
-        private static void CreateFullSteps(out List<Step> fullSteps)
+        private static void CreateFullSteps(out List<SmartTesterStep> fullSteps)
         {
-            Step chargeStep = new Step() { Index = 1, Action = new TesterAction() { Mode = ActionMode.CC_CV_CHARGE, Voltage = 4200, Current = 1500, Power = 0 } };
+            SmartTesterStep chargeStep = new SmartTesterStep() { Index = 1, Action = new TesterAction() { Mode = ActionMode.CC_CV_CHARGE, Voltage = 4200, Current = 1500, Power = 0 } };
             JumpBehavior jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
             Condition cdt = new Condition() { Parameter = Parameter.CURRENT, Mark = CompareMarkEnum.SmallerThan, Value = 150 };
             CutOffBehavior cob = new CutOffBehavior() { Condition = cdt };
@@ -137,14 +176,14 @@ namespace SmartTester
             chargeStep.CutOffBehaviors.Add(cob);
 
 
-            Step idleStep = new Step() { Index = 2, Action = new TesterAction() { Mode = ActionMode.REST, Voltage = 0, Current = 0, Power = 0 } };
+            SmartTesterStep idleStep = new SmartTesterStep() { Index = 2, Action = new TesterAction() { Mode = ActionMode.REST, Voltage = 0, Current = 0, Power = 0 } };
             jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
             cdt = new Condition() { Parameter = Parameter.TIME, Mark = CompareMarkEnum.LargerThan, Value = 1800 };
             cob = new CutOffBehavior() { Condition = cdt };
             cob.JumpBehaviors.Add(jpb);
             idleStep.CutOffBehaviors.Add(cob);
 
-            Step cpStep = new Step() { Index = 3, Action = new TesterAction() { Mode = ActionMode.CP_DISCHARGE, Voltage = 0, Current = 0, Power = 6000 } };
+            SmartTesterStep cpStep = new SmartTesterStep() { Index = 3, Action = new TesterAction() { Mode = ActionMode.CP_DISCHARGE, Voltage = 0, Current = 0, Power = 6000 } };
             jpb = new JumpBehavior() { JumpType = JumpType.INDEX, Index = 7 };
             cdt = new Condition() { Parameter = Parameter.VOLTAGE, Mark = CompareMarkEnum.SmallerThan, Value = 2500 };
             cob = new CutOffBehavior() { Condition = cdt };
@@ -157,14 +196,14 @@ namespace SmartTester
             cpStep.CutOffBehaviors.Add(cob2);
 
 
-            Step idleStep2 = new Step() { Index = 4, Action = new TesterAction() { Mode = ActionMode.REST, Voltage = 0, Current = 0, Power = 0 } };
+            SmartTesterStep idleStep2 = new SmartTesterStep() { Index = 4, Action = new TesterAction() { Mode = ActionMode.REST, Voltage = 0, Current = 0, Power = 0 } };
             jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
             cdt = new Condition() { Parameter = Parameter.TIME, Mark = CompareMarkEnum.LargerThan, Value = 30 };
             cob = new CutOffBehavior() { Condition = cdt };
             cob.JumpBehaviors.Add(jpb);
             idleStep2.CutOffBehaviors.Add(cob);
 
-            Step cpStep2 = new Step() { Index = 5, Action = new TesterAction() { Mode = ActionMode.CP_DISCHARGE, Voltage = 0, Current = 0, Power = 33000 } };
+            SmartTesterStep cpStep2 = new SmartTesterStep() { Index = 5, Action = new TesterAction() { Mode = ActionMode.CP_DISCHARGE, Voltage = 0, Current = 0, Power = 33000 } };
             jpb = new JumpBehavior() { JumpType = JumpType.INDEX, Index = 7 };
             cdt = new Condition() { Parameter = Parameter.VOLTAGE, Mark = CompareMarkEnum.SmallerThan, Value = 2500 };
             cob = new CutOffBehavior() { Condition = cdt };
@@ -177,7 +216,7 @@ namespace SmartTester
             cpStep2.CutOffBehaviors.Add(cob2);
 
 
-            Step idleStep3 = new Step() { Index = 6, Action = new TesterAction() { Mode = ActionMode.REST, Voltage = 0, Current = 0, Power = 0 } };
+            SmartTesterStep idleStep3 = new SmartTesterStep() { Index = 6, Action = new TesterAction() { Mode = ActionMode.REST, Voltage = 0, Current = 0, Power = 0 } };
             jpb = new JumpBehavior() { JumpType = JumpType.INDEX, Index = 3 };
             cdt = new Condition() { Parameter = Parameter.TIME, Mark = CompareMarkEnum.LargerThan, Value = 30 };
             cob = new CutOffBehavior() { Condition = cdt };
@@ -185,13 +224,13 @@ namespace SmartTester
             idleStep3.CutOffBehaviors.Add(cob);
 
 
-            Step idleStep4 = new Step() { Index = 7, Action = new TesterAction() { Mode = ActionMode.REST, Voltage = 0, Current = 0, Power = 0 } };
+            SmartTesterStep idleStep4 = new SmartTesterStep() { Index = 7, Action = new TesterAction() { Mode = ActionMode.REST, Voltage = 0, Current = 0, Power = 0 } };
             jpb = new JumpBehavior() { JumpType = JumpType.NEXT };
             cdt = new Condition() { Parameter = Parameter.TIME, Mark = CompareMarkEnum.LargerThan, Value = 1800 };
             cob = new CutOffBehavior() { Condition = cdt };
             cob.JumpBehaviors.Add(jpb);
             idleStep4.CutOffBehaviors.Add(cob);
-            fullSteps = new List<Step> { chargeStep, idleStep, cpStep, idleStep2, cpStep2, idleStep3, idleStep4 };
+            fullSteps = new List<SmartTesterStep> { chargeStep, idleStep, cpStep, idleStep2, cpStep2, idleStep3, idleStep4 };
         }
     }
 }

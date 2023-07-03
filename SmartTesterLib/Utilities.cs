@@ -106,7 +106,7 @@ namespace SmartTester
             Directory.CreateDirectory(outputFolder);
         }
 
-        public static void FileConvert(List<string> filePaths, List<Step> fullSteps, double targetTemperature)
+        public static void FileConvert(List<string> filePaths, List<SmartTesterStep> fullSteps, double targetTemperature)
         {
             uint indexOffset = 0;
             uint timeOffset = 0;
@@ -116,7 +116,7 @@ namespace SmartTester
             StandardRow lastRow = null;
             StandardRow currentRow = null;
             var newFilePath = Path.ChangeExtension(filePaths[0], "csv");
-            Step step = fullSteps.First();
+            SmartTesterStep step = fullSteps.First();
             using (FileStream stdFile = new FileStream(newFilePath, FileMode.Create))
             {
                 Console.WriteLine($"{newFilePath} created.");
@@ -242,16 +242,16 @@ namespace SmartTester
                 return null;
         }
 
-        public static Step GetNewTargetStep(Step currentStep, List<Step> fullSteps, double temperature, uint timeSpan, StandardRow row)
+        public static SmartTesterStep GetNewTargetStep(SmartTesterStep currentStep, List<SmartTesterStep> fullSteps, double temperature, uint timeSpan, StandardRow row)
         {
             Console.WriteLine("GetNewTargetStep");
-            Step nextStep = null;
+            SmartTesterStep nextStep = null;
             CutOffBehavior cob = GetCutOffBehavior(currentStep, timeSpan, row);
             if (cob != null)
                 nextStep = Jump(cob, fullSteps, currentStep.Index, row);
             return nextStep;
         }
-        private static CutOffBehavior GetCutOffBehavior(Step currentStep, uint timeSpan, StandardRow row)
+        private static CutOffBehavior GetCutOffBehavior(SmartTesterStep currentStep, uint timeSpan, StandardRow row)
         {
             CutOffBehavior cob = null;
             switch (currentStep.Action.Mode)
@@ -313,9 +313,9 @@ namespace SmartTester
             }
             return cob;
         }
-        private static Step Jump(CutOffBehavior cob, List<Step> fullSteps, int currentStepIndex, StandardRow row)
+        private static SmartTesterStep Jump(CutOffBehavior cob, List<SmartTesterStep> fullSteps, int currentStepIndex, StandardRow row)
         {
-            Step nextStep = null;
+            SmartTesterStep nextStep = null;
             if (cob.JumpBehaviors.Count == 1)
             {
                 var jpb = cob.JumpBehaviors.First();
@@ -391,9 +391,9 @@ namespace SmartTester
         }
 
 
-        public static bool LoadTestFromFolder(string folderPath, List<IChamber> chambers, List<ITester> testers, out List<Recipe> output)
+        public static bool LoadTestFromFolder(string folderPath, List<IChamber> chambers, List<ITester> testers, out List<SmartTesterRecipe> output)
         {
-            output = new List<Recipe>();
+            output = new List<SmartTesterRecipe>();
             try
             {
                 var files = Directory.GetFiles(folderPath, "*.testplan");
@@ -402,9 +402,9 @@ namespace SmartTester
                 foreach (var file in files)
                 {
                     string json = File.ReadAllText(file);
-                    var test = JsonConvert.DeserializeObject<Recipe>(json);
-                    test.Chamber = chamber;
-                    test.Channel = channel;
+                    var test = JsonConvert.DeserializeObject<SmartTesterRecipe>(json);
+                    //test.Chamber = chamber;
+                    //test.Channel = channel;
                     output.Add(test);
                 }
             }
@@ -435,21 +435,6 @@ namespace SmartTester
             return channel;
         }
 
-        public static bool ChamberGroupTestCheck(List<Recipe> tests)
-        {
-            //if (tests.GroupBy(t => t.DischargeTemperature).Count() != 1)
-            //{
-            //    Console.WriteLine("Error. No unified discharge temperature.");
-            //    return false;
-            //}
-            if (tests.GroupBy(t => t.Channel).Where(g => g.Count() > 1).Count() > 0)
-            {
-                Console.WriteLine("Error. Multiple tests used same channel(s).");
-                return false;
-            }
-            return true;
-        }
-
         public static string GetTestPlanOneRoundFolderPath(string projectName, IChamber chamber, int index)
         {
             string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName, chamber.Name, "R" + index.ToString());
@@ -467,10 +452,10 @@ namespace SmartTester
             string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName, chamber.Name);
             return folderPath;
         }
-        public static bool LoadTestsForOneRound(string projectName, List<IChamber> chambers, List<ITester> testers, IChamber chamber, int index, out List<Recipe> tests)
+        public static bool LoadTestsForOneRound(string projectName, List<IChamber> chambers, List<ITester> testers, IChamber chamber, int index, out List<SmartTesterRecipe> tests)
         {
             bool ret = false;
-            tests = new List<Recipe>();
+            tests = new List<SmartTesterRecipe>();
             string oneRoundFolderPath = GetTestPlanOneRoundFolderPath(projectName, chamber, index);
             if (!Directory.Exists(oneRoundFolderPath))
                 return false;
@@ -494,7 +479,7 @@ namespace SmartTester
                         Console.WriteLine($"There's no available channel in {channelFolderPath}");
                         return false;
                     }
-                    Recipe test;
+                    SmartTesterRecipe test;
                     //if (!LoadTestFromFolder(channelFolderPath, chamber, tester, channel, out test))
                     //return false;
                     //tests.Add(test);
@@ -515,7 +500,7 @@ namespace SmartTester
             //    return false;
         }
 
-        private static bool LoadTestFromFolder(string channelFolderPath, IChamber chamber, ITester tester, IChannel channel, out Recipe test)
+        private static bool LoadTestFromFolder(string channelFolderPath, IChamber chamber, ITester tester, IChannel channel, out SmartTesterRecipe test)
         {
             test = null;
             try
@@ -524,8 +509,8 @@ namespace SmartTester
                 if (files.Count() != 1)
                     return false;
                 test = LoadRecipeFromFile(files[0]);
-                test.Chamber = chamber;
-                test.Channel = channel;
+                //test.Chamber = chamber;
+                //test.Channel = channel;
             }
             catch (Exception e)
             {
@@ -535,10 +520,44 @@ namespace SmartTester
             return true;
         }
 
-        public static Recipe LoadRecipeFromFile(string filePath)
+        public static SmartTesterRecipe LoadRecipeFromFile(string filePath)
         {
             string json = File.ReadAllText(filePath);
-            return JsonConvert.DeserializeObject<Recipe>(json);
+            string recipeName = GetRecipeNameFromFileName(Path.GetFileNameWithoutExtension(filePath));
+            int dischargeTemp = GetDischargeTemperatureFromFileName(Path.GetFileNameWithoutExtension(filePath));
+            var rec = JsonConvert.DeserializeObject<SmartTesterRecipe>(json);
+            UpdateRecipe(ref rec, dischargeTemp, recipeName);
+            return rec;
+        }
+
+        private static string GetRecipeNameFromFileName(string fileName)
+        {
+            return fileName.Replace(fileName.Split('-')[0], "").Trim('-');
+        }
+
+        private static int GetDischargeTemperatureFromFileName(string fileName)
+        {
+            return Convert.ToInt32(fileName.Split('-')[0].Replace("Deg", ""));
+        }
+
+        private static void UpdateRecipe(ref SmartTesterRecipe rec, int dischargeTemp, string recipeName)
+        {
+            rec.Name = recipeName;
+            foreach (var step in rec.Steps)
+            {
+                var t = new TemperatureTarget();
+                if (step.Action.Mode == ActionMode.CC_CV_CHARGE)
+                {
+                    t.IsCritical = true;
+                    t.Value = 25;
+                }
+                else
+                {
+                    t.IsCritical = false;
+                    t.Value = dischargeTemp;
+                }
+                step.Target = t;
+            }
         }
 
         private static IChannel GetChannelFromFolderPath(string channelFolderPath, ITester tester)
@@ -633,11 +652,11 @@ namespace SmartTester
             return true;
         }
 
-        public static bool CreateOutputFolderRoot(string project)
+        public static bool CreateOutputFolderRoot()
         {
             try
             {
-                GlobalSettings.OutputFolder = Path.Combine("Output", DateTime.Now.ToString("yyyyMMddHHmmss"), project);
+                GlobalSettings.OutputFolder = Path.Combine("Output", DateTime.Now.ToString("yyyyMMddHHmmss"));
                 Directory.CreateDirectory(GlobalSettings.OutputFolder);
             }
             catch (Exception e)

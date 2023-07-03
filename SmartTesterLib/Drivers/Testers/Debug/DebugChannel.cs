@@ -11,9 +11,9 @@ namespace SmartTester
     {
         public int Index { get; set; }
         public string Name { get; set; }
-        public Step CurrentStep { get; set; }
-        public List<Step> StepsForOneTempPoint { get; set; }
-        public Recipe Recipe { get; set; }
+        public SmartTesterStep CurrentStep { get; set; }
+        private List<SmartTesterStep> StepsForOneTempPoint { get; set; }
+        public SmartTesterRecipe Recipe { get; set; }
         [JsonIgnore]
         public ITester Tester { get; set; }
         public IChamber Chamber { get; set; }
@@ -86,8 +86,8 @@ namespace SmartTester
         private void TokenCallback()
         {
             DataQueue = new Queue<StandardRow>();
-            string fileName = $"{Tester.Name}-{Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
-            DataLogger = new DataLogger(Chamber, fileName);
+            string fileName = $"{Tester.Name}-{Name}-{Recipe.Name}-{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt";
+            DataLogger = new DataLogger(GlobalSettings.OutputFolder, fileName);
             TempFileList.Add(DataLogger.FilePath);
             Tester.Executor.SpecifyChannel(Index);
             CurrentStep = StepsForOneTempPoint.First();
@@ -223,7 +223,7 @@ namespace SmartTester
             }
         }
 
-        private StandardRow GetAdjustedRow(List<StandardRow> standardRows, Step step)
+        private StandardRow GetAdjustedRow(List<StandardRow> standardRows, SmartTesterStep step)
         {
             List<StandardRow> rows = GetLastStepRows(standardRows);
             if (rows.Count < 3) //如果没有足够多的行，则根据设定值来修正最后一行
@@ -293,6 +293,15 @@ namespace SmartTester
             var output = Math.Round((slope * x + offset), 6);
             Console.WriteLine($"x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}, x:{x}, y:{output}");
             return output;
+        }
+
+        public void SetStepsForOneTempPoint()
+        {
+            Console.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} S");
+            Console.WriteLine("");
+            StepsForOneTempPoint = Recipe.Steps.Where(st => st.TemperatureUint.Status == TemperatureStatus.REACHING).ToList();
+            Console.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} E");
+            Console.WriteLine("");
         }
     }
 }

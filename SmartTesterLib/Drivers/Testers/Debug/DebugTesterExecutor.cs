@@ -79,7 +79,7 @@ namespace SmartTester
             return true;
         }
 
-        public bool SpecifyTestStep(Step step)
+        public bool SpecifyTestStep(SmartTesterStep step)
         {
             PseudoHardwares[ChannelIndex - 1].Step = step;
             return true;
