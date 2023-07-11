@@ -35,20 +35,20 @@ namespace SmartTester
             var chm1_r2_ch2 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH2\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
             var chm1_r2_ch3 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
             var chm1_r2_ch4 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH4\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            Dictionary<IChannel, SmartTesterRecipe> channelRecipes = new Dictionary<IChannel, SmartTesterRecipe>();
-            channelRecipes.Add(amtr.Testers[0].Channels[2], chm1_r1_ch3);
+            Dictionary<IChannel, SmartTesterRecipe> channelRecipesForR1 = new Dictionary<IChannel, SmartTesterRecipe>();
+            channelRecipesForR1.Add(amtr.Testers[0].Channels[2], chm1_r1_ch3);
 
-            TestRound testRound = new TestRound(channelRecipes);
-            amtr.Chambers[0].TestScheduler.AppendTestRound(testRound);
+            TestRound round1 = new TestRound(channelRecipesForR1);
+            amtr.Chambers[0].TestScheduler.AppendTestRound(round1);
 
-            channelRecipes=new Dictionary<IChannel, SmartTesterRecipe>();
-            channelRecipes.Add(amtr.Testers[0].Channels[0], chm1_r2_ch1);
-            channelRecipes.Add(amtr.Testers[0].Channels[1], chm1_r2_ch2);
-            channelRecipes.Add(amtr.Testers[0].Channels[2], chm1_r2_ch3);
-            channelRecipes.Add(amtr.Testers[0].Channels[3], chm1_r2_ch4); 
+            Dictionary<IChannel, SmartTesterRecipe> channelRecipesForR2 = new Dictionary<IChannel, SmartTesterRecipe>();
+            channelRecipesForR2.Add(amtr.Testers[0].Channels[0], chm1_r2_ch1);
+            channelRecipesForR2.Add(amtr.Testers[0].Channels[1], chm1_r2_ch2);
+            channelRecipesForR2.Add(amtr.Testers[0].Channels[2], chm1_r2_ch3);
+            channelRecipesForR2.Add(amtr.Testers[0].Channels[3], chm1_r2_ch4); 
             
-            testRound = new TestRound(channelRecipes);
-            amtr.Chambers[0].TestScheduler.AppendTestRound(testRound);
+            TestRound round2 = new TestRound(channelRecipesForR2);
+            amtr.Chambers[0].TestScheduler.AppendTestRound(round2);
             #endregion
 
             #region Chamber2
@@ -67,33 +67,34 @@ namespace SmartTester
             var chm2_r3_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
             var chm2_r3_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
 
-            channelRecipes = new Dictionary<IChannel, SmartTesterRecipe>();
-            channelRecipes.Add(amtr.Testers[0].Channels[4], chm2_r1_ch5);
-            channelRecipes.Add(amtr.Testers[0].Channels[5], chm2_r1_ch6);
-            channelRecipes.Add(amtr.Testers[0].Channels[6], chm2_r1_ch7);
-            channelRecipes.Add(amtr.Testers[0].Channels[7], chm2_r1_ch8); 
-            testRound = new TestRound(channelRecipes);
-            //amtr.Chambers[1].TestScheduler.AppendTestRound(testRound);
+            var r1 = new Dictionary<IChannel, SmartTesterRecipe>();
+            r1.Add(amtr.Testers[0].Channels[4], chm2_r1_ch5);
+            r1.Add(amtr.Testers[0].Channels[5], chm2_r1_ch6);
+            r1.Add(amtr.Testers[0].Channels[6], chm2_r1_ch7);
+            r1.Add(amtr.Testers[0].Channels[7], chm2_r1_ch8);
+            var R1 = new TestRound(r1);
+            amtr.Chambers[1].TestScheduler.AppendTestRound(R1);
 
-            //channelRecipes = new Dictionary<IChannel, SmartTesterRecipe>();
-            //channelRecipes.Add(amtr.Testers[0].Channels[4], chm2_r2_ch5);
-            //channelRecipes.Add(amtr.Testers[0].Channels[5], chm2_r2_ch6);
-            //channelRecipes.Add(amtr.Testers[0].Channels[6], chm2_r2_ch7);
-            //channelRecipes.Add(amtr.Testers[0].Channels[7], chm2_r2_ch8);
-            //testRound = new TestRound(channelRecipes);
-            //amtr.Chambers[1].TestScheduler.AppendTestRound(testRound);
+            var r2 = new Dictionary<IChannel, SmartTesterRecipe>();
+            r2.Add(amtr.Testers[0].Channels[4], chm2_r2_ch5);
+            r2.Add(amtr.Testers[0].Channels[5], chm2_r2_ch6);
+            r2.Add(amtr.Testers[0].Channels[6], chm2_r2_ch7);
+            r2.Add(amtr.Testers[0].Channels[7], chm2_r2_ch8);
+            var R2 = new TestRound(r2);
+            amtr.Chambers[1].TestScheduler.AppendTestRound(R2);
 
-            //channelRecipes = new Dictionary<IChannel, SmartTesterRecipe>();
-            //channelRecipes.Add(amtr.Testers[0].Channels[4], chm2_r3_ch5);
-            //channelRecipes.Add(amtr.Testers[0].Channels[5], chm2_r3_ch6);
-            //channelRecipes.Add(amtr.Testers[0].Channels[6], chm2_r3_ch7);
-            //channelRecipes.Add(amtr.Testers[0].Channels[7], chm2_r3_ch8);
-            //testRound = new TestRound(channelRecipes);
-            //amtr.Chambers[1].TestScheduler.AppendTestRound(testRound);
+            var r3 = new Dictionary<IChannel, SmartTesterRecipe>();
+            r3.Add(amtr.Testers[0].Channels[4], chm2_r3_ch5);
+            r3.Add(amtr.Testers[0].Channels[5], chm2_r3_ch6);
+            r3.Add(amtr.Testers[0].Channels[6], chm2_r3_ch7);
+            r3.Add(amtr.Testers[0].Channels[7], chm2_r3_ch8);
+            var R3 = new TestRound(r3);
+            amtr.Chambers[1].TestScheduler.AppendTestRound(R3);
             #endregion
 
             //amtr.AssignRecipeToChannel(amtr.Testers[0].Channels[0], recipe);
             Task task = amtr.StartTestsInChambers();
+            task.Wait();
 
             //Task task = amtr.AutoRun(DateTime.Now.ToString("yyyyMMdd"));
             //Task task = amtr.AutoRun("2Chambers2Testers");
@@ -106,6 +107,7 @@ namespace SmartTester
             Console.SetOut(tempOut);
             Console.WriteLine($"Demo program completed! Please check {consoleOuputFile} for the details.");
 #endif
+            Console.WriteLine($"Demo program completed!");
             Console.ReadLine();
         }
 

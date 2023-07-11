@@ -299,9 +299,16 @@ namespace SmartTester
         {
             Console.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} S");
             Console.WriteLine("");
-            StepsForOneTempPoint = Recipe.Steps.Where(st => st.TemperatureUint.Status == TemperatureStatus.REACHING).ToList();
+            StepsForOneTempPoint = GetCurrentSteps();
+            if (StepsForOneTempPoint.Count == 0)
+                Console.WriteLine("No valid temp point.");
             Console.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} E");
             Console.WriteLine("");
+        }
+
+        private List<SmartTesterStep> GetCurrentSteps()
+        {
+            return Recipe.Steps.Where(st => (st.TemperatureUint.Status == TemperatureStatus.REACHING && st.TemperatureUint.Target.IsCritical == false) || st.TemperatureUint.Status == TemperatureStatus.REACHED).ToList();
         }
     }
 }

@@ -340,23 +340,24 @@ namespace SmartTester
                 //    }
                 //}
                 var tr = chamber.TestScheduler.GetFirstWaitingTestRound();
-                foreach (var item in tr.ChannelRecipes)
-                {
-                    var ch = item.Key;
-                    var rec = item.Value;
-                    Console.WriteLine($"{ch.Tester.Name} {ch.Name}: {rec.Name}");
-                    if (!AssignRecipeToChannel(ch, rec))
-                    {
-                        Console.WriteLine($"{rec.Name} cannot be assigned to {ch.Chamber.Name} because of temperature conflict.");
-                    }
-                }
-                await AsyncStartOneRound(chamber);
+                await AsyncStartOneRound(chamber, tr);
 
             }
             Console.WriteLine($"{chamber.Name} All rounds finished.");
         }
-        private async Task AsyncStartOneRound(IChamber chamber)     //chamber的channels已经被Assign了Recipe, Chamber的scheduler也已经ready
+        private async Task AsyncStartOneRound(IChamber chamber, TestRound tr)     //chamber的channels已经被Assign了Recipe, Chamber的scheduler也已经ready
         {
+            foreach (var item in tr.ChannelRecipes)
+            {
+                var ch = item.Key;
+                var rec = item.Value;
+                Console.WriteLine($"{ch.Tester.Name} {ch.Name}: {rec.Name}");
+                if (!AssignRecipeToChannel(ch, rec))
+                {
+                    Console.WriteLine($"{rec.Name} cannot be assigned to {ch.Chamber.Name} because of temperature conflict.");
+                }
+            }
+            tr.Status = RoundStatus.RUNNING;
             Console.WriteLine($"Start Chamber Group for {chamber.Name}.");
             var assignedChannels = chamber.Channels.Where(ch => ch.Status == ChannelStatus.ASSIGNED).ToList();
             bool ret;
@@ -424,6 +425,7 @@ namespace SmartTester
             {
                 channel.GenerateFile();
             }
+            tr.Status = RoundStatus.COMPLETED;
         }
 
         private List<TestSection> GetTestSections(List<IChannel> channels)
@@ -451,48 +453,9 @@ namespace SmartTester
         }
         private async Task<bool> WaitForChamberReady(IChamber chamber, double temperature)
         {
-#if debug
-            await Task.Delay(500);
-            Console.WriteLine($"Chamber Ready!");
-            return true;
-#else
-            byte tempInRangeCounter = 0;
-            double temp;
-            bool ret;
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            int waitingTime = 15;
-            do
-            {
-                if(sw.Elapsed.TotalMinutes > waitingTime)
-                {
-                    Console.WriteLine($"Cannot reach target temperature in {waitingTime} minutes!");
-                    return false;
-                }
-                ret = chamber.Executor.ReadTemperature(out temp);
-                if(!ret)
-                {
-                    Console.WriteLine($"Read Temperature failed! Please check chamber cable.");
-                    return false;
-                }
-                Console.WriteLine($"Read Temperature:{temp} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
-                //if (!chamber.Executor.ReadStatus(out chamberStatus))    //偶尔读出786？？？
-                //return;
+            while (chamber.TempScheduler.GetCurrentTemp().Status != TemperatureStatus.REACHED)
                 await Task.Delay(1000);
-                if (Math.Abs(temp - temperature) < 5)
-                {
-                    tempInRangeCounter++;
-                    Console.WriteLine($"Temperature reach target. Counter: {tempInRangeCounter} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
-                }
-                else
-                {
-                    tempInRangeCounter = 0;
-                    Console.WriteLine($"Temperature leave target. Counter: {tempInRangeCounter} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
-                }
-            }
-            while (tempInRangeCounter < 30 /*|| chamberStatus != ChamberStatus.HOLD*/);    //chamber temperature tolerrance is 5?
             return true;
-#endif
         }
         private async Task<bool> WaitForAllChannelsDone(List<IChannel> channels)
         {

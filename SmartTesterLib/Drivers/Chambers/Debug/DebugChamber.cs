@@ -19,6 +19,7 @@ namespace SmartTester
         public List<IChannel> Channels { get; set; }
         public TemperatureScheduler TempScheduler { get; set; }
         private Timer timer { get; set; }
+        private byte TempInRangeCounter { get; set; } = 0;
 
         [JsonConstructor]
         public DebugChamber(int id, string manufacturer, string name, double highestTemperature, double lowestTemperature)
@@ -36,7 +37,6 @@ namespace SmartTester
 
         private void TimerCallback()
         {
-            byte tempInRangeCounter = 0;
             double temp;
             bool ret = false;
             ret = Executor.ReadTemperature(out temp);
@@ -48,15 +48,15 @@ namespace SmartTester
             var currentTemp = TempScheduler.GetCurrentTemp();
             if (Math.Abs(temp - currentTemp.Target.Value) < 5)
             {
-                tempInRangeCounter++;
-                Console.WriteLine($"Temperature reach target. Counter: {tempInRangeCounter}");
+                TempInRangeCounter++;
+                Console.WriteLine($"Temperature reach target. Counter: {TempInRangeCounter}");
             }
             else
             {
-                tempInRangeCounter = 0;
-                Console.WriteLine($"Temperature leave target. Counter: {tempInRangeCounter}");
+                TempInRangeCounter = 0;
+                Console.WriteLine($"Temperature leave target. Counter: {TempInRangeCounter}");
             }
-            if (tempInRangeCounter < 30)
+            if (TempInRangeCounter < 30)
             {
                 currentTemp.Status = TemperatureStatus.REACHING;
             }
@@ -95,7 +95,7 @@ namespace SmartTester
         public bool Stop()
         {
             bool ret;
-            var tUnit = TempScheduler.GetCurrentTemp();
+            //var tUnit = TempScheduler.GetCurrentTemp();
 
             ret = Executor.Stop();
             if (!ret)
@@ -103,9 +103,9 @@ namespace SmartTester
                 Console.WriteLine($"Stop chamber failed! Please check chamber cable.");
                 return ret;
             }
-            tUnit.Status = TemperatureStatus.PASSED;
+            //tUnit.Status = TemperatureStatus.PASSED;
 
-            timer.Change(0, 1000);
+            timer.Change(Timeout.Infinite, 1000);
             return true;
         }
     }
