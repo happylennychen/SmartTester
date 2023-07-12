@@ -76,7 +76,7 @@ namespace UnitTest
             standardRows.Add(new StandardRow("0,60000,2,-3128.044,2558.552,32.14,-50.25982,0,0"));
             standardRows.Add(new StandardRow("0,60012,2,-3128.086912,2558.500484,32.11,-50.27025,0,8"));
             standardRows.Add(new StandardRow("0,334,2,-7.898484E-05,2648.892,32.14,-0.5672878,0,8"));
-            Tester test = new Tester();
+            Chroma17208 test = new Chroma17208();
             PrivateObject poTest = new PrivateObject(test);
             StandardRow stdrow = (StandardRow)poTest.Invoke("GetAdjustedRow", standardRows, step);
             Assert.Equal(2500.0, stdrow.Voltage);
@@ -114,7 +114,7 @@ namespace UnitTest
             for (int i = 1; i < 10; i++)
             {
                 IChamber chamber = new Chamber(i, "Hongzhan", $"Chamber{i.ToString()}", 120, -40);
-                ITester tester = new Tester(i, $"Tester{i.ToString()}", 8);
+                ITester tester = new Chroma17208(i, $"Tester{i.ToString()}", 8);
                 chambers.Add(chamber);
                 testers.Add(tester);
             }

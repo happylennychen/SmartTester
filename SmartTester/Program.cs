@@ -1,4 +1,5 @@
-﻿using System;
+﻿//#define UseFileInsteadOfConsole
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -106,8 +107,9 @@ namespace SmartTester
             fs.Close();
             Console.SetOut(tempOut);
             Console.WriteLine($"Demo program completed! Please check {consoleOuputFile} for the details.");
-#endif
+#else
             Console.WriteLine($"Demo program completed!");
+#endif
             Console.ReadLine();
         }
 

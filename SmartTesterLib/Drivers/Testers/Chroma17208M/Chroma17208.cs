@@ -18,7 +18,7 @@ namespace SmartTester
         public static double Power { get { return 100; } }
         public static double Time { get { return 3000; } }     //mS
     }
-    public class Tester : ITester
+    public class Chroma17208 : ITester
     {
         public int Id { get; set; }
         [JsonIgnore]
@@ -31,12 +31,12 @@ namespace SmartTester
         [JsonIgnore]
         public ITesterExecutor Executor { get; set; }
         private TimerSliceScheduler Scheduler { get; set; }
-        public Tester()
+        public Chroma17208()
         {
             ;
         }
         [JsonConstructor]
-        public Tester(int id, string name, int channelNumber, string ipAddress, int port, string sessionStr)
+        public Chroma17208(int id, string name, int channelNumber, string ipAddress, int port, string sessionStr)
         {
             Id = id;
             Name = name;
@@ -51,7 +51,7 @@ namespace SmartTester
             for (int i = 1; i <= channelNumber; i++)
             {
                 Token token;
-                Channel ch = new Channel($"Ch{i}", i, this, out token);
+                Chroma17208Channel ch = new Chroma17208Channel($"Ch{i}", i, this, out token);
                 Scheduler.RegisterToken(token);
                 Channels.Add(ch);
             }
@@ -63,7 +63,7 @@ namespace SmartTester
             Scheduler.Activate();
         }
 
-        public Tester(int id, string name, int channelNumber)
+        public Chroma17208(int id, string name, int channelNumber)
         {
             Id = id;
             Name = name;
@@ -71,7 +71,7 @@ namespace SmartTester
             for (int i = 1; i <= channelNumber; i++)
             {
                 Token token;
-                Channel ch = new Channel($"Ch{i}", i, this, out token);
+                Chroma17208Channel ch = new Chroma17208Channel($"Ch{i}", i, this, out token);
                 Scheduler.RegisterToken(token);
                 Channels.Add(ch);
             }

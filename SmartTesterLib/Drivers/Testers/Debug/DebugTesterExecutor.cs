@@ -12,8 +12,8 @@ namespace SmartTester
     {
         private object HWLock = new object();
 
-        public string FilePath { get; set; }
-        public int ChannelIndex { get; set; }
+        private string FilePath { get; set; }
+        private int ChannelIndex { get; set; }
         private int ChannelNunber { get; set; }
         //private Stopwatch[] Stopwatches { get; set; }   //用秒表来控制每个通道的状态
         //private Queue<StandardRow>[] DataQueues { get; set; }    //用来记录历史数据，以便推演新数据

@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace SmartTester
 {
-    public class Channel : IChannel
+    public class Chroma17208Channel : IChannel
     {
-        public Channel(string name, int index, ITester tester, Timer timer)
+        public Chroma17208Channel(string name, int index, ITester tester, Timer timer)
         {
             Name = name;
             Index = index;
@@ -71,11 +71,11 @@ namespace SmartTester
         }
 
         [JsonConstructor]
-        public Channel()
+        public Chroma17208Channel()
         {
             ;
         }
-        public Channel(string name, int index, ITester tester, out Token token)
+        public Chroma17208Channel(string name, int index, ITester tester, out Token token)
         {
             Name = name;
             Index = index;
