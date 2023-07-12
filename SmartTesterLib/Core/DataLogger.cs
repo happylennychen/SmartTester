@@ -45,11 +45,11 @@ namespace SmartTester
 
         private async Task CloseDataLogger()
         {
-            Console.WriteLine($"Start close {FilePath}");
+            Utilities.WriteLine($"Start close {FilePath}");
             await streamWriter.FlushAsync();
             streamWriter.Close();
             fileStream.Close();
-            Console.WriteLine($"Complete close {FilePath}");
+            Utilities.WriteLine($"Complete close {FilePath}");
         }
 
         private async Task WriteData(string log)

@@ -42,19 +42,19 @@ namespace SmartTester
             ret = Executor.ReadTemperature(out temp);
             if (!ret)
             {
-                Console.WriteLine($"Read Temperature failed! Please check chamber cable.");
+                Utilities.WriteLine($"Read Temperature failed! Please check chamber cable.");
                 return;
             }
             var currentTemp = TempScheduler.GetCurrentTemp();
             if (Math.Abs(temp - currentTemp.Target.Value) < 5)
             {
                 TempInRangeCounter++;
-                Console.WriteLine($"Temperature reach target. Counter: {TempInRangeCounter}");
+                Utilities.WriteLine($"Temperature reach target. Counter: {TempInRangeCounter}");
             }
             else
             {
                 TempInRangeCounter = 0;
-                Console.WriteLine($"Temperature leave target. Counter: {TempInRangeCounter}");
+                Utilities.WriteLine($"Temperature leave target. Counter: {TempInRangeCounter}");
             }
             if (TempInRangeCounter < 30)
             {
@@ -76,14 +76,14 @@ namespace SmartTester
             var tUnit = TempScheduler.GetNextTemp();
             if (tUnit == null)
             {
-                Console.WriteLine($"There's no waiting temperature.");
+                Utilities.WriteLine($"There's no waiting temperature.");
                 return false;
             }
 
             ret = Executor.Start(tUnit.Target.Value);
             if (!ret)
             {
-                Console.WriteLine($"Start chamber failed! Please check chamber cable.");
+                Utilities.WriteLine($"Start chamber failed! Please check chamber cable.");
                 return ret;
             }
             tUnit.Status = TemperatureStatus.REACHING;
@@ -100,7 +100,7 @@ namespace SmartTester
             ret = Executor.Stop();
             if (!ret)
             {
-                Console.WriteLine($"Stop chamber failed! Please check chamber cable.");
+                Utilities.WriteLine($"Stop chamber failed! Please check chamber cable.");
                 return ret;
             }
             //tUnit.Status = TemperatureStatus.PASSED;

@@ -176,7 +176,7 @@ namespace SmartTester
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"{e.Message}\n{line} cannot be executed.");
+                    Utilities.WriteLine($"{e.Message}\n{line} cannot be executed.");
                     temperature = 0;
                     return false;
                 }
@@ -303,7 +303,7 @@ namespace SmartTester
             {
                 try
                 {
-                    //Console.WriteLine(quaryCmd);
+                    //Utilities.WriteLine(quaryCmd);
                     string textToWrite = ReplaceCommonEscapeSequences(quaryCmd);
                     mbSession.RawIO.Write(textToWrite);
                     output = mbSession.RawIO.ReadString().TrimEnd('\n');
@@ -311,7 +311,7 @@ namespace SmartTester
                 }
                 catch (Exception exp)
                 {
-                    Console.WriteLine($"{exp.Message}\n{quaryCmd} cannot be executed.");
+                    Utilities.WriteLine($"{exp.Message}\n{quaryCmd} cannot be executed.");
                 }
             }
             output = string.Empty;
@@ -322,14 +322,14 @@ namespace SmartTester
         {
             try
             {
-                Console.WriteLine(writeCmd);
+                Utilities.WriteLine(writeCmd);
                 string textToWrite = ReplaceCommonEscapeSequences(writeCmd);
                 mbSession.RawIO.Write(textToWrite);
                 return true;
             }
             catch (Exception exp)
             {
-                Console.WriteLine($"{exp.Message}\n{writeCmd} cannot be executed.");
+                Utilities.WriteLine($"{exp.Message}\n{writeCmd} cannot be executed.");
                 return false;
             }
         }

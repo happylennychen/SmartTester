@@ -57,7 +57,7 @@ namespace SmartTester
             }
             if (!Executor.Init(ipAddress, port, sessionStr))
             {
-                Console.WriteLine("Error");
+                Utilities.WriteLine("Error");
                 return;
             }
             Scheduler.Activate();

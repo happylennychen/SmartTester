@@ -42,10 +42,10 @@ namespace SmartTester
                 //var time = (uint)Stopwatches[channelIndex - 1].ElapsedMilliseconds;
                 //if (channelIndex == 3 && time > 3000 && time < 4000)
                 //{
-                //    Console.WriteLine("Channel 3 spend a long time reading.");
+                //    Utilities.WriteLine("Channel 3 spend a long time reading.");
                 //    Thread.Sleep(3000);
                 //}
-                //Console.WriteLine($"Channel {channelIndex} read row");
+                //Utilities.WriteLine($"Channel {channelIndex} read row");
                 //stdRow = new StandardRow();
                 //stdRow.TimeInMS = (uint)PseudoHardwares[channelIndex - 1].Stopwatch.ElapsedMilliseconds;
                 //if (stdRow.TimeInMS > 3000)

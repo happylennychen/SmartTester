@@ -1,4 +1,5 @@
 ﻿#define debug
+//#define mute
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -63,7 +64,7 @@ namespace SmartTester
             string projectPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName);
             if (Directory.Exists(projectName))
             {
-                Console.WriteLine($"Error! {projectName} already existed.");
+                Utilities.WriteLine($"Error! {projectName} already existed.");
                 return false;
             }
             try
@@ -94,7 +95,7 @@ namespace SmartTester
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error! {e.Message}");
+                Utilities.WriteLine($"Error! {e.Message}");
                 return false;
             }
             return true;
@@ -119,15 +120,15 @@ namespace SmartTester
             SmartTesterStep step = fullSteps.First();
             using (FileStream stdFile = new FileStream(newFilePath, FileMode.Create))
             {
-                Console.WriteLine($"{newFilePath} created.");
+                Utilities.WriteLine($"{newFilePath} created.");
                 using (StreamWriter stdWriter = new StreamWriter(stdFile))
                 {
-                    Console.WriteLine($"StreamWriter created.");
+                    Utilities.WriteLine($"StreamWriter created.");
                     stdWriter.WriteLine("Index,Time(mS),Mode,Current(mA),Voltage(mV),Temperature(degC),Capacity(mAh),Total Capacity(mAh),Status");
                     foreach (var filePath in filePaths)
                     {
 
-                        Console.WriteLine($"Trying to open file {filePath}.");
+                        Utilities.WriteLine($"Trying to open file {filePath}.");
                         try
                         {
                             using (FileStream rawFile = new FileStream(filePath, FileMode.Open))
@@ -176,7 +177,7 @@ namespace SmartTester
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine($"Cannot open file {filePath}.\n{e.Message}");
+                            Utilities.WriteLine($"Cannot open file {filePath}.\n{e.Message}");
                             return;
                         }
                     }
@@ -244,7 +245,7 @@ namespace SmartTester
 
         public static SmartTesterStep GetNewTargetStep(SmartTesterStep currentStep, List<SmartTesterStep> fullSteps, double temperature, uint timeSpan, StandardRow row)
         {
-            Console.WriteLine("GetNewTargetStep");
+            Utilities.WriteLine("GetNewTargetStep");
             SmartTesterStep nextStep = null;
             CutOffBehavior cob = GetCutOffBehavior(currentStep, timeSpan, row);
             if (cob != null)
@@ -264,11 +265,11 @@ namespace SmartTester
                     if (cob != null)
                     {
                         var time = cob.Condition.Value;
-                        Console.WriteLine($"time = {time}");
-                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        Utilities.WriteLine($"time = {time}");
+                        Utilities.WriteLine($"timeSpan = {timeSpan}");
                         if (Math.Abs(timeSpan / 1000 - time) < 1)
                         {
-                            Console.WriteLine($"Meet time condition.");
+                            Utilities.WriteLine($"Meet time condition.");
                             break;
                         }
                         else
@@ -282,11 +283,11 @@ namespace SmartTester
                     if (cob != null)
                     {
                         var time = cob.Condition.Value;
-                        Console.WriteLine($"time = {time}");
-                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        Utilities.WriteLine($"time = {time}");
+                        Utilities.WriteLine($"timeSpan = {timeSpan}");
                         if (Math.Abs(timeSpan / 1000 - time) < 1)
                         {
-                            Console.WriteLine($"Meet time condition.");
+                            Utilities.WriteLine($"Meet time condition.");
                             break;
                         }
                         else
@@ -296,16 +297,16 @@ namespace SmartTester
                     if (cob != null)
                     {
                         var volt = cob.Condition.Value;
-                        Console.WriteLine($"volt = {volt}");
-                        Console.WriteLine($"row.Voltage = {row.Voltage}");
+                        Utilities.WriteLine($"volt = {volt}");
+                        Utilities.WriteLine($"row.Voltage = {row.Voltage}");
                         if (Math.Abs(row.Voltage - volt) < 15)
                         {
-                            Console.WriteLine($"Meet voltage condition.");
+                            Utilities.WriteLine($"Meet voltage condition.");
                             break;
                         }
                         else
                         {
-                            Console.WriteLine($"Doesn't meet voltage condition.");
+                            Utilities.WriteLine($"Doesn't meet voltage condition.");
                             cob = null;
                         }
                     }
@@ -410,7 +411,7 @@ namespace SmartTester
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error! {e.Message}");
+                Utilities.WriteLine($"Error! {e.Message}");
                 return false;
             }
             return true;
@@ -468,7 +469,7 @@ namespace SmartTester
                 ITester tester = GetTesterFromFolderPath(testerFolderPath, testers);
                 if (tester == null)
                 {
-                    Console.WriteLine($"There's no available tester in {testerFolderPath}");
+                    Utilities.WriteLine($"There's no available tester in {testerFolderPath}");
                     return false;
                 }
                 foreach (var channelFolderPath in Directory.EnumerateDirectories(testerFolderPath))
@@ -476,7 +477,7 @@ namespace SmartTester
                     IChannel channel = GetChannelFromFolderPath(channelFolderPath, tester);
                     if (channel == null)
                     {
-                        Console.WriteLine($"There's no available channel in {channelFolderPath}");
+                        Utilities.WriteLine($"There's no available channel in {channelFolderPath}");
                         return false;
                     }
                     SmartTesterRecipe test;
@@ -514,7 +515,7 @@ namespace SmartTester
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error! {e.Message}");
+                Utilities.WriteLine($"Error! {e.Message}");
                 return false;
             }
             return true;
@@ -576,7 +577,7 @@ namespace SmartTester
         {
             string root = GlobalSettings.TestPlanFolderPath;
             bool ret = true;
-            //Console.WriteLine("Test Plan pre-check.");
+            //Utilities.WriteLine("Test Plan pre-check.");
             //foreach (var chamber in chambers)
             //{
             //    var roundIndex = GlobalSettings.ChamberRoundIndex[chamber];
@@ -590,24 +591,24 @@ namespace SmartTester
             //                return false;
             //            if (!Utilities.ChamberGroupTestCheck(tests))
             //            {
-            //                Console.WriteLine($"Round {roundIndex} failed!");
+            //                Utilities.WriteLine($"Round {roundIndex} failed!");
             //                ret &= false;
             //            }
             //            else
-            //                Console.WriteLine($"Round {roundIndex} pass!");
+            //                Utilities.WriteLine($"Round {roundIndex} pass!");
             //            roundIndex++;
             //        }
             //        else
             //        {
             //            if (roundIndex == 1)
             //            {
-            //                Console.WriteLine($"There's no test plan, please check.");
+            //                Utilities.WriteLine($"There's no test plan, please check.");
             //                ret = false;
             //                break;
             //            }
             //            else
             //            {
-            //                Console.WriteLine($"All rounds test plan check finished.");
+            //                Utilities.WriteLine($"All rounds test plan check finished.");
             //                break;
             //            }
             //        }
@@ -630,7 +631,7 @@ namespace SmartTester
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error! Create Configuration Failed!");
+                Utilities.WriteLine("Error! Create Configuration Failed!");
                 return false;
             }
             return true;
@@ -646,7 +647,7 @@ namespace SmartTester
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error! Load Configuration Failed! {e.Message}");
+                Utilities.WriteLine($"Error! Load Configuration Failed! {e.Message}");
                 return false;
             }
             return true;
@@ -661,10 +662,17 @@ namespace SmartTester
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error! " + e.Message);
+                Utilities.WriteLine("Error! " + e.Message);
                 return false;
             }
             return true;
+        }
+
+        public static void WriteLine(string v)
+        {
+#if !mute
+            Console.WriteLine(v);
+#endif
         }
 
         public static bool CreateConsoleFolder()
@@ -675,7 +683,7 @@ namespace SmartTester
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error! " + e.Message);
+                Utilities.WriteLine("Error! " + e.Message);
                 return false;
             }
             return true;

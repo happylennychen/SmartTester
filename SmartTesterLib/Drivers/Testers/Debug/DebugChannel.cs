@@ -45,7 +45,7 @@ namespace SmartTester
         {
             Token.ShouldTimerStart = false;
 
-            Console.WriteLine($"Stop channel {Index - 1 + 1}");
+            Utilities.WriteLine($"Stop channel {Index - 1 + 1}");
             Tester.Executor.SpecifyChannel(Index);
             Tester.Executor.Stop();
             Timer.Change(Timeout.Infinite, Timeout.Infinite);
@@ -111,7 +111,7 @@ namespace SmartTester
             {
                 Reset();
                 Status = ChannelStatus.ERROR;
-                Console.WriteLine("Cannot read row from tester. Please check cable connection.");
+                Utilities.WriteLine("Cannot read row from tester. Please check cable connection.");
                 return;
             }
             var startPoint = stdRow.TimeInMS % 1000;
@@ -122,11 +122,11 @@ namespace SmartTester
                 {
                     Reset();
                     Status = ChannelStatus.ERROR;
-                    Console.WriteLine("Cannot read row from tester. Please check cable connection.");
+                    Utilities.WriteLine("Cannot read row from tester. Please check cable connection.");
                     return;
                 }
                 //data = stdRow.TimeInMS % 1000;
-                //Console.WriteLine($"{stdRow.ToString(),-60}Ch{gap}{channelIndex}.");
+                //Utilities.WriteLine($"{stdRow.ToString(),-60}Ch{gap}{channelIndex}.");
             }
             //while (data > 100 && stdRow.Status == RowStatus.RUNNING);
             while (stdRow.TimeInMS < (1000 + LastTimeInMS) && stdRow.Status == RowStatus.RUNNING);
@@ -138,7 +138,7 @@ namespace SmartTester
             {
                 Reset();
                 Status = ChannelStatus.ERROR;
-                Console.WriteLine("Cannot read temperature from tester. Please check cable connection.");
+                Utilities.WriteLine("Cannot read temperature from tester. Please check cable connection.");
                 return;
             }
             stdRow.Temperature = temperature;
@@ -160,14 +160,14 @@ namespace SmartTester
             {
                 gap += " ";
             }
-            Console.WriteLine($"{strRow,-60}Ch{gap}{Index}.");
+            Utilities.WriteLine($"{strRow,-60}Ch{gap}{Index}.");
             #endregion
 
             #region verify data
             if (channelEvents != ChannelEvents.Normal)
             {
                 Reset();
-                Console.WriteLine("Channel Event Error");
+                Utilities.WriteLine("Channel Event Error");
                 return;
             }
             if (CurrentStep.Action.Mode == ActionMode.CC_DISCHARGE)
@@ -175,7 +175,7 @@ namespace SmartTester
                 {
                     Reset();
                     Status = ChannelStatus.ERROR;
-                    Console.WriteLine("Current out of range.");
+                    Utilities.WriteLine("Current out of range.");
                     return;
                 }
             #endregion
@@ -187,7 +187,7 @@ namespace SmartTester
                 if (CurrentStep == null)
                 {
                     Reset();
-                    Console.WriteLine($"CH{Index} Done!");
+                    Utilities.WriteLine($"CH{Index} Done!");
                     Status = ChannelStatus.COMPLETED;
                     //Task task = Task.Run(() => FileTransfer(DataLogger.FilePath));
                     return;
@@ -198,19 +198,19 @@ namespace SmartTester
                     if (!Tester.Executor.SpecifyChannel(Index))
                     {
                         Reset();
-                        Console.WriteLine("Cannot specify  Please check cable connection.");
+                        Utilities.WriteLine("Cannot specify  Please check cable connection.");
                         return;
                     }
                     if (!Tester.Executor.SpecifyTestStep(CurrentStep))
                     {
                         Reset();
-                        Console.WriteLine("Cannot specify test step. Please check cable connection.");
+                        Utilities.WriteLine("Cannot specify test step. Please check cable connection.");
                         return;
                     }
                     if (!Tester.Executor.Start())
                     {
                         Reset();
-                        Console.WriteLine("Cannot start tester. Please check cable connection.");
+                        Utilities.WriteLine("Cannot start tester. Please check cable connection.");
                         return;
                     }
                 }
@@ -291,19 +291,19 @@ namespace SmartTester
             double slope = (y2 - y1) / ((int)x2 - (int)x1);
             double offset = y1 - slope * x1;
             var output = Math.Round((slope * x + offset), 6);
-            Console.WriteLine($"x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}, x:{x}, y:{output}");
+            Utilities.WriteLine($"x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}, x:{x}, y:{output}");
             return output;
         }
 
         public void SetStepsForOneTempPoint()
         {
-            Console.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} S");
-            Console.WriteLine("");
+            Utilities.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} S");
+            Utilities.WriteLine("");
             StepsForOneTempPoint = GetCurrentSteps();
             if (StepsForOneTempPoint.Count == 0)
-                Console.WriteLine("No valid temp point.");
-            Console.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} E");
-            Console.WriteLine("");
+                Utilities.WriteLine("No valid temp point.");
+            Utilities.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} E");
+            Utilities.WriteLine("");
         }
 
         private List<SmartTesterStep> GetCurrentSteps()

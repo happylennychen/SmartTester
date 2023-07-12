@@ -19,7 +19,7 @@ namespace SmartTester
             Configuration conf;
             if (!Utilities.LoadConfiguration(out conf))
             {
-                Console.WriteLine("Error! Load Configuration Failed!");
+                Utilities.WriteLine("Error! Load Configuration Failed!");
                 return false;
             }
             else
@@ -42,7 +42,7 @@ namespace SmartTester
                 Directory.CreateDirectory(GlobalSettings.TestPlanFolderPath);
             if (!Utilities.TestPlanFullCheck(projectName, Chambers, Testers))
             {
-                Console.WriteLine($"Test Plan pre-check failed!");
+                Utilities.WriteLine($"Test Plan pre-check failed!");
                 return;
             }
 
@@ -54,15 +54,15 @@ namespace SmartTester
                 Task t = AsyncStartChamberGroup(projectName, chamber);
                 tasks.Add(t);
             }
-            Console.WriteLine($"Automator Start. Waiting.");
+            Utilities.WriteLine($"Automator Start. Waiting.");
             await Task.WhenAll(tasks);
-            Console.WriteLine("All test done!");
+            Utilities.WriteLine("All test done!");
         }
 
 
         private async Task AsyncStartOneRound(IChamber chamber, List<Recipe> testsInOneRound)
         {
-            Console.WriteLine($"Start Chamber Group for {chamber.Name}. Thread {CurrentThread.ManagedThreadId}, {CurrentThread.IsThreadPoolThread}");
+            Utilities.WriteLine($"Start Chamber Group for {chamber.Name}. Thread {CurrentThread.ManagedThreadId}, {CurrentThread.IsThreadPoolThread}");
             Utilities.CreateOutputFolder(chamber);
             List<KeyValuePair<TargetTemperature, Dictionary<IChannel, List<Step>>>> sections = GetTestSections(testsInOneRound);   //sections是每个温度点下的测试的集合
             var channels = testsInOneRound.Select(o => o.Channel).ToList();
@@ -80,17 +80,17 @@ namespace SmartTester
                 ret = chamber.Executor.Start(targetT.Temperature);
                 if (!ret)
                 {
-                    Console.WriteLine($"Start chamber failed! Please check chamber cable.");
+                    Utilities.WriteLine($"Start chamber failed! Please check chamber cable.");
                     return;
                 }
-                Console.WriteLine($"Start {targetT.Temperature} deg for {chamber.Name}");
+                Utilities.WriteLine($"Start {targetT.Temperature} deg for {chamber.Name}");
                 if (targetT.IsCritical)
                 {
-                    Console.WriteLine($"Wait for {targetT.Temperature} deg ready");
+                    Utilities.WriteLine($"Wait for {targetT.Temperature} deg ready");
                     ret = await WaitForChamberReady(chamber, targetT.Temperature);
                     if (ret == false)
                     {
-                        Console.WriteLine("Chamber control failed.");
+                        Utilities.WriteLine("Chamber control failed.");
                         return;
                     }
                 }
@@ -104,13 +104,13 @@ namespace SmartTester
                     channel.Start();
                 }
 
-                Console.WriteLine($"Wait for all channels done. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
+                Utilities.WriteLine($"Wait for all channels done. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
                 if (!await WaitForAllChannelsDone(channels))
                 {
                     var errChannels = channels.Where(ch => ch.Status != ChannelStatus.COMPLETED);
                     foreach (var ch in errChannels)
                     {
-                        Console.WriteLine($"Something went wrong. CH{ch.Index} Status:{ch.Status}");
+                        Utilities.WriteLine($"Something went wrong. CH{ch.Index} Status:{ch.Status}");
                     }
                     //return;
                 }
@@ -119,15 +119,15 @@ namespace SmartTester
                     //如果顺利完成，是否需要进行文件转换？还是等所有section都结束了再一起转换？
                 }
             }
-            Console.WriteLine($"Stop Chamber Group for {chamber.Name}. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
+            Utilities.WriteLine($"Stop Chamber Group for {chamber.Name}. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
             ret = chamber.Executor.Stop();
             if (!ret)
             {
-                Console.WriteLine($"Stop chamber failed! Please check chamber cable.");
+                Utilities.WriteLine($"Stop chamber failed! Please check chamber cable.");
                 return;
             }
             //await Task.Delay(1000);
-            Console.WriteLine($"Start file converting.");
+            Utilities.WriteLine($"Start file converting.");
             foreach (var test in testsInOneRound)
             {
                 test.Channel.GenerateFile();
@@ -144,18 +144,18 @@ namespace SmartTester
                 {
                     if (Utilities.ChamberGroupTestCheck(tests))
                     {
-                        Console.WriteLine($"Round {GlobalSettings.ChamberRoundIndex[chamber]}");
+                        Utilities.WriteLine($"Round {GlobalSettings.ChamberRoundIndex[chamber]}");
                         var folderPath = $@"{GlobalSettings.TestPlanFolderPath}R{GlobalSettings.ChamberRoundIndex[chamber]}";
 
-                        Console.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
+                        Utilities.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
                         await AsyncStartOneRound(chamber, tests);
-                        Console.WriteLine($"Round {GlobalSettings.ChamberRoundIndex[chamber]} programs in {folderPath} completed!");
+                        Utilities.WriteLine($"Round {GlobalSettings.ChamberRoundIndex[chamber]} programs in {folderPath} completed!");
                         GlobalSettings.ChamberRoundIndex[chamber]++;
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"All rounds finished.");
+                    Utilities.WriteLine($"All rounds finished.");
                     break;
                 }
             }
@@ -165,7 +165,7 @@ namespace SmartTester
         {
             while (!channels.All(ch => ch.Status != ChannelStatus.RUNNING))
             {
-                //Console.WriteLine($"Not all channels stoped, wait for more 5 seconds. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
+                //Utilities.WriteLine($"Not all channels stoped, wait for more 5 seconds. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
                 await Task.Delay(10000);
             }
             if (channels.All(ch => ch.Status == ChannelStatus.COMPLETED))
@@ -214,11 +214,11 @@ namespace SmartTester
                         }
                         else if (output.Count == 2)//添加第三个温度点对应的工步
                         {
-                            Console.WriteLine("Not ready.");
+                            Utilities.WriteLine("Not ready.");
                         }
                         else
                         {
-                            Console.WriteLine("Not ready.");
+                            Utilities.WriteLine("Not ready.");
                         }
                         dic.Add(t.Channel, steps);
                     }
@@ -232,7 +232,7 @@ namespace SmartTester
         {
 #if debug
             await Task.Delay(500);
-            Console.WriteLine($"Chamber Ready!");
+            Utilities.WriteLine($"Chamber Ready!");
             return true;
 #else
             byte tempInRangeCounter = 0;
@@ -245,28 +245,28 @@ namespace SmartTester
             {
                 if(sw.Elapsed.TotalMinutes > waitingTime)
                 {
-                    Console.WriteLine($"Cannot reach target temperature in {waitingTime} minutes!");
+                    Utilities.WriteLine($"Cannot reach target temperature in {waitingTime} minutes!");
                     return false;
                 }
                 ret = chamber.Executor.ReadTemperature(out temp);
                 if(!ret)
                 {
-                    Console.WriteLine($"Read Temperature failed! Please check chamber cable.");
+                    Utilities.WriteLine($"Read Temperature failed! Please check chamber cable.");
                     return false;
                 }
-                Console.WriteLine($"Read Temperature:{temp} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
+                Utilities.WriteLine($"Read Temperature:{temp} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
                 //if (!chamber.Executor.ReadStatus(out chamberStatus))    //偶尔读出786？？？
                 //return;
                 await Task.Delay(1000);
                 if (Math.Abs(temp - temperature) < 5)
                 {
                     tempInRangeCounter++;
-                    Console.WriteLine($"Temperature reach target. Counter: {tempInRangeCounter} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
+                    Utilities.WriteLine($"Temperature reach target. Counter: {tempInRangeCounter} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
                 }
                 else
                 {
                     tempInRangeCounter = 0;
-                    Console.WriteLine($"Temperature leave target. Counter: {tempInRangeCounter} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
+                    Utilities.WriteLine($"Temperature leave target. Counter: {tempInRangeCounter} in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
                 }
             }
             while (tempInRangeCounter < 30 /*|| chamberStatus != ChamberStatus.HOLD*/);    //chamber temperature tolerrance is 5?
@@ -317,11 +317,11 @@ namespace SmartTester
                 Task t = AsyncStartChamber(chamber);
                 tasks.Add(t);
             }
-            Console.WriteLine($"Automator Start. Waiting.");
+            Utilities.WriteLine($"Automator Start. Waiting.");
             await Task.WhenAll(tasks);
-            Console.WriteLine("All test done!");
+            Utilities.WriteLine("All test done!");
         }
-        private async Task AsyncStartChamber(IChamber chamber)  //执行单个Chamber中的多轮测试
+        public async Task AsyncStartChamber(IChamber chamber)  //执行单个Chamber中的多轮测试
         {
             while (!chamber.TestScheduler.IsCompleted)
             {
@@ -330,12 +330,12 @@ namespace SmartTester
                 //{
                 //    if (Utilities.ChamberGroupTestCheck(tests))
                 //    {
-                //        Console.WriteLine($"Round {GlobalSettings.ChamberRoundIndex[chamber]}");
+                //        Utilities.WriteLine($"Round {GlobalSettings.ChamberRoundIndex[chamber]}");
                 //        var folderPath = $@"{GlobalSettings.TestPlanFolderPath}R{GlobalSettings.ChamberRoundIndex[chamber]}";
 
-                //        Console.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
+                //        Utilities.WriteLine($"Main function run in thread {CurrentThread.ManagedThreadId}, pool:{CurrentThread.IsThreadPoolThread}");
                 //        await AsyncStartOneRound(chamber, tests);
-                //        Console.WriteLine($"Round {GlobalSettings.ChamberRoundIndex[chamber]} programs in {folderPath} completed!");
+                //        Utilities.WriteLine($"Round {GlobalSettings.ChamberRoundIndex[chamber]} programs in {folderPath} completed!");
                 //        GlobalSettings.ChamberRoundIndex[chamber]++;
                 //    }
                 //}
@@ -343,22 +343,22 @@ namespace SmartTester
                 await AsyncStartOneRound(chamber, tr);
 
             }
-            Console.WriteLine($"{chamber.Name} All rounds finished.");
+            Utilities.WriteLine($"{chamber.Name} All rounds finished.");
         }
-        private async Task AsyncStartOneRound(IChamber chamber, TestRound tr)     //chamber的channels已经被Assign了Recipe, Chamber的scheduler也已经ready
+        public async Task AsyncStartOneRound(IChamber chamber, TestRound tr)     //Chamber的scheduler已经ready
         {
             foreach (var item in tr.ChannelRecipes)
             {
                 var ch = item.Key;
                 var rec = item.Value;
-                Console.WriteLine($"{ch.Tester.Name} {ch.Name}: {rec.Name}");
+                Utilities.WriteLine($"{ch.Tester.Name} {ch.Name}: {rec.Name}");
                 if (!AssignRecipeToChannel(ch, rec))
                 {
-                    Console.WriteLine($"{rec.Name} cannot be assigned to {ch.Chamber.Name} because of temperature conflict.");
+                    Utilities.WriteLine($"{rec.Name} cannot be assigned to {ch.Chamber.Name} because of temperature conflict.");
                 }
             }
             tr.Status = RoundStatus.RUNNING;
-            Console.WriteLine($"Start Chamber Group for {chamber.Name}.");
+            Utilities.WriteLine($"Start Chamber Group for {chamber.Name}.");
             var assignedChannels = chamber.Channels.Where(ch => ch.Status == ChannelStatus.ASSIGNED).ToList();
             bool ret;
             foreach (var channel in assignedChannels)
@@ -370,24 +370,24 @@ namespace SmartTester
                 ret = chamber.StartNextUnit();
                 if (!ret)
                 {
-                    Console.WriteLine($"Start chamber failed! Please check.");
+                    Utilities.WriteLine($"Start chamber failed! Please check.");
                     return;
                 }
                 var curTemp = chamber.TempScheduler.GetCurrentTemp();
                 if (curTemp == null)
                 {
-                    Console.WriteLine($"Start chamber failed! Please check.");
+                    Utilities.WriteLine($"Start chamber failed! Please check.");
                     return;
                 }
                 var target = curTemp.Target;
-                Console.WriteLine($"Start {target.Value} deg for {chamber.Name}");
+                Utilities.WriteLine($"Start {target.Value} deg for {chamber.Name}");
                 if (target.IsCritical)
                 {
-                    Console.WriteLine($"Wait for {target.Value} deg ready");
+                    Utilities.WriteLine($"Wait for {target.Value} deg ready");
                     ret = await WaitForChamberReady(chamber, target.Value);
                     if (ret == false)
                     {
-                        Console.WriteLine("Chamber control failed.");
+                        Utilities.WriteLine("Chamber control failed.");
                         return;
                     }
                 }
@@ -398,13 +398,13 @@ namespace SmartTester
                     channel.Start();
                 }
 
-                Console.WriteLine($"Wait for all channels done.");
+                Utilities.WriteLine($"Wait for all channels done.");
                 if (!await WaitForAllChannelsDone(assignedChannels))
                 {
                     var errChannels = assignedChannels.Where(ch => ch.Status != ChannelStatus.COMPLETED);
                     foreach (var ch in errChannels)
                     {
-                        Console.WriteLine($"Something went wrong. CH{ch.Index} Status:{ch.Status}");
+                        Utilities.WriteLine($"Something went wrong. CH{ch.Index} Status:{ch.Status}");
                     }
                     //return;
                 }
@@ -413,14 +413,14 @@ namespace SmartTester
                     //如果顺利完成，是否需要进行文件转换？还是等所有section都结束了再一起转换？
                 }
             }
-            Console.WriteLine($"Stop Chamber Group for {chamber.Name}.");
+            Utilities.WriteLine($"Stop Chamber Group for {chamber.Name}.");
             ret = chamber.Stop();
             if (!ret)
             {
-                Console.WriteLine($"Stop chamber failed! Please check chamber cable.");
+                Utilities.WriteLine($"Stop chamber failed! Please check chamber cable.");
                 return;
             }
-            Console.WriteLine($"Start file converting.");
+            Utilities.WriteLine($"Start file converting.");
             foreach (var channel in assignedChannels)
             {
                 channel.GenerateFile();
@@ -461,7 +461,7 @@ namespace SmartTester
         {
             while (!channels.All(ch => ch.Status != ChannelStatus.RUNNING))
             {
-                //Console.WriteLine($"Not all channels stoped, wait for more 5 seconds. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
+                //Utilities.WriteLine($"Not all channels stoped, wait for more 5 seconds. Thread {CurrentThread.ManagedThreadId},{CurrentThread.IsThreadPoolThread}");
                 await Task.Delay(10000);
             }
             if (channels.All(ch => ch.Status == ChannelStatus.COMPLETED))

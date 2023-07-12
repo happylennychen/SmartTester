@@ -42,7 +42,7 @@ namespace SmartTester
             Executor = new PUL80Executor();
             if (!Executor.Init(ipAddress, port))
             {
-                Console.WriteLine("Error");
+                Utilities.WriteLine("Error");
                 return;
             }
         }

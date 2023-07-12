@@ -92,22 +92,18 @@ namespace SmartTester
             amtr.Chambers[1].TestScheduler.AppendTestRound(R3);
             #endregion
 
-            //amtr.AssignRecipeToChannel(amtr.Testers[0].Channels[0], recipe);
-            Task task = amtr.StartTestsInChambers();
+            //Task task = amtr.StartTestsInChambers();
+            //Task task = amtr.AsyncStartChamber(amtr.Chambers[0]);
+            Task task = amtr.AsyncStartOneRound(amtr.Chambers[1], R3);
             task.Wait();
-
-            //Task task = amtr.AutoRun(DateTime.Now.ToString("yyyyMMdd"));
-            //Task task = amtr.AutoRun("2Chambers2Testers");
-            //Task task = amtr.AutoRun("2Chambers1Tester_2");
-            //task.Wait();
 
 #if UseFileInsteadOfConsole
             sw.Close();
             fs.Close();
             Console.SetOut(tempOut);
-            Console.WriteLine($"Demo program completed! Please check {consoleOuputFile} for the details.");
+            Utilities.WriteLine($"Demo program completed! Please check {consoleOuputFile} for the details.");
 #endif
-            Console.WriteLine($"Demo program completed!");
+            Utilities.WriteLine($"Demo program completed!");
             Console.ReadLine();
         }
 
@@ -115,7 +111,7 @@ namespace SmartTester
         {
             string root = GlobalSettings.TestPlanFolderPath;
             bool ret = true;
-            //Console.WriteLine("Test Plan pre-check.");
+            //Utilities.WriteLine("Test Plan pre-check.");
             //int roundIndex = 1;
             //while (true)
             //{
@@ -137,11 +133,11 @@ namespace SmartTester
             //        {
             //            if (!Automator.ChamberGroupTestCheck(tst.ToList()))
             //            {
-            //                Console.WriteLine($"Round {roundIndex} failed!");
+            //                Utilities.WriteLine($"Round {roundIndex} failed!");
             //                ret &= false;
             //            }
             //            else
-            //                Console.WriteLine($"Round {roundIndex} pass!");
+            //                Utilities.WriteLine($"Round {roundIndex} pass!");
             //        }
             //        roundIndex++;
             //    }
@@ -149,13 +145,13 @@ namespace SmartTester
             //    {
             //        if (roundIndex == 1)
             //        {
-            //            Console.WriteLine($"There's no test plan, please check.");
+            //            Utilities.WriteLine($"There's no test plan, please check.");
             //            ret = false;
             //            break;
             //        }
             //        else
             //        {
-            //        Console.WriteLine($"All rounds test plan check finished.");
+            //        Utilities.WriteLine($"All rounds test plan check finished.");
             //        break;
             //        }
             //    }
