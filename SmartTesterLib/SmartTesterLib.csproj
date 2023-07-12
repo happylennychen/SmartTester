@@ -66,6 +66,9 @@
     <Compile Include="Drivers\Testers\Debug\PseudoBattery.cs" />
     <Compile Include="Drivers\Testers\Debug\PseudoHardware.cs" />
     <Compile Include="Core\TimerSliceScheduler.cs" />
+    <Compile Include="Drivers\Testers\PackTester\PackChannel.cs" />
+    <Compile Include="Drivers\Testers\PackTester\PackTester.cs" />
+    <Compile Include="Drivers\Testers\PackTester\PackTesterExecutor.cs" />
     <Compile Include="Enums\TemperatureStatus.cs" />
     <Compile Include="Enums\RoundStatus.cs" />
     <Compile Include="Core\TemperatureScheduler.cs" />
@@ -73,7 +76,7 @@
     <Compile Include="Core\Automator.cs" />
     <Compile Include="Drivers\Chambers\PUL80\Chamber.cs" />
     <Compile Include="Enums\ChamberStatus.cs" />
-    <Compile Include="Drivers\Testers\Chroma17208M\Channel.cs" />
+    <Compile Include="Drivers\Testers\Chroma17208M\Chroma17208Channel.cs" />
     <Compile Include="Enums\ChannelEvents.cs" />
     <Compile Include="Enums\ChannelStatus.cs" />
     <Compile Include="Drivers\Testers\Chroma17208M\Chroma17208Executor.cs" />
@@ -102,7 +105,7 @@
     <Compile Include="Recipe Logic\SmartTesterStep.cs" />
     <Compile Include="Core\TemperatureTarget.cs" />
     <Compile Include="Recipe Logic\SmartTesterRecipe.cs" />
-    <Compile Include="Drivers\Testers\Chroma17208M\Tester.cs" />
+    <Compile Include="Drivers\Testers\Chroma17208M\Chroma17208.cs" />
     <Compile Include="Recipe Logic\TesterAction.cs" />
     <Compile Include="Utilities.cs" />
   </ItemGroup>
