@@ -1,5 +1,5 @@
 ﻿#define debug
-//#define mute
+#define mute
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

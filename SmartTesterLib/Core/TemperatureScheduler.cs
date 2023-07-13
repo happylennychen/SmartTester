@@ -6,7 +6,7 @@ namespace SmartTester
 {
     public class TemperatureScheduler
     {
-        private List<TemperatureUnit> TemperatureUintList { get; set; }
+        public List<TemperatureUnit> TemperatureUintList { get; set; }
         public bool IsCompleted { get { return TemperatureUintList.All(tu => tu.Status != TemperatureStatus.WAITING); } }
         public TemperatureScheduler()
         {

@@ -92,11 +92,12 @@ namespace SmartTester
             amtr.Chambers[1].TestScheduler.AppendTestRound(R3);
             #endregion
 
-            //Task task = amtr.StartTestsInChambers();
+            Task task = amtr.AsyncStartChambers();
+            Monitor monitor = new Monitor(amtr);
+            monitor.Run();
             //Task task = amtr.AsyncStartChamber(amtr.Chambers[0]);
-            Task task = amtr.AsyncStartOneRound(amtr.Chambers[1], R3);
+            //Task task = amtr.AsyncStartOneRound(amtr.Chambers[1], R3);
             task.Wait();
-
 #if UseFileInsteadOfConsole
             sw.Close();
             fs.Close();

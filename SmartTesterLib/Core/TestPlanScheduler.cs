@@ -6,7 +6,7 @@ namespace SmartTester
 {
     public class TestPlanScheduler
     {
-        private List<TestRound> TestRoundList { get; set; }
+        public List<TestRound> TestRoundList { get; set; }
         public TestPlanScheduler()
         {
             TestRoundList = new List<TestRound>();
