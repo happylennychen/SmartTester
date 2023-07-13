@@ -6,15 +6,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using static System.Threading.Thread;
 using Cobra.Communication;
+using Cobra.Common;
 
 namespace SmartTester
 {
     public class PackTesterExecutor : ITesterExecutor
     {
-        //private CCommunicateManager m_Interface { get; set; }
+        private CCommunicateManager m_Interface { get; set; }
         public PackTesterExecutor()
         {
-            //m_Interface = new CCommunicateManager();
+            App.Current.Dispatcher.BeginInvoke(new Action(delegate
+            {
+                m_Interface = new CCommunicateManager();
+            }));
         }
         public bool Init(string ipAddress, int port, string sessionStr)
         {
@@ -106,16 +110,16 @@ namespace SmartTester
             op4.sphydata = "true";
             m_busoption.optionsList.Add(op4);
 
-            //bool bdevice = m_Interface.FindDevices(ref m_busoption);
-            //if (!bdevice) return LibErrorCode.IDS_ERR_DEM_FUN_TIMEOUT;
-            //m_busoption.optionsList[0].SelectLocation = m_busoption.optionsList[0].LocationSource[1];
+            bool bdevice = m_Interface.FindDevices(ref m_busoption);
+            if (!bdevice) return LibErrorCode.IDS_ERR_DEM_FUN_TIMEOUT;
+            m_busoption.optionsList[0].SelectLocation = m_busoption.optionsList[0].LocationSource[1];
 
-            //if (m_Interface.OpenDevice(ref m_busoption))
-            //{
-            //    return ChipVerification();
-            //}
-            //else
-            //    return LibErrorCode.IDS_ERR_DEM_FUN_TIMEOUT;
+            if (m_Interface.OpenDevice(ref m_busoption))
+            {
+                return ChipVerification();
+            }
+            else
+                return LibErrorCode.IDS_ERR_DEM_FUN_TIMEOUT;
             return 0;
 
         }

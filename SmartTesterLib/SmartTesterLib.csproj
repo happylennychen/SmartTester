@@ -33,6 +33,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Cobra.Common">
+      <HintPath>Lib\Cobra.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Cobra.Communication, Version=2.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Lib\Cobra.Communication.dll</HintPath>
+    </Reference>
     <Reference Include="Ivi.Visa, Version=5.11.0.0, Culture=neutral, PublicKeyToken=a128c98f1d7717c1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\IVI Foundation\VISA\Microsoft.NET\Framework32\v2.0.50727\VISA.NET Shared Components 5.11.0\Ivi.Visa.dll</HintPath>
@@ -66,6 +73,7 @@
     <Compile Include="Drivers\Testers\Debug\PseudoBattery.cs" />
     <Compile Include="Drivers\Testers\Debug\PseudoHardware.cs" />
     <Compile Include="Core\TimerSliceScheduler.cs" />
+    <Compile Include="Drivers\Testers\PackTester\LibErrorCode.cs" />
     <Compile Include="Drivers\Testers\PackTester\PackChannel.cs" />
     <Compile Include="Drivers\Testers\PackTester\PackTester.cs" />
     <Compile Include="Drivers\Testers\PackTester\PackTesterExecutor.cs" />
@@ -111,12 +119,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Cobra.Communication\Cobra.Communication.csproj">
-      <Project>{0115f8ca-9808-4661-981b-f34034cc4808}</Project>
-      <Name>Cobra.Communication</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
