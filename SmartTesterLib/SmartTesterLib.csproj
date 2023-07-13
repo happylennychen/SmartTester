@@ -112,6 +112,11 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Cobra.Communication\Cobra.Communication.csproj">
+      <Project>{0115f8ca-9808-4661-981b-f34034cc4808}</Project>
+      <Name>Cobra.Communication</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

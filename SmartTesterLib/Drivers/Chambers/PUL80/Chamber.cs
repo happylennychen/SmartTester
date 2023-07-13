@@ -17,7 +17,7 @@ namespace SmartTester
         public IChamberExecutor Executor { get; set; }
         public List<IChannel> Channels { get; set; }
         public TestPlanScheduler TestScheduler { get; set; }
-        public TemperatureScheduler TempScheduler { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public TemperatureScheduler TempScheduler { get; set; }
 
         public Chamber()
         { }
@@ -40,9 +40,11 @@ namespace SmartTester
             IpAddress = ipAddress;
             Port = port;
             Executor = new PUL80Executor();
+            TestScheduler = new TestPlanScheduler();
+            TempScheduler = new TemperatureScheduler();
             if (!Executor.Init(ipAddress, port))
             {
-                Console.WriteLine("Error");
+                Console.WriteLine("PUL-80 init failed!");
                 return;
             }
         }

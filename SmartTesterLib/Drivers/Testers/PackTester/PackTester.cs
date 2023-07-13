@@ -13,10 +13,10 @@ namespace SmartTester
         [JsonIgnore]
         public List<IChannel> Channels { get; set; }
         public string Name { get; set; }
-        //public int ChannelNumber { get; set; }
-        //public string IpAddress { get; set; }
-        //public int Port { get; set; }
-        //public string SessionStr { get; set; }
+        public int ChannelNumber { get; set; }
+        public string IpAddress { get; set; }
+        public int Port { get; set; }
+        public string SessionStr { get; set; }
         [JsonIgnore]
         public ITesterExecutor Executor { get; set; }
         private TimerSliceScheduler Scheduler { get; set; }
@@ -26,18 +26,18 @@ namespace SmartTester
         {
             Id = id;
             Name = name;
-            //ChannelNumber = channelNumber;
-            //IpAddress = ipAddress;
-            //Port = port;
-            //SessionStr = sessionStr;
+            ChannelNumber = channelNumber;
+            IpAddress = ipAddress;
+            Port = port;
+            SessionStr = sessionStr;
             Scheduler = new TimerSliceScheduler(channelNumber);
-            Executor = new DebugTesterExecutor(Name);
+            Executor = new PackTesterExecutor();
             Channels = new List<IChannel>();
 
             for (int i = 1; i <= channelNumber; i++)
             {
                 Token token;
-                DebugChannel ch = new DebugChannel($"Ch{i}", i, this, out token);
+                PackChannel ch = new PackChannel($"Ch{i}", i, this, out token);
                 Scheduler.RegisterToken(token);
                 Channels.Add(ch);
             }

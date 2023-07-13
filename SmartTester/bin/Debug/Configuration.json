@@ -36,6 +36,14 @@
       "IpAddress": "192.168.1.24",
       "Port": 8802,
       "SessionStr": "TCPIP0::192.168.1.102::60000::SOCKET"
+    },
+    {
+      "Id": 3,
+      "Name": "PackTester",
+      "ChannelNumber": 1,
+      "IpAddress": "192.168.1.25",
+      "Port": 8802,
+      "SessionStr": "TCPIP0::192.168.1.103::60000::SOCKET"
     }
   ]
 }

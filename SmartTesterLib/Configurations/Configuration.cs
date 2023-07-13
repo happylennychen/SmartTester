@@ -1,4 +1,4 @@
-﻿#define debug
+﻿//#define debug
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +12,7 @@ namespace SmartTester
         public List<DebugTester> Testers { get; set; }
 #else
         public List<Chamber> Chambers;
-        public List<Tester> Testers;
+        public List<PackTester> Testers;
 #endif
 
 #if debug
@@ -31,10 +31,10 @@ namespace SmartTester
         public Configuration(List<IChamber> chambers, List<ITester> testers)
         {
             this.Chambers = chambers.Select(cmb=>(Chamber)cmb).ToList();
-            this.Testers = testers.Select(tst=>(Tester)tst).ToList();
+            this.Testers = testers.Select(tst=>(PackTester)tst).ToList();
         }
         [JsonConstructor]
-        public Configuration(List<Chamber> chambers, List<Tester> testers)
+        public Configuration(List<Chamber> chambers, List<PackTester> testers)
         {
             this.Chambers = chambers;
             this.Testers = testers;
