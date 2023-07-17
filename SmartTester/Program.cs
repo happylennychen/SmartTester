@@ -10,6 +10,7 @@ namespace SmartTester
 {
     class Program//调用automator提供的API，提供基本的操作界面。后期可以用图形界面替代。
     {
+        [STAThread]
         static void Main(string[] args)
         {
 #if UseFileInsteadOfConsole

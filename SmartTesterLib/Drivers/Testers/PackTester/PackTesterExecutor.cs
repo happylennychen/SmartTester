@@ -15,10 +15,7 @@ namespace SmartTester
         private CCommunicateManager m_Interface { get; set; }
         public PackTesterExecutor()
         {
-            App.Current.Dispatcher.BeginInvoke(new Action(delegate
-            {
-                m_Interface = new CCommunicateManager();
-            }));
+            m_Interface = new CCommunicateManager();
         }
         public bool Init(string ipAddress, int port, string sessionStr)
         {
@@ -28,7 +25,6 @@ namespace SmartTester
                 return false;
             return true;
         }
-
         private UInt32 OZ93510Init()
         {
             BusOptions m_busoption = new BusOptions();
