@@ -109,6 +109,8 @@ namespace SmartTester
             bool bdevice = m_Interface.FindDevices(ref m_busoption);
             if (!bdevice) return LibErrorCode.IDS_ERR_DEM_FUN_TIMEOUT;
             m_busoption.optionsList[0].SelectLocation = m_busoption.optionsList[0].LocationSource[1];
+            bdevice = m_Interface.FindDevices(ref m_busoption);
+            if (!bdevice) return LibErrorCode.IDS_ERR_DEM_FUN_TIMEOUT;
 
             if (m_Interface.OpenDevice(ref m_busoption))
             {
@@ -116,7 +118,6 @@ namespace SmartTester
             }
             else
                 return LibErrorCode.IDS_ERR_DEM_FUN_TIMEOUT;
-            return 0;
 
         }
 
@@ -127,32 +128,41 @@ namespace SmartTester
 
         public bool ReadRow(int channelIndex, out StandardRow stdRow, out uint channelEvents)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Pack ReadRow");
+            stdRow = new StandardRow();
+            channelEvents = 1;
+            return true;
         }
 
         public bool ReadTemperarture(int channelIndex, out double temperature)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Pack ReadTemperarture");
+            temperature = 23;
+            return true;
         }
 
         public bool SpecifyChannel(int channelIndex)
         {
+            Console.WriteLine("Pack SpecifyChannel");
             return true;
         }
 
         public bool SpecifyTestStep(SmartTesterStep step)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Pack SpecifyTestStep");
+            return true;
         }
 
         public bool Start()
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Pack Start");
+            return true;
         }
 
         public bool Stop()
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Pack Stop");
+            return true;
         }
     }
 }

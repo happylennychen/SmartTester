@@ -56,12 +56,41 @@ namespace SmartTester
 
         public bool StartNextUnit()
         {
-            throw new NotImplementedException();
+            bool ret;
+            var ctu = TempScheduler.GetCurrentTemp();
+            if (ctu != null)
+                ctu.Status = TemperatureStatus.PASSED;
+            var tUnit = TempScheduler.GetNextTemp();
+            if (tUnit == null)
+            {
+                Console.WriteLine($"There's no waiting temperature.");
+                return false;
+            }
+
+            ret = Executor.Start(tUnit.Target.Value);
+            if (!ret)
+            {
+                Console.WriteLine($"Start chamber failed! Please check chamber cable.");
+                return ret;
+            }
+            tUnit.Status = TemperatureStatus.REACHING;
+
+            return true;
         }
 
         public bool Stop()
         {
-            throw new NotImplementedException();
+            bool ret;
+            //var tUnit = TempScheduler.GetCurrentTemp();
+
+            ret = Executor.Stop();
+            if (!ret)
+            {
+                Console.WriteLine($"Stop chamber failed! Please check chamber cable.");
+                return ret;
+            }
+            //tUnit.Status = TemperatureStatus.PASSED;
+            return true;
         }
     }
 }

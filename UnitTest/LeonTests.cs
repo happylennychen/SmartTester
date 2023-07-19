@@ -1,4 +1,5 @@
 ﻿//#define debug
+#define debugChamber
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SmartTester;
 using System;
@@ -91,6 +92,11 @@ namespace UnitTest
             var chamber = new DebugChamber(1, "Hongzhan", "PUL-80", 150, -40);
             List<DebugChamber> chambers = new List<DebugChamber>();
             List<DebugTester> testers = new List<DebugTester>();
+#elif debugChamber
+            var tester = new PackTester(1, "17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
+            var chamber = new DebugChamber(1, "Hongzhan", "PUL-80", 150, -40);
+            List<DebugChamber> chambers = new List<DebugChamber>();
+            List<PackTester> testers = new List<PackTester>();
 #else
             var tester = new PackTester(1, "17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
             var chamber = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
