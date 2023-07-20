@@ -2,7 +2,7 @@
 {
     public interface ITesterExecutor
     {
-        bool ReadRow(int channelIndex, out StandardRow stdRow, out uint channelEvents);
+        bool ReadRow(int channelIndex, out object row, out uint channelEvents);
         bool ReadTemperarture(int channelIndex, out double temperature);
         bool SpecifyChannel(int channelIndex);
         bool SpecifyTestStep(SmartTesterStep step);

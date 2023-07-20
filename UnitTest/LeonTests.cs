@@ -30,7 +30,7 @@ namespace UnitTest
             for (int i = 1; i <= 8; i++)
             {
                 var fileList = files.Where(o => o.Contains($"Chroma17208M-Ch{i}")).OrderBy(o => o).ToList();
-                Utilities.FileConvert(fileList, CreateFullSteps(), -10);
+                Utilities.StdFileConvert(fileList, CreateFullSteps(), -10);
             }
             //List<string> fileList = new List<string>();
             //fileList.Add(@"D:\BC_Lab\SW Design\Instrument Automation\File Converter\30T auto init 2\Chroma17208M-Ch1-20220630160748.txt");

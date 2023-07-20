@@ -28,7 +28,7 @@ namespace SmartTester
 
         public void GenerateFile()
         {
-            Utilities.FileConvert(TempFileList, Recipe.Steps, TargetTemperature);
+            Utilities.StdFileConvert(TempFileList, Recipe.Steps, TargetTemperature);
             TempFileList.Clear();
         }
 
@@ -99,14 +99,11 @@ namespace SmartTester
         private void TimerCallback(object i)
         {
             bool ret;
-            //int counter = (int)i % Channels.Count;
-            //int channelIndex = counter + 1;
-            //IChannel channel = Channels.SingleOrDefault(ch => ch.Index == channelIndex);
-            //long data;
             #region read data
+            object row;
             StandardRow stdRow;
             uint channelEvents;
-            ret = Tester.Executor.ReadRow(Index, out stdRow, out channelEvents);
+            ret = Tester.Executor.ReadRow(Index, out row, out channelEvents);
             if (!ret)
             {
                 Reset();
@@ -114,10 +111,11 @@ namespace SmartTester
                 Console.WriteLine("Cannot read row from tester. Please check cable connection.");
                 return;
             }
-            var startPoint = stdRow.TimeInMS % 1000;
+            stdRow = row as StandardRow;
+            //var startPoint = stdRow.TimeInMS % 1000;
             do
             {
-                ret = Tester.Executor.ReadRow(Index, out stdRow, out channelEvents);
+                ret = Tester.Executor.ReadRow(Index, out row, out channelEvents);
                 if (!ret)
                 {
                     Reset();
@@ -125,10 +123,8 @@ namespace SmartTester
                     Console.WriteLine("Cannot read row from tester. Please check cable connection.");
                     return;
                 }
-                //data = stdRow.TimeInMS % 1000;
-                //Console.WriteLine($"{stdRow.ToString(),-60}Ch{gap}{channelIndex}.");
+                stdRow = row as StandardRow;
             }
-            //while (data > 100 && stdRow.Status == RowStatus.RUNNING);
             while (stdRow.TimeInMS < (1000 + LastTimeInMS) && stdRow.Status == RowStatus.RUNNING);
 
             LastTimeInMS = stdRow.TimeInMS / 1000 * 1000;

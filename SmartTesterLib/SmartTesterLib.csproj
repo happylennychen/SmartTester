@@ -63,6 +63,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Interfaces\RowBase.cs" />
+    <Compile Include="Core\PackRow.cs" />
     <Compile Include="Core\TemperatureUnit.cs" />
     <Compile Include="Core\TestPlanScheduler.cs" />
     <Compile Include="Core\TestRound.cs" />
@@ -73,6 +75,7 @@
     <Compile Include="Drivers\Testers\Debug\PseudoBattery.cs" />
     <Compile Include="Drivers\Testers\Debug\PseudoHardware.cs" />
     <Compile Include="Core\TimerSliceScheduler.cs" />
+    <Compile Include="Drivers\Testers\PackTester\SBSCommand.cs" />
     <Compile Include="Drivers\Testers\PackTester\LibErrorCode.cs" />
     <Compile Include="Drivers\Testers\PackTester\PackChannel.cs" />
     <Compile Include="Drivers\Testers\PackTester\PackTester.cs" />
@@ -97,12 +100,12 @@
     <Compile Include="Drivers\Testers\Debug\DebugTester.cs" />
     <Compile Include="Drivers\Testers\Debug\DebugTesterExecutor.cs" />
     <Compile Include="Configurations\GlobalSettings.cs" />
-    <Compile Include="Interfaces\IChamber.cs" />
-    <Compile Include="Interfaces\IChamberExecutor.cs" />
-    <Compile Include="Interfaces\IChannel.cs" />
-    <Compile Include="Interfaces\IDataLogger.cs" />
-    <Compile Include="Interfaces\ITester.cs" />
-    <Compile Include="Interfaces\ITesterExecutor.cs" />
+    <Compile Include="Core\Interfaces\IChamber.cs" />
+    <Compile Include="Core\Interfaces\IChamberExecutor.cs" />
+    <Compile Include="Core\Interfaces\IChannel.cs" />
+    <Compile Include="Core\Interfaces\IDataLogger.cs" />
+    <Compile Include="Core\Interfaces\ITester.cs" />
+    <Compile Include="Core\Interfaces\ITesterExecutor.cs" />
     <Compile Include="Recipe Logic\JumpBehavior.cs" />
     <Compile Include="Recipe Logic\JumpType.cs" />
     <Compile Include="Enums\Parameter.cs" />

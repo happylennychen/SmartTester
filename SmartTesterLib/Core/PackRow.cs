@@ -2,7 +2,7 @@
 
 namespace SmartTester
 {
-    public class StandardRow : RowBase
+    public class PackRow : RowBase
     {
         public uint Index { get; set; }
         //public uint TimeInMS { get; set; }
@@ -10,20 +10,20 @@ namespace SmartTester
         //public double Current { get; set; } //mA，充电为正，放电为负
         //public double Voltage { get; set; } //mV
         //public double Temperature { get; set; } //celcius
-        public double Capacity { get; set; }    //mAh
-        public double TotalCapacity { get; set; }   //mAh
+        //public double Capacity { get; set; }    //mAh
+        //public double TotalCapacity { get; set; }   //mAh
         //public RowStatus Status { get; set; }
         public override string ToString()
         {
-            return $@"{Index},{TimeInMS},{(byte)Mode},{Current.ToString("f4")},{Voltage.ToString("f4")},{Temperature.ToString("f4")},{Capacity.ToString("f4")},{TotalCapacity.ToString("f4")},{(byte)Status}";
+            return $@"{Index},{TimeInMS},{(byte)Mode},{Current.ToString("f4")},{Voltage.ToString("f4")},{Temperature.ToString("f4")},{(byte)Status}";
         }
-        public StandardRow()
+        public PackRow()
         {
         }
-        public StandardRow(string line)
+        public PackRow(string line)
         {
             var strArray = line.Split(',');
-            uint Index; uint TimeInMS; ActionMode Mode; double Current; double Voltage; double Temperature; double Capacity; double TotalCapacity; RowStatus Status;
+            uint Index; uint TimeInMS; ActionMode Mode; double Current; double Voltage; double Temperature; RowStatus Status;
             if (!uint.TryParse(strArray[0], out Index))
                 return;
             if (!uint.TryParse(strArray[1], out TimeInMS))
@@ -38,10 +38,10 @@ namespace SmartTester
                 return;
             if (!double.TryParse(strArray[5], out Temperature))
                 return;
-            if (!double.TryParse(strArray[6], out Capacity))
-                return;
-            if (!double.TryParse(strArray[7], out TotalCapacity))
-                return;
+            //if (!double.TryParse(strArray[6], out Capacity))
+            //    return;
+            //if (!double.TryParse(strArray[7], out TotalCapacity))
+            //    return;
             byte status;
             if (!byte.TryParse(strArray[8], out status))
                 return;
@@ -52,14 +52,21 @@ namespace SmartTester
             this.Current = Current;
             this.Voltage = Voltage;
             this.Temperature = Temperature;
-            this.Capacity = Capacity;
-            this.TotalCapacity = TotalCapacity;
+            //this.Capacity = Capacity;
+            //this.TotalCapacity = TotalCapacity;
             this.Status = Status;
         }
 
-        internal StandardRow Clone()
+        public PackRow Clone()
         {
-            return (StandardRow)this.MemberwiseClone();
+            return (PackRow)this.MemberwiseClone();
+        }
+
+        public void UpdateStatus(SmartTesterStep currentStep)
+        {
+            var cob = Utilities.GetCutOffBehavior(currentStep, TimeInMS, this);
+            if (cob != null)
+                Status = Utilities.UpdateLastRowStatus(cob);
         }
     }
 }

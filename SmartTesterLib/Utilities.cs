@@ -12,6 +12,7 @@ namespace SmartTester
 {
     public static class Utilities
     {
+        /*
         public static void FileConvert(string filePath)
         {
             uint indexOffset = 0;
@@ -58,6 +59,7 @@ namespace SmartTester
                 }
             }
         }
+        */
 
         public static bool CreateTestPlanFolders(string projectName, Dictionary<IChamber, Dictionary<int, List<IChannel>>> testPlanFolderTree)
         {
@@ -107,7 +109,7 @@ namespace SmartTester
             Directory.CreateDirectory(outputFolder);
         }
 
-        public static void FileConvert(List<string> filePaths, List<SmartTesterStep> fullSteps, double targetTemperature)
+        public static void StdFileConvert(List<string> filePaths, List<SmartTesterStep> fullSteps, double targetTemperature)
         {
             uint indexOffset = 0;
             uint timeOffset = 0;
@@ -148,7 +150,7 @@ namespace SmartTester
                                         {
                                             CutOffBehavior cob = GetCutOffBehavior(step, lastRow.TimeInMS, lastRow);
                                             step = GetNewTargetStep(step, fullSteps, targetTemperature, lastRow.TimeInMS, lastRow);
-                                            UpdateRowStatus(ref lastRow, cob, targetTemperature);
+                                            lastRow.Status = UpdateLastRowStatus(cob);
                                         }
 
                                         lastRow.Index = ++indexOffset;
@@ -186,7 +188,7 @@ namespace SmartTester
                     currentRow.TimeInMS += timeOffset;
                     currentRow.Capacity += capacityOffset;
                     currentRow.TotalCapacity = currentRow.Capacity + totalCapacityOffset;
-                    UpdateRowStatus(ref currentRow, GetCutOffBehavior(step, currentRow.TimeInMS, currentRow), targetTemperature);
+                    currentRow.Status = UpdateLastRowStatus(GetCutOffBehavior(step, currentRow.TimeInMS, currentRow));
                     stdWriter.WriteLine(currentRow.ToString());
                 }
             }
@@ -195,30 +197,33 @@ namespace SmartTester
                 File.Move(newFilePath, newFileFullPath);
         }
 
-        private static void UpdateRowStatus(ref StandardRow row, CutOffBehavior cob, double targetTemperature)
+        //private static RowStatus UpdateRowStatus(RowBase row, CutOffBehavior cob, double targetTemperature)
+        public static RowStatus UpdateLastRowStatus(CutOffBehavior cob)    //根据cob来推出RowStatus，条件是找到了正确的cob
         {
+            RowStatus rs = RowStatus.UNKNOWN;
             if (cob != null)
                 switch (cob.Condition.Parameter)
                 {
                     case Parameter.CURRENT:
-                        row.Status = RowStatus.CUT_OFF_BY_CURRENT;
+                        rs = RowStatus.CUT_OFF_BY_CURRENT;
                         break;
                     case Parameter.POWER:
-                        row.Status = RowStatus.CUT_OFF_BY_POWER;
+                        rs = RowStatus.CUT_OFF_BY_POWER;
                         break;
                     case Parameter.TEMPERATURE:
-                        row.Status = RowStatus.CUT_OFF_BY_TEMPERATURE;
+                        rs = RowStatus.CUT_OFF_BY_TEMPERATURE;
                         break;
                     case Parameter.TIME:
-                        row.Status = RowStatus.CUT_OFF_BY_TIME;
+                        rs = RowStatus.CUT_OFF_BY_TIME;
                         break;
                     case Parameter.VOLTAGE:
-                        row.Status = RowStatus.CUT_OFF_BY_VOLTAGE;
+                        rs = RowStatus.CUT_OFF_BY_VOLTAGE;
                         break;
                     default:
-                        row.Status = RowStatus.UNKNOWN;
+                        rs = RowStatus.UNKNOWN;
                         break;
                 }
+            return rs;
         }
 
         private static bool ShouldCapacityContinue(StandardRow lastRow, StandardRow stdRow)
@@ -243,7 +248,7 @@ namespace SmartTester
                 return null;
         }
 
-        public static SmartTesterStep GetNewTargetStep(SmartTesterStep currentStep, List<SmartTesterStep> fullSteps, double temperature, uint timeSpan, StandardRow row)
+        public static SmartTesterStep GetNewTargetStep(SmartTesterStep currentStep, List<SmartTesterStep> fullSteps, double temperature, uint timeSpan, RowBase row)
         {
             Console.WriteLine("GetNewTargetStep");
             SmartTesterStep nextStep = null;
@@ -252,13 +257,26 @@ namespace SmartTester
                 nextStep = Jump(cob, fullSteps, currentStep.Index, row);
             return nextStep;
         }
-        private static CutOffBehavior GetCutOffBehavior(SmartTesterStep currentStep, uint timeSpan, StandardRow row)
+        public static CutOffBehavior GetCutOffBehavior(SmartTesterStep currentStep, uint timeSpan, RowBase row) //如果没有符合条件的cob，则return null
         {
             CutOffBehavior cob = null;
             switch (currentStep.Action.Mode)
             {
                 case ActionMode.REST:// "StepFinishByCut_V":
                     cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
+                    if (cob != null)
+                    {
+                        var time = cob.Condition.Value;
+                        Console.WriteLine($"time = {time}");
+                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        if (Math.Abs(timeSpan / 1000 - time) < 1)
+                        {
+                            Console.WriteLine($"Meet time condition.");
+                            break;
+                        }
+                        else
+                            cob = null;
+                    }
                     break;
                 case ActionMode.CC_CV_CHARGE://"StepFinishByCut_I":
                     cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
@@ -276,6 +294,17 @@ namespace SmartTester
                             cob = null;
                     }
                     cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.CURRENT);
+                    if (cob != null)
+                    {
+                        var curr = cob.Condition.Value;
+                        if (Math.Abs(curr - row.Current) < 1)
+                        {
+                            Console.WriteLine($"Current time condition.");
+                            break;
+                        }
+                        else
+                            cob = null;
+                    }
                     break;
                 case ActionMode.CC_DISCHARGE://"StepFinishByCut_T":
                 case ActionMode.CP_DISCHARGE:
@@ -314,7 +343,7 @@ namespace SmartTester
             }
             return cob;
         }
-        private static SmartTesterStep Jump(CutOffBehavior cob, List<SmartTesterStep> fullSteps, int currentStepIndex, StandardRow row)
+        private static SmartTesterStep Jump(CutOffBehavior cob, List<SmartTesterStep> fullSteps, int currentStepIndex, RowBase row)
         {
             SmartTesterStep nextStep = null;
             if (cob.JumpBehaviors.Count == 1)

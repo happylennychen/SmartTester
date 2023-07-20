@@ -35,7 +35,7 @@ namespace SmartTester
             //    Stopwatches[i] = new Stopwatch();
             //}
         }
-        public bool ReadRow(int channelIndex, out StandardRow stdRow, out uint channelEvents)
+        public bool ReadRow(int channelIndex, out object row, out uint channelEvents)
         {
             lock (HWLock)
             {
@@ -50,9 +50,10 @@ namespace SmartTester
                 //stdRow.TimeInMS = (uint)PseudoHardwares[channelIndex - 1].Stopwatch.ElapsedMilliseconds;
                 //if (stdRow.TimeInMS > 3000)
                 //    stdRow.Status = RowStatus.STOP;
-                stdRow = PseudoHardwares[channelIndex - 1].GetStandardRow();
+                var stdRow = PseudoHardwares[channelIndex - 1].GetStandardRow();
                 AccessFile($"Channel {channelIndex}, Time: {stdRow.TimeInMS}, Thread:{CurrentThread.ManagedThreadId}");
                 channelEvents = 0;
+                row = stdRow;
                 return true;
             }
         }

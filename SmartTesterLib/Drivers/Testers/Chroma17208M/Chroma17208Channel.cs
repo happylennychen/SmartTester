@@ -39,7 +39,7 @@ namespace SmartTester
 
         public void GenerateFile()
         {
-            Utilities.FileConvert(TempFileList, Recipe.Steps, TargetTemperature);
+            Utilities.StdFileConvert(TempFileList, Recipe.Steps, TargetTemperature);
             TempFileList.Clear();
         }
 
@@ -106,9 +106,10 @@ namespace SmartTester
             //IChannel channel = Channels.SingleOrDefault(ch => ch.Index == channelIndex);
             //long data;
             #region read data
+            object row;
             StandardRow stdRow;
             uint channelEvents;
-            ret = Tester.Executor.ReadRow(Index, out stdRow, out channelEvents);
+            ret = Tester.Executor.ReadRow(Index, out row, out channelEvents);
             if (!ret)
             {
                 Reset();
@@ -116,10 +117,11 @@ namespace SmartTester
                 Console.WriteLine("Cannot read row from tester. Please check cable connection.");
                 return;
             }
+            stdRow = row as StandardRow;
             var startPoint = stdRow.TimeInMS % 1000;
             do
             {
-                ret = Tester.Executor.ReadRow(Index, out stdRow, out channelEvents);
+                ret = Tester.Executor.ReadRow(Index, out row, out channelEvents);
                 if (!ret)
                 {
                     Reset();
@@ -127,6 +129,7 @@ namespace SmartTester
                     Console.WriteLine("Cannot read row from tester. Please check cable connection.");
                     return;
                 }
+                stdRow = row as StandardRow;
                 //data = stdRow.TimeInMS % 1000;
                 //Console.WriteLine($"{stdRow.ToString(),-60}Ch{gap}{channelIndex}.");
             }

@@ -74,7 +74,7 @@ namespace SmartTester
         //    return double.Parse(result);
         //}
 
-        public bool ReadRow(int channel, out StandardRow standardRow, out uint channelEvents)
+        public bool ReadRow(int channel, out object row, out uint channelEvents)
         {
             lock (ChromaLock)
             {
@@ -83,11 +83,11 @@ namespace SmartTester
                 bool ret = SCPIQuary(cmd, out result);
                 if (ret == false)
                 {
-                    standardRow = null;
+                    row = null;
                     channelEvents = 0;
                     return false;
                 }
-                standardRow = new StandardRow();
+                var standardRow = new StandardRow();
                 var strs = result.Split(',');
                 standardRow.Capacity = double.Parse(strs[8]) * 1000;
                 standardRow.Current = double.Parse(strs[6]) * 1000;
@@ -99,6 +99,7 @@ namespace SmartTester
                 standardRow.Voltage = double.Parse(strs[5]) * 1000;
                 //standardRow.TotalCapacity = ???
                 channelEvents = GetEventsFromString(strs[2]);
+                row = standardRow;
                 return true;
             }
         }

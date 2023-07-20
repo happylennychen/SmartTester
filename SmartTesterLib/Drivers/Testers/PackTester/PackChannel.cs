@@ -28,7 +28,7 @@ namespace SmartTester
 
         public void GenerateFile()
         {
-            Utilities.FileConvert(TempFileList, Recipe.Steps, TargetTemperature);
+            Utilities.StdFileConvert(TempFileList, Recipe.Steps, TargetTemperature);
             TempFileList.Clear();
         }
 
@@ -76,6 +76,7 @@ namespace SmartTester
             Name = name;
             Index = index;
             Tester = tester;
+            LastTimeInMS = 0;
             Timer = new Timer(TimerCallback, null, Timeout.Infinite, Timeout.Infinite);
             TempFileList = new List<string>();
             token = new Token(index, $"Channel {Index} Token", TokenCallback);
@@ -93,31 +94,19 @@ namespace SmartTester
             CurrentStep = StepsForOneTempPoint.First();
             Tester.Executor.SpecifyTestStep(CurrentStep);
             Tester.Executor.Start();
-            Timer.Change(980, 0);
+            Timer.Change(900, 0);
         }
 
         private void TimerCallback(object i)
         {
             bool ret;
-            //int counter = (int)i % Channels.Count;
-            //int channelIndex = counter + 1;
-            //IChannel channel = Channels.SingleOrDefault(ch => ch.Index == channelIndex);
-            //long data;
             #region read data
-            StandardRow stdRow;
+            object row;
+            PackRow packRow;
             uint channelEvents;
-            ret = Tester.Executor.ReadRow(Index, out stdRow, out channelEvents);
-            if (!ret)
-            {
-                Reset();
-                Status = ChannelStatus.ERROR;
-                Console.WriteLine("Cannot read row from tester. Please check cable connection.");
-                return;
-            }
-            var startPoint = stdRow.TimeInMS % 1000;
             do
             {
-                ret = Tester.Executor.ReadRow(Index, out stdRow, out channelEvents);
+                ret = Tester.Executor.ReadRow(Index, out row, out channelEvents);
                 if (!ret)
                 {
                     Reset();
@@ -125,29 +114,14 @@ namespace SmartTester
                     Console.WriteLine("Cannot read row from tester. Please check cable connection.");
                     return;
                 }
-                //data = stdRow.TimeInMS % 1000;
-                //Console.WriteLine($"{stdRow.ToString(),-60}Ch{gap}{channelIndex}.");
+                packRow = row as PackRow;
+                packRow.Mode = CurrentStep.Action.Mode;
+                packRow.UpdateStatus(CurrentStep);
             }
-            //while (data > 100 && stdRow.Status == RowStatus.RUNNING);
-            while (stdRow.TimeInMS < (1000 + LastTimeInMS) && stdRow.Status == RowStatus.RUNNING);
+            while (packRow.TimeInMS < (1000 + LastTimeInMS) && packRow.Status == RowStatus.RUNNING);
 
-            LastTimeInMS = stdRow.TimeInMS / 1000 * 1000;
-            double temperature;
-            ret = Tester.Executor.ReadTemperarture(Index, out temperature);
-            if (!ret)
-            {
-                Reset();
-                Status = ChannelStatus.ERROR;
-                Console.WriteLine("Cannot read temperature from tester. Please check cable connection.");
-                return;
-            }
-            stdRow.Temperature = temperature;
-            DataQueue.Enqueue(stdRow);
-            if (stdRow.Status == RowStatus.STOP)
-                stdRow = GetAdjustedRow(DataQueue.ToList(), CurrentStep);
-            if (DataQueue.Count >= 4)
-                DataQueue.Dequeue();
-            var strRow = stdRow.ToString();
+            LastTimeInMS = packRow.TimeInMS / 1000 * 1000;
+            var strRow = packRow.ToString();
             #endregion
 
             #region log data
@@ -155,12 +129,7 @@ namespace SmartTester
             #endregion
 
             #region display data
-            string gap = string.Empty;
-            for (int j = 0; j < Index - 1; j++)
-            {
-                gap += " ";
-            }
-            Console.WriteLine($"{strRow,-60}Ch{gap}{Index}.");
+            Console.WriteLine(strRow);
             #endregion
 
             #region verify data
@@ -171,7 +140,7 @@ namespace SmartTester
                 return;
             }
             if (CurrentStep.Action.Mode == ActionMode.CC_DISCHARGE)
-                if (stdRow.Current - CurrentStep.Action.Current > StepTolerance.Current)
+                if (packRow.Current - CurrentStep.Action.Current > StepTolerance.Current)
                 {
                     Reset();
                     Status = ChannelStatus.ERROR;
@@ -181,9 +150,9 @@ namespace SmartTester
             #endregion
 
             #region change step
-            if (stdRow.Status != RowStatus.RUNNING)
+            if (packRow.Status != RowStatus.RUNNING)
             {
-                CurrentStep = Utilities.GetNewTargetStep(CurrentStep, StepsForOneTempPoint, TargetTemperature, stdRow.TimeInMS, stdRow);
+                CurrentStep = Utilities.GetNewTargetStep(CurrentStep, StepsForOneTempPoint, TargetTemperature, packRow.TimeInMS, packRow);
                 if (CurrentStep == null)
                 {
                     Reset();
