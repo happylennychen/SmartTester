@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿//using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,18 +10,18 @@ namespace SmartTester
     public class DebugTester : ITester
     {
         public int Id { get; set; }
-        [JsonIgnore]
+        //[JsonIgnore]
         public List<IChannel> Channels { get; set; }
         public string Name { get; set; }
         //public int ChannelNumber { get; set; }
         //public string IpAddress { get; set; }
         //public int Port { get; set; }
         //public string SessionStr { get; set; }
-        [JsonIgnore]
+        //[JsonIgnore]
         public ITesterExecutor Executor { get; set; }
         private TimerSliceScheduler Scheduler { get; set; }
 
-        [JsonConstructor]
+        //[JsonConstructor]
         public DebugTester(int id, string name, int channelNumber, string ipAddress, int port, string sessionStr)
         {
             Id = id;

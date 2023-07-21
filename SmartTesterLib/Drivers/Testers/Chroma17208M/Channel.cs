@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿//using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,7 +21,7 @@ namespace SmartTester
         }
 
         public int Index { get; set; }
-        [JsonIgnore]
+        //[JsonIgnore]
         public ITester Tester { get; set; }
         public IChamber Chamber { get; set; }
         public SmartTesterRecipe Recipe { get; set; }
@@ -70,7 +70,7 @@ namespace SmartTester
             Status = ChannelStatus.RUNNING;
         }
 
-        [JsonConstructor]
+        //[JsonConstructor]
         public Channel()
         {
             ;

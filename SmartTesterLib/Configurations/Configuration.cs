@@ -1,5 +1,5 @@
 ﻿//#define debug
-using Newtonsoft.Json;
+//using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,10 +9,10 @@ namespace SmartTester
     {
         public List<IChamber> Chambers;
         public List<ITester> Testers;
-        public Configuration(List<IChamber> chambers, List<ITester> testers)
+        public Configuration()
         {
-            this.Chambers = chambers;
-            this.Testers = testers;
+            Chambers = new List<IChamber>();
+            Testers = new List<ITester>();
         }
     }
 }

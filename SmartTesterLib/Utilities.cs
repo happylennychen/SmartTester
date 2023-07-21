@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace SmartTester
@@ -402,10 +403,10 @@ namespace SmartTester
                 foreach (var file in files)
                 {
                     string json = File.ReadAllText(file);
-                    var test = JsonConvert.DeserializeObject<SmartTesterRecipe>(json);
+                    //var test = JsonConvert.DeserializeObject<SmartTesterRecipe>(json);
                     //test.Chamber = chamber;
                     //test.Channel = channel;
-                    output.Add(test);
+                    //output.Add(test);
                 }
             }
             catch (Exception e)
@@ -615,26 +616,10 @@ namespace SmartTester
             //}
             return ret;
         }
-        public static bool SaveConfiguration(List<IChamber> chambers, List<ITester> testers)
-        {
-            try
-            {
-                Configuration conf = new Configuration(chambers, testers);
-                //string jsonString = System.Text.Json.JsonSerializer.Serialize(conf);
-                string jsonString = JsonConvert.SerializeObject(conf, Formatting.Indented);
-                File.WriteAllText(GlobalSettings.ConfigurationFilePath, jsonString);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error! Create Configuration Failed!");
-                return false;
-            }
-            return true;
-        }
 
         public static bool LoadConfiguration(out Configuration conf)
         {
-            conf = null;
+            conf = new Configuration();
             //try
             //{
             //    string jsonString = File.ReadAllText(GlobalSettings.ConfigurationFilePath);
@@ -645,10 +630,72 @@ namespace SmartTester
             //    Console.WriteLine($"Error! Load Configuration Failed! {e.Message}");
             //    return false;
             //}
-            List<ITester> testers = new List<ITester>();
-            List<IChamber> chambers = new List<IChamber>();
-            string jsonString = File.ReadAllText(GlobalSettings.ConfigurationFilePath);
-            using (JsonDocument document = JsonDocument.Parse(jsonString))
+            try
+            {
+                string jsonString = File.ReadAllText(GlobalSettings.ConfigurationFilePath);
+                using (JsonDocument document = JsonDocument.Parse(jsonString))
+                {
+                    JsonElement root = document.RootElement;
+                    JsonElement testersElement = root.GetProperty("Testers");
+                    foreach (JsonElement testerElement in testersElement.EnumerateArray())
+                    {
+                        ITester tester = null;
+                        var className = testerElement.GetProperty("Class").GetString();
+                        var id = testerElement.GetProperty("Id").GetInt32();
+                        var name = testerElement.GetProperty("Name").GetString();
+                        var channelNumber = testerElement.GetProperty("ChannelNumber").GetInt32();
+                        var ipAddress = testerElement.GetProperty("IpAddress").GetString();
+                        var port = testerElement.GetProperty("Port").GetInt32();
+                        var sessionStr = testerElement.GetProperty("SessionStr").GetString();
+                        switch (className)
+                        {
+                            case "Tester":
+                                tester = new Tester(id, name!, channelNumber, ipAddress!, port, sessionStr!);
+                                break;
+                            case "DebugTester":
+                                tester = new DebugTester(id, name!, channelNumber, ipAddress!, port, sessionStr!);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (tester != null)
+                            conf.Testers.Add(tester);
+                    }
+                    JsonElement chambersElement = root.GetProperty("Chambers");
+                    foreach (JsonElement chamberElement in chambersElement.EnumerateArray())
+                    {
+                        IChamber chamber = null;
+                        var className = chamberElement.GetProperty("Class").GetString();
+                        var id = chamberElement.GetProperty("Id").GetInt32();
+                        var manufacturer = chamberElement.GetProperty("Manufacturer").GetString();
+                        var name = chamberElement.GetProperty("Name").GetString();
+                        var lowestTemperature = chamberElement.GetProperty("LowestTemperature").GetDouble();
+                        var highestTemperature = chamberElement.GetProperty("HighestTemperature").GetDouble();
+                        var ipAddress = chamberElement.GetProperty("IpAddress").GetString();
+                        var port = chamberElement.GetProperty("Port").GetInt32();
+                        switch (className)
+                        {
+                            case "Chamber":
+                                chamber = new Chamber(id, manufacturer!, name!, highestTemperature, lowestTemperature, ipAddress!, port);
+                                break;
+                            case "DebugChamber":
+                                chamber = new DebugChamber(id, manufacturer!, name!, highestTemperature, lowestTemperature);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (chamber != null)
+                        {
+                            conf.Chambers.Add(chamber);
+                        }
+                    }
+                }
+            }
+            catch(Exception e) 
+            {
+                Console.WriteLine(e.Message);
+                return false;
+            }
             return true;
         }
 

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿//using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,7 +14,7 @@ namespace SmartTester
         public SmartTesterStep CurrentStep { get; set; }
         private List<SmartTesterStep> StepsForOneTempPoint { get; set; }
         public SmartTesterRecipe Recipe { get; set; }
-        [JsonIgnore]
+        //[JsonIgnore]
         public ITester Tester { get; set; }
         public IChamber Chamber { get; set; }
         public ChannelStatus Status { get; set; }
@@ -66,7 +66,7 @@ namespace SmartTester
             Timer = timer;
             TempFileList = new List<string>();
         }
-        [JsonConstructor]
+        //[JsonConstructor]
         public DebugChannel()
         {
             ;
