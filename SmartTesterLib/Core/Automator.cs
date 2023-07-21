@@ -1,4 +1,4 @@
-﻿#define debug
+﻿//#define debug
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,10 +26,10 @@ namespace SmartTester
             {
                 Chambers = conf.Chambers.Select(c => (IChamber)c).ToList();
                 Testers = conf.Testers.Select(t => (ITester)t).ToList();
-                foreach (var chamber in Chambers)
-                {
-                    GlobalSettings.ChamberRoundIndex.Add(chamber, 1);
-                }
+                //foreach (var chamber in Chambers)
+                //{
+                //    GlobalSettings.ChamberRoundIndex.Add(chamber, 1);
+                //}
                 return true;
             }
         }

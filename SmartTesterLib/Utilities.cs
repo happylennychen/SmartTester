@@ -1,4 +1,4 @@
-﻿#define debug
+﻿//#define debug
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -100,11 +100,11 @@ namespace SmartTester
             return true;
         }
 
-        internal static void CreateOutputFolder(IChamber chamber)
-        {
-            string outputFolder = Path.Combine(GlobalSettings.OutputFolder, chamber.Name, "R" + GlobalSettings.ChamberRoundIndex[chamber].ToString());
-            Directory.CreateDirectory(outputFolder);
-        }
+        //internal static void CreateOutputFolder(IChamber chamber)
+        //{
+        //    string outputFolder = Path.Combine(GlobalSettings.OutputFolder, chamber.Name, "R" + GlobalSettings.ChamberRoundIndex[chamber].ToString());
+        //    Directory.CreateDirectory(outputFolder);
+        //}
 
         public static void FileConvert(List<string> filePaths, List<SmartTesterStep> fullSteps, double targetTemperature)
         {
@@ -615,11 +615,7 @@ namespace SmartTester
             //}
             return ret;
         }
-#if debug
-        public static bool SaveConfiguration(List<DebugChamber> chambers, List<DebugTester> testers)
-#else
-        public static bool SaveConfiguration(List<Chamber> chambers, List<Tester> testers)
-#endif
+        public static bool SaveConfiguration(List<IChamber> chambers, List<ITester> testers)
         {
             try
             {
@@ -639,16 +635,20 @@ namespace SmartTester
         public static bool LoadConfiguration(out Configuration conf)
         {
             conf = null;
-            try
-            {
-                string jsonString = File.ReadAllText(GlobalSettings.ConfigurationFilePath);
-                conf = JsonConvert.DeserializeObject<Configuration>(jsonString);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Error! Load Configuration Failed! {e.Message}");
-                return false;
-            }
+            //try
+            //{
+            //    string jsonString = File.ReadAllText(GlobalSettings.ConfigurationFilePath);
+            //    conf = JsonConvert.DeserializeObject<Configuration>(jsonString);
+            //}
+            //catch (Exception e)
+            //{
+            //    Console.WriteLine($"Error! Load Configuration Failed! {e.Message}");
+            //    return false;
+            //}
+            List<ITester> testers = new List<ITester>();
+            List<IChamber> chambers = new List<IChamber>();
+            string jsonString = File.ReadAllText(GlobalSettings.ConfigurationFilePath);
+            using (JsonDocument document = JsonDocument.Parse(jsonString))
             return true;
         }
 
