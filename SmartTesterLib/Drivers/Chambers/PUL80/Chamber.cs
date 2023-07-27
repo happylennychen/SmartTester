@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿//using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
@@ -13,7 +13,7 @@ namespace SmartTester
         public double HighestTemperature { get; set; }
         public string IpAddress { get; set; }
         public int Port { get; set; }
-        [JsonIgnore]
+        //[JsonIgnore]
         public IChamberExecutor Executor { get; set; }
         public List<IChannel> Channels { get; set; }
         public TestPlanScheduler TestScheduler { get; set; }
@@ -29,7 +29,7 @@ namespace SmartTester
             this.HighestTemperature = HighestTemperature;
             this.LowestTemperature = LowestTemperature;
         }
-        [JsonConstructor]
+        //[JsonConstructor]
         public Chamber(int id, string manufacturer, string name, double highestTemperature, double lowestTemperature, string ipAddress, int port)
         {
             Id = id;

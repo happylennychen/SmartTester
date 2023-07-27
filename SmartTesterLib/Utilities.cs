@@ -1,11 +1,11 @@
 ﻿//#define debug
-#define debugChamber
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace SmartTester
@@ -103,11 +103,11 @@ namespace SmartTester
             return true;
         }
 
-        internal static void CreateOutputFolder(IChamber chamber)
-        {
-            string outputFolder = Path.Combine(GlobalSettings.OutputFolder, chamber.Name, "R" + GlobalSettings.ChamberRoundIndex[chamber].ToString());
-            Directory.CreateDirectory(outputFolder);
-        }
+        //internal static void CreateOutputFolder(IChamber chamber)
+        //{
+        //    string outputFolder = Path.Combine(GlobalSettings.OutputFolder, chamber.Name, "R" + GlobalSettings.ChamberRoundIndex[chamber].ToString());
+        //    Directory.CreateDirectory(outputFolder);
+        //}
 
         public static void StdFileConvert(List<string> filePaths, List<SmartTesterStep> fullSteps, double targetTemperature)
         {
@@ -150,6 +150,11 @@ namespace SmartTester
                                         {
                                             CutOffBehavior cob = GetCutOffBehavior(step, lastRow.TimeInMS, lastRow);
                                             step = GetNewTargetStep(step, fullSteps, targetTemperature, lastRow.TimeInMS, lastRow);
+                                            if (step == null)
+                                            {
+                                                Console.WriteLine("GetNewTargetStep return null");
+                                                break;
+                                            }
                                             lastRow.Status = UpdateLastRowStatus(cob);
                                         }
 
@@ -255,6 +260,11 @@ namespace SmartTester
             CutOffBehavior cob = GetCutOffBehavior(currentStep, timeSpan, row);
             if (cob != null)
                 nextStep = Jump(cob, fullSteps, currentStep.Index, row);
+            else
+            {
+                Console.WriteLine("GetCutOffBehavior return null");
+                Console.WriteLine($"Index:{currentStep.Index}, Action:{currentStep.Action.Mode.ToString()}");
+            }
             return nextStep;
         }
         public static CutOffBehavior GetCutOffBehavior(SmartTesterStep currentStep, uint timeSpan, RowBase row) //如果没有符合条件的cob，则return null
@@ -269,7 +279,7 @@ namespace SmartTester
                         var time = cob.Condition.Value;
                         Console.WriteLine($"time = {time}");
                         Console.WriteLine($"timeSpan = {timeSpan}");
-                        if (Math.Abs(timeSpan / 1000 - time) < 1)
+                        if (Math.Abs(timeSpan / 1000 - time) < Tolerance.Time)
                         {
                             Console.WriteLine($"Meet time condition.");
                             break;
@@ -285,7 +295,7 @@ namespace SmartTester
                         var time = cob.Condition.Value;
                         Console.WriteLine($"time = {time}");
                         Console.WriteLine($"timeSpan = {timeSpan}");
-                        if (Math.Abs(timeSpan / 1000 - time) < 1)
+                        if (Math.Abs(timeSpan / 1000 - time) < Tolerance.Time)
                         {
                             Console.WriteLine($"Meet time condition.");
                             break;
@@ -297,9 +307,9 @@ namespace SmartTester
                     if (cob != null)
                     {
                         var curr = cob.Condition.Value;
-                        if (Math.Abs(curr - row.Current) < 1)
+                        if (curr >= row.Current)
                         {
-                            Console.WriteLine($"Current time condition.");
+                            Console.WriteLine($"Meet current condition.");
                             break;
                         }
                         else
@@ -314,7 +324,7 @@ namespace SmartTester
                         var time = cob.Condition.Value;
                         Console.WriteLine($"time = {time}");
                         Console.WriteLine($"timeSpan = {timeSpan}");
-                        if (Math.Abs(timeSpan / 1000 - time) < 1)
+                        if (Math.Abs(timeSpan / 1000 - time) < Tolerance.Time)
                         {
                             Console.WriteLine($"Meet time condition.");
                             break;
@@ -328,7 +338,7 @@ namespace SmartTester
                         var volt = cob.Condition.Value;
                         Console.WriteLine($"volt = {volt}");
                         Console.WriteLine($"row.Voltage = {row.Voltage}");
-                        if (Math.Abs(row.Voltage - volt) < 15)
+                        if (Math.Abs(row.Voltage - volt) < Tolerance.Voltage)
                         {
                             Console.WriteLine($"Meet voltage condition.");
                             break;
@@ -432,10 +442,10 @@ namespace SmartTester
                 foreach (var file in files)
                 {
                     string json = File.ReadAllText(file);
-                    var test = JsonConvert.DeserializeObject<SmartTesterRecipe>(json);
+                    //var test = JsonConvert.DeserializeObject<SmartTesterRecipe>(json);
                     //test.Chamber = chamber;
                     //test.Channel = channel;
-                    output.Add(test);
+                    //output.Add(test);
                 }
             }
             catch (Exception e)
@@ -645,40 +655,87 @@ namespace SmartTester
             //}
             return ret;
         }
-#if debug
-        public static bool SaveConfiguration(List<DebugChamber> chambers, List<DebugTester> testers)
-#elif debugChamber
-        public static bool SaveConfiguration(List<DebugChamber> chambers, List<PackTester> testers)
-#else
-        public static bool SaveConfiguration(List<Chamber> chambers, List<PackTester> testers)
-#endif
-        {
-            try
-            {
-                Configuration conf = new Configuration(chambers, testers);
-                //string jsonString = System.Text.Json.JsonSerializer.Serialize(conf);
-                string jsonString = JsonConvert.SerializeObject(conf, Formatting.Indented);
-                File.WriteAllText(GlobalSettings.ConfigurationFilePath, jsonString);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error! Create Configuration Failed!");
-                return false;
-            }
-            return true;
-        }
 
         public static bool LoadConfiguration(out Configuration conf)
         {
-            conf = null;
+            conf = new Configuration();
+            //try
+            //{
+            //    string jsonString = File.ReadAllText(GlobalSettings.ConfigurationFilePath);
+            //    conf = JsonConvert.DeserializeObject<Configuration>(jsonString);
+            //}
+            //catch (Exception e)
+            //{
+            //    Console.WriteLine($"Error! Load Configuration Failed! {e.Message}");
+            //    return false;
+            //}
             try
             {
                 string jsonString = File.ReadAllText(GlobalSettings.ConfigurationFilePath);
-                conf = JsonConvert.DeserializeObject<Configuration>(jsonString);
+                using (JsonDocument document = JsonDocument.Parse(jsonString))
+                {
+                    JsonElement root = document.RootElement;
+                    JsonElement testersElement = root.GetProperty("Testers");
+                    foreach (JsonElement testerElement in testersElement.EnumerateArray())
+                    {
+                        ITester tester = null;
+                        var className = testerElement.GetProperty("Class").GetString();
+                        var id = testerElement.GetProperty("Id").GetInt32();
+                        var name = testerElement.GetProperty("Name").GetString();
+                        var channelNumber = testerElement.GetProperty("ChannelNumber").GetInt32();
+                        var ipAddress = testerElement.GetProperty("IpAddress").GetString();
+                        var port = testerElement.GetProperty("Port").GetInt32();
+                        var sessionStr = testerElement.GetProperty("SessionStr").GetString();
+                        switch (className)
+                        {
+                            case "Chroma17208":
+                                tester = new Chroma17208(id, name!, channelNumber, ipAddress!, port, sessionStr!);
+                                break;
+                            case "DebugTester":
+                                tester = new DebugTester(id, name!, channelNumber, ipAddress!, port, sessionStr!);
+                                break;
+                            case "PackTester":
+                                tester = new PackTester(id, name!, channelNumber, ipAddress!, port, sessionStr!);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (tester != null)
+                            conf.Testers.Add(tester);
+                    }
+                    JsonElement chambersElement = root.GetProperty("Chambers");
+                    foreach (JsonElement chamberElement in chambersElement.EnumerateArray())
+                    {
+                        IChamber chamber = null;
+                        var className = chamberElement.GetProperty("Class").GetString();
+                        var id = chamberElement.GetProperty("Id").GetInt32();
+                        var manufacturer = chamberElement.GetProperty("Manufacturer").GetString();
+                        var name = chamberElement.GetProperty("Name").GetString();
+                        var lowestTemperature = chamberElement.GetProperty("LowestTemperature").GetDouble();
+                        var highestTemperature = chamberElement.GetProperty("HighestTemperature").GetDouble();
+                        var ipAddress = chamberElement.GetProperty("IpAddress").GetString();
+                        var port = chamberElement.GetProperty("Port").GetInt32();
+                        switch (className)
+                        {
+                            case "Chamber":
+                                chamber = new Chamber(id, manufacturer!, name!, highestTemperature, lowestTemperature, ipAddress!, port);
+                                break;
+                            case "DebugChamber":
+                                chamber = new DebugChamber(id, manufacturer!, name!, highestTemperature, lowestTemperature);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (chamber != null)
+                        {
+                            conf.Chambers.Add(chamber);
+                        }
+                    }
+                }
             }
-            catch (Exception e)
+            catch(Exception e) 
             {
-                Console.WriteLine($"Error! Load Configuration Failed! {e.Message}");
+                Console.WriteLine(e.Message);
                 return false;
             }
             return true;
@@ -712,5 +769,13 @@ namespace SmartTester
             }
             return true;
         }
+    }
+    public static class Tolerance
+    {
+        public const int Voltage = 15;
+        public const int Current = 2;
+        public const int Power = 1;
+        public const int Temperature = 1;
+        public const int Time = 1;
     }
 }

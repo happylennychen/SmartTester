@@ -1,125 +1,28 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{62C83CB9-5D17-470D-A4E0-7F8351DDD617}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SmartTesterLib</RootNamespace>
-    <AssemblyName>SmartTesterLib</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
   <ItemGroup>
     <Reference Include="Cobra.Common">
-      <HintPath>Lib\Cobra.Common.dll</HintPath>
+      <HintPath>..\..\..\smart_tester\SmartTesterLib\Lib\Cobra.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Cobra.Communication, Version=2.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Lib\Cobra.Communication.dll</HintPath>
+    <Reference Include="Cobra.Communication">
+      <HintPath>..\..\..\smart_tester\SmartTesterLib\Lib\Cobra.Communication.dll</HintPath>
     </Reference>
     <Reference Include="Ivi.Visa">
-      <HintPath>Lib\Ivi.Visa.dll</HintPath>
+      <HintPath>bin\Debug\Ivi.Visa.dll</HintPath>
     </Reference>
     <Reference Include="NationalInstruments.Visa">
-      <HintPath>Lib\NationalInstruments.Visa.dll</HintPath>
+      <HintPath>bin\Debug\NationalInstruments.Visa.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Core\Interfaces\RowBase.cs" />
-    <Compile Include="Core\PackRow.cs" />
-    <Compile Include="Core\TemperatureUnit.cs" />
-    <Compile Include="Core\TestPlanScheduler.cs" />
-    <Compile Include="Core\TestRound.cs" />
-    <Compile Include="Core\TestSection.cs" />
-    <Compile Include="Core\Token.cs" />
-    <Compile Include="Drivers\Chambers\Debug\DebugChamber.cs" />
-    <Compile Include="Drivers\Chambers\Debug\DebugChamberExecutor.cs" />
-    <Compile Include="Drivers\Testers\Debug\PseudoBattery.cs" />
-    <Compile Include="Drivers\Testers\Debug\PseudoHardware.cs" />
-    <Compile Include="Core\TimerSliceScheduler.cs" />
-    <Compile Include="Drivers\Testers\PackTester\SBSCommand.cs" />
-    <Compile Include="Drivers\Testers\PackTester\LibErrorCode.cs" />
-    <Compile Include="Drivers\Testers\PackTester\PackChannel.cs" />
-    <Compile Include="Drivers\Testers\PackTester\PackTester.cs" />
-    <Compile Include="Drivers\Testers\PackTester\PackTesterExecutor.cs" />
-    <Compile Include="Enums\TemperatureStatus.cs" />
-    <Compile Include="Enums\RoundStatus.cs" />
-    <Compile Include="Core\TemperatureScheduler.cs" />
-    <Compile Include="Recipe Logic\ActionMode.cs" />
-    <Compile Include="Core\Automator.cs" />
-    <Compile Include="Drivers\Chambers\PUL80\Chamber.cs" />
-    <Compile Include="Enums\ChamberStatus.cs" />
-    <Compile Include="Drivers\Testers\Chroma17208M\Chroma17208Channel.cs" />
-    <Compile Include="Enums\ChannelEvents.cs" />
-    <Compile Include="Enums\ChannelStatus.cs" />
-    <Compile Include="Drivers\Testers\Chroma17208M\Chroma17208Executor.cs" />
-    <Compile Include="Recipe Logic\CompareMarkEnum.cs" />
-    <Compile Include="Recipe Logic\Condition.cs" />
-    <Compile Include="Configurations\Configuration.cs" />
-    <Compile Include="Recipe Logic\CutOffBehavior.cs" />
-    <Compile Include="Core\DataLogger.cs" />
-    <Compile Include="Drivers\Testers\Debug\DebugChannel.cs" />
-    <Compile Include="Drivers\Testers\Debug\DebugTester.cs" />
-    <Compile Include="Drivers\Testers\Debug\DebugTesterExecutor.cs" />
-    <Compile Include="Configurations\GlobalSettings.cs" />
-    <Compile Include="Core\Interfaces\IChamber.cs" />
-    <Compile Include="Core\Interfaces\IChamberExecutor.cs" />
-    <Compile Include="Core\Interfaces\IChannel.cs" />
-    <Compile Include="Core\Interfaces\IDataLogger.cs" />
-    <Compile Include="Core\Interfaces\ITester.cs" />
-    <Compile Include="Core\Interfaces\ITesterExecutor.cs" />
-    <Compile Include="Recipe Logic\JumpBehavior.cs" />
-    <Compile Include="Recipe Logic\JumpType.cs" />
-    <Compile Include="Enums\Parameter.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Drivers\Chambers\PUL80\PUL80Executor.cs" />
-    <Compile Include="Enums\RowStatus.cs" />
-    <Compile Include="Core\StandardRow.cs" />
-    <Compile Include="Recipe Logic\SmartTesterStep.cs" />
-    <Compile Include="Core\TemperatureTarget.cs" />
-    <Compile Include="Recipe Logic\SmartTesterRecipe.cs" />
-    <Compile Include="Drivers\Testers\Chroma17208M\Chroma17208.cs" />
-    <Compile Include="Recipe Logic\TesterAction.cs" />
-    <Compile Include="Utilities.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>

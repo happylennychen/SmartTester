@@ -13,7 +13,7 @@
   "Testers": [
     {
       "Id": 3,
-      "Name": "PackTester",
+      "Name": "DebugTester",
       "ChannelNumber": 1,
       "IpAddress": "192.168.1.25",
       "Port": 8802,
