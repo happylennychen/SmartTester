@@ -1,14 +1,14 @@
 # ignore files in all directories
 .vs/
-#~*
-#*.7z
+~*
+*.7z
 */obj/
 */bin/
 #!*/bin/Debug/	无效，因为父级目录被ignore
 #**/Debug/
 */Release/
-#*.bak
-#*.lnk
-#*.suo
-#output/
+*.bak
+*.lnk
+*.suo
+output/
 packages/
