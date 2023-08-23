@@ -18,5 +18,7 @@ namespace SmartTester
         void Stop();
         void Start();
         void SetStepsForOneTempPoint();
+        CutOffBehavior GetCutOffBehavior(SmartTesterStep currentStep, IRow row);
+        SmartTesterStep GetNewTargetStep(SmartTesterStep currentStep, List<SmartTesterStep> fullSteps, double temperature, IRow row);
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 
@@ -28,9 +29,79 @@ namespace SmartTester
 
         public void GenerateFile()
         {
-            Utilities.StdFileConvert(TempFileList, Recipe.Steps, TargetTemperature);
+            FileConvert(TempFileList, Recipe.Steps, TargetTemperature);
             TempFileList.Clear();
         }
+        public void FileConvert(List<string> filePaths, List<SmartTesterStep> fullSteps, double targetTemperature)
+        {
+            uint indexOffset = 0;
+            uint timeOffset = 0;
+            uint lastTimeInMS = 0;
+            PackRow lastRow = null;
+            PackRow currentRow = null;
+            var newFilePath = Path.ChangeExtension(filePaths[0], "csv");
+            SmartTesterStep step = fullSteps.First();
+            using (FileStream stdFile = new FileStream(newFilePath, FileMode.Create))
+            {
+                Console.WriteLine($"{newFilePath} created.");
+                using (StreamWriter stdWriter = new StreamWriter(stdFile))
+                {
+                    Console.WriteLine($"StreamWriter created.");
+                    stdWriter.WriteLine("Index,Time(mS),Mode,Current(mA),Voltage(mV),Temperature(degC),Status");
+                    foreach (var filePath in filePaths)
+                    {
+
+                        Console.WriteLine($"Trying to open file {filePath}.");
+                        try
+                        {
+                            using (FileStream rawFile = new FileStream(filePath, FileMode.Open))
+                            {
+                                using (StreamReader rawReader = new StreamReader(rawFile))
+                                {
+                                    while (rawReader.Peek() != -1)
+                                    {
+                                        if (currentRow != null)
+                                            lastRow = currentRow;
+                                        var line = rawReader.ReadLine();
+                                        currentRow = new PackRow();
+                                        currentRow.LoadFromString(line);
+                                        if (lastRow == null)
+                                            continue;
+
+                                        if (lastRow.Status != RowStatus.RUNNING)
+                                        {
+                                            CutOffBehavior cob = GetCutOffBehavior(step, lastRow);
+                                            step = GetNewTargetStep(step, fullSteps, targetTemperature, lastRow);
+                                            lastRow.Status = Utilities.UpdateLastRowStatus(cob);
+                                        }
+
+                                        lastRow.Index = ++indexOffset;
+                                        lastRow.TimeInMS += timeOffset;
+                                        //var offset = (int)currentRow.TimeInMS - (int)lastRow.TimeInMS - 1000;
+                                        stdWriter.WriteLine(lastRow.ToString()/* + "," + offset.ToString()*/);
+                                        lastTimeInMS = lastRow.TimeInMS;
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Cannot open file {filePath}.\n{e.Message}");
+                            return;
+                        }
+                    }
+                    //处理最后一行数据
+                    currentRow.Index = ++indexOffset;
+                    currentRow.TimeInMS += timeOffset;
+                    currentRow.Status = Utilities.UpdateLastRowStatus(GetCutOffBehavior(step, currentRow));
+                    stdWriter.WriteLine(currentRow.ToString());
+                }
+            }
+            string newFileFullPath = Utilities.GetNewFileFullPath(newFilePath, lastTimeInMS);
+            if (newFileFullPath != null)
+                File.Move(newFilePath, newFileFullPath);
+        }
+
 
         public void Reset()
         {
@@ -116,7 +187,9 @@ namespace SmartTester
                 }
                 packRow = row as PackRow;
                 packRow.Mode = CurrentStep.Action.Mode;
-                packRow.UpdateStatus(CurrentStep);
+                var cob = GetCutOffBehavior(CurrentStep, packRow);
+                if (cob != null)
+                    packRow.Status = Utilities.UpdateLastRowStatus(cob);
             }
             while (packRow.TimeInMS < (1000 + LastTimeInMS) && packRow.Status == RowStatus.RUNNING);
 
@@ -152,7 +225,7 @@ namespace SmartTester
             #region change step
             if (packRow.Status != RowStatus.RUNNING)
             {
-                CurrentStep = Utilities.GetNewTargetStep(CurrentStep, StepsForOneTempPoint, TargetTemperature, packRow.TimeInMS, packRow);
+                CurrentStep = GetNewTargetStep(CurrentStep, StepsForOneTempPoint, TargetTemperature, packRow);
                 if (CurrentStep == null)
                 {
                     Reset();
@@ -191,7 +264,108 @@ namespace SmartTester
                 Timer.Change(950, 0);
             }
         }
+        public SmartTesterStep GetNewTargetStep(SmartTesterStep currentStep, List<SmartTesterStep> fullSteps, double temperature, IRow row)
+        {
+            Console.WriteLine("GetNewTargetStep");
+            SmartTesterStep nextStep = null;
+            CutOffBehavior cob = GetCutOffBehavior(currentStep, row);
+            if (cob != null)
+                nextStep = Utilities.Jump(cob, fullSteps, currentStep.Index, row);
+            else
+            {
+                Console.WriteLine("GetCutOffBehavior return null");
+                Console.WriteLine($"Index:{currentStep.Index}, Action:{currentStep.Action.Mode.ToString()}");
+            }
+            return nextStep;
+        }
 
+        public CutOffBehavior GetCutOffBehavior(SmartTesterStep currentStep, IRow row) //根据读到的电压、电流、温度值和截止条件，获取COB。如果没有符合条件的cob，则return null
+        {
+            var timeSpan = row.TimeInMS;
+            CutOffBehavior cob = null;
+            switch (currentStep.Action.Mode)
+            {
+                case ActionMode.REST:// "StepFinishByCut_V":
+                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
+                    if (cob != null)
+                    {
+                        var time = cob.Condition.Value;
+                        Console.WriteLine($"time = {time}");
+                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        if (timeSpan / 1000 > time)
+                        {
+                            Console.WriteLine($"Meet time condition.");
+                            break;
+                        }
+                        else
+                            cob = null;
+                    }
+                    break;
+                case ActionMode.CC_CV_CHARGE://"StepFinishByCut_I":
+                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
+                    if (cob != null)
+                    {
+                        var time = cob.Condition.Value;
+                        Console.WriteLine($"time = {time}");
+                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        if (timeSpan / 1000 > time)
+                        {
+                            Console.WriteLine($"Meet time condition.");
+                            break;
+                        }
+                        else
+                            cob = null;
+                    }
+                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.CURRENT);
+                    if (cob != null)
+                    {
+                        var curr = cob.Condition.Value;
+                        if (curr < row.Current)
+                        {
+                            Console.WriteLine($"Current time condition.");
+                            break;
+                        }
+                        else
+                            cob = null;
+                    }
+                    break;
+                case ActionMode.CC_DISCHARGE://"StepFinishByCut_T":
+                case ActionMode.CP_DISCHARGE:
+                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
+                    if (cob != null)
+                    {
+                        var time = cob.Condition.Value;
+                        Console.WriteLine($"time = {time}");
+                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        if (timeSpan / 1000 > time)
+                        {
+                            Console.WriteLine($"Meet time condition.");
+                            break;
+                        }
+                        else
+                            cob = null;
+                    }
+                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.VOLTAGE);
+                    if (cob != null)
+                    {
+                        var volt = cob.Condition.Value;
+                        Console.WriteLine($"volt = {volt}");
+                        Console.WriteLine($"row.Voltage = {row.Voltage}");
+                        if (row.Voltage < volt)
+                        {
+                            Console.WriteLine($"Meet voltage condition.");
+                            break;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Doesn't meet voltage condition.");
+                            cob = null;
+                        }
+                    }
+                    break;
+            }
+            return cob;
+        }
         private StandardRow GetAdjustedRow(List<StandardRow> standardRows, SmartTesterStep step)
         {
             List<StandardRow> rows = GetLastStepRows(standardRows);

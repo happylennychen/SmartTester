@@ -2,17 +2,17 @@
 
 namespace SmartTester
 {
-    public class PackRow : RowBase
+    public class PackRow : IRow
     {
         public uint Index { get; set; }
-        //public uint TimeInMS { get; set; }
-        //public ActionMode Mode { get; set; }
-        //public double Current { get; set; } //mA，充电为正，放电为负
-        //public double Voltage { get; set; } //mV
-        //public double Temperature { get; set; } //celcius
+        public uint TimeInMS { get; set; }
+        public ActionMode Mode { get; set; }
+        public double Current { get; set; } //mA，充电为正，放电为负
+        public double Voltage { get; set; } //mV
+        public double Temperature { get; set; } //celcius
         //public double Capacity { get; set; }    //mAh
         //public double TotalCapacity { get; set; }   //mAh
-        //public RowStatus Status { get; set; }
+        public RowStatus Status { get; set; }
         public override string ToString()
         {
             return $@"{Index},{TimeInMS},{(byte)Mode},{Current.ToString("f4")},{Voltage.ToString("f4")},{Temperature.ToString("f4")},{(byte)Status}";
@@ -20,7 +20,7 @@ namespace SmartTester
         public PackRow()
         {
         }
-        public PackRow(string line)
+        public void LoadFromString(string line)
         {
             var strArray = line.Split(',');
             uint Index; uint TimeInMS; ActionMode Mode; double Current; double Voltage; double Temperature; RowStatus Status;
@@ -60,13 +60,6 @@ namespace SmartTester
         public PackRow Clone()
         {
             return (PackRow)this.MemberwiseClone();
-        }
-
-        public void UpdateStatus(SmartTesterStep currentStep)
-        {
-            var cob = Utilities.GetCutOffBehavior(currentStep, TimeInMS, this);
-            if (cob != null)
-                Status = Utilities.UpdateLastRowStatus(cob);
         }
     }
 }
