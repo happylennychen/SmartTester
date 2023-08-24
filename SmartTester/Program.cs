@@ -30,11 +30,11 @@ namespace SmartTester
             amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch=>ch.Index<=4), amtr.Chambers[0]);
             amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch => ch.Index > 4), amtr.Chambers[1]);
             #region Chamber1
-            var  chm1_r1_ch3= Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R1\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm1_r2_ch1 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH1\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm1_r2_ch2 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH2\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm1_r2_ch3 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm1_r2_ch4 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH4\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var  chm1_r1_ch3= Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R1\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm1_r2_ch1 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH1\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm1_r2_ch2 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH2\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm1_r2_ch3 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm1_r2_ch4 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH4\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
             Dictionary<IChannel, SmartTesterRecipe> channelRecipesForR1 = new Dictionary<IChannel, SmartTesterRecipe>();
             channelRecipesForR1.Add(amtr.Testers[0].Channels[2], chm1_r1_ch3);
 
@@ -52,20 +52,20 @@ namespace SmartTester
             #endregion
 
             #region Chamber2
-            var chm2_r1_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r1_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r1_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r1_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r1_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r1_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r1_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r1_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
 
-            var chm2_r2_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r2_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r2_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r2_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r2_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r2_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r2_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r2_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
 
-            var chm2_r3_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r3_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r3_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r3_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r3_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r3_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r3_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r3_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
 
             var r1 = new Dictionary<IChannel, SmartTesterRecipe>();
             r1.Add(amtr.Testers[0].Channels[4], chm2_r1_ch5);
