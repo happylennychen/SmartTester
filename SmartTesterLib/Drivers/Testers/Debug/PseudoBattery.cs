@@ -1,4 +1,4 @@
-﻿namespace SmartTester
+﻿namespace SmartTesterLib
 {
     public class PseudoBattery
     {
@@ -7,7 +7,8 @@
         public double Current { get; set; }
         public double Voltage { get; set; }
         public double Temperature { get; set; }
-        public double ChargeCurrentSlope { get; internal set; }
+        public double ChargeCurrentSlope1 { get; internal set; }
+        public double ChargeCurrentSlope2 { get; internal set; }
         public double ChargeVoltageSlope { get; internal set; }
         public double EnvTemperature { get; internal set; }
         public double NonDischargeTemperatureSlope { get; internal set; }

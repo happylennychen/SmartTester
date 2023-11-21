@@ -6,59 +6,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public static class Utilities
     {
-        public static void FileConvert(string filePath)
-        {
-            uint indexOffset = 0;
-            uint timeOffset = 0;
-            double lastCapacity = 0;
-            double capacityOffset = 0;
-            double totalCapacityOffset = 0;
-            bool isNewStep = false;
-            ActionMode lastMode = ActionMode.REST;
-            using (FileStream rawFile = new FileStream(filePath, FileMode.Open))
-            {
-                using (StreamReader rawReader = new StreamReader(rawFile))
-                {
-                    using (FileStream stdFile = new FileStream(Path.ChangeExtension(filePath, "csv"), FileMode.Create))
-                    {
-                        using (StreamWriter stdWriter = new StreamWriter(stdFile))
-                        {
-                            stdWriter.WriteLine("Index,Time(mS),Mode,Current(mA),Voltage(mV),Temperature(degC),Capacity(mAh),Total Capacity(mAh),Status");
-                            while (rawReader.Peek() != -1)
-                            {
-                                var line = rawReader.ReadLine();
-                                StandardRow stdRow = new StandardRow(line);
-                                if (isNewStep)
-                                {
-                                    if (lastMode == stdRow.Mode)
-                                        capacityOffset = lastCapacity;
-                                }
-                                stdRow.Index = ++indexOffset;
-                                stdRow.TimeInMS += timeOffset;
-                                stdRow.Capacity += capacityOffset;
-                                stdRow.TotalCapacity = stdRow.Capacity + totalCapacityOffset;
-                                stdWriter.WriteLine(stdRow.ToString());
-                                if (stdRow.Status == RowStatus.STOP)
-                                {
-                                    timeOffset = stdRow.TimeInMS;
-                                    lastMode = stdRow.Mode;
-                                    lastCapacity = stdRow.Capacity;
-                                    totalCapacityOffset = stdRow.TotalCapacity;
-                                    isNewStep = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         public static bool CreateTestPlanFolders(string projectName, Dictionary<IChamber, Dictionary<int, List<IChannel>>> testPlanFolderTree)
         {
             string projectPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName);
@@ -101,127 +55,35 @@ namespace SmartTester
             return true;
         }
 
-        internal static void CreateOutputFolder(IChamber chamber)
+        public static RowStatus UpdateLastRowStatus(CutOffBehavior cob)    //根据cob来推出RowStatus，条件是找到了正确的cob
         {
-            string outputFolder = Path.Combine(GlobalSettings.OutputFolder, chamber.Name, "R" + GlobalSettings.ChamberRoundIndex[chamber].ToString());
-            Directory.CreateDirectory(outputFolder);
-        }
-
-        public static void FileConvert(List<string> filePaths, List<SmartTesterStep> fullSteps, double targetTemperature)
-        {
-            uint indexOffset = 0;
-            uint timeOffset = 0;
-            double capacityOffset = 0;
-            double totalCapacityOffset = 0;
-            uint lastTimeInMS = 0;
-            StandardRow lastRow = null;
-            StandardRow currentRow = null;
-            var newFilePath = Path.ChangeExtension(filePaths[0], "csv");
-            SmartTesterStep step = fullSteps.First();
-            using (FileStream stdFile = new FileStream(newFilePath, FileMode.Create))
-            {
-                Utilities.WriteLine($"{newFilePath} created.");
-                using (StreamWriter stdWriter = new StreamWriter(stdFile))
-                {
-                    Utilities.WriteLine($"StreamWriter created.");
-                    stdWriter.WriteLine("Index,Time(mS),Mode,Current(mA),Voltage(mV),Temperature(degC),Capacity(mAh),Total Capacity(mAh),Status");
-                    foreach (var filePath in filePaths)
-                    {
-
-                        Utilities.WriteLine($"Trying to open file {filePath}.");
-                        try
-                        {
-                            using (FileStream rawFile = new FileStream(filePath, FileMode.Open))
-                            {
-                                using (StreamReader rawReader = new StreamReader(rawFile))
-                                {
-                                    while (rawReader.Peek() != -1)
-                                    {
-                                        if (currentRow != null)
-                                            lastRow = currentRow;
-                                        var line = rawReader.ReadLine();
-                                        currentRow = new StandardRow(line);
-                                        if (lastRow == null)
-                                            continue;
-
-                                        if (lastRow.Status != RowStatus.RUNNING)
-                                        {
-                                            CutOffBehavior cob = GetCutOffBehavior(step, lastRow.TimeInMS, lastRow);
-                                            step = GetNewTargetStep(step, fullSteps, targetTemperature, lastRow.TimeInMS, lastRow);
-                                            UpdateRowStatus(ref lastRow, cob, targetTemperature);
-                                        }
-
-                                        lastRow.Index = ++indexOffset;
-                                        lastRow.TimeInMS += timeOffset;
-                                        lastRow.Capacity += capacityOffset;
-                                        lastRow.TotalCapacity = lastRow.Capacity + totalCapacityOffset;
-                                        //var offset = (int)currentRow.TimeInMS - (int)lastRow.TimeInMS - 1000;
-                                        stdWriter.WriteLine(lastRow.ToString()/* + "," + offset.ToString()*/);
-                                        if (lastRow.Status != RowStatus.RUNNING)
-                                        {
-                                            timeOffset = lastRow.TimeInMS;
-                                            if (ShouldCapacityContinue(lastRow, currentRow))
-                                            {
-                                                capacityOffset = lastRow.Capacity;
-                                            }
-                                            else
-                                            {
-                                                capacityOffset = 0;
-                                                totalCapacityOffset = lastRow.TotalCapacity;
-                                            }
-                                        }
-                                        lastTimeInMS = lastRow.TimeInMS;
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Utilities.WriteLine($"Cannot open file {filePath}.\n{e.Message}");
-                            return;
-                        }
-                    }
-                    //处理最后一行数据
-                    currentRow.Index = ++indexOffset;
-                    currentRow.TimeInMS += timeOffset;
-                    currentRow.Capacity += capacityOffset;
-                    currentRow.TotalCapacity = currentRow.Capacity + totalCapacityOffset;
-                    UpdateRowStatus(ref currentRow, GetCutOffBehavior(step, currentRow.TimeInMS, currentRow), targetTemperature);
-                    stdWriter.WriteLine(currentRow.ToString());
-                }
-            }
-            string newFileFullPath = GetNewFileFullPath(newFilePath, lastTimeInMS);
-            if (newFileFullPath != null)
-                File.Move(newFilePath, newFileFullPath);
-        }
-
-        private static void UpdateRowStatus(ref StandardRow row, CutOffBehavior cob, double targetTemperature)
-        {
+            RowStatus rs = RowStatus.UNKNOWN;
             if (cob != null)
                 switch (cob.Condition.Parameter)
                 {
                     case Parameter.CURRENT:
-                        row.Status = RowStatus.CUT_OFF_BY_CURRENT;
+                        rs = RowStatus.CUT_OFF_BY_CURRENT;
                         break;
                     case Parameter.POWER:
-                        row.Status = RowStatus.CUT_OFF_BY_POWER;
+                        rs = RowStatus.CUT_OFF_BY_POWER;
                         break;
                     case Parameter.TEMPERATURE:
-                        row.Status = RowStatus.CUT_OFF_BY_TEMPERATURE;
+                        rs = RowStatus.CUT_OFF_BY_TEMPERATURE;
                         break;
                     case Parameter.TIME:
-                        row.Status = RowStatus.CUT_OFF_BY_TIME;
+                        rs = RowStatus.CUT_OFF_BY_TIME;
                         break;
                     case Parameter.VOLTAGE:
-                        row.Status = RowStatus.CUT_OFF_BY_VOLTAGE;
+                        rs = RowStatus.CUT_OFF_BY_VOLTAGE;
                         break;
                     default:
-                        row.Status = RowStatus.UNKNOWN;
+                        rs = RowStatus.UNKNOWN;
                         break;
                 }
+            return rs;
         }
 
-        private static bool ShouldCapacityContinue(StandardRow lastRow, StandardRow stdRow)
+        public static bool ShouldCapacityContinue(StandardRow lastRow, StandardRow stdRow)
         {
             return lastRow.Mode == stdRow.Mode;
         }
@@ -242,79 +104,7 @@ namespace SmartTester
             else
                 return null;
         }
-
-        public static SmartTesterStep GetNewTargetStep(SmartTesterStep currentStep, List<SmartTesterStep> fullSteps, double temperature, uint timeSpan, StandardRow row)
-        {
-            Utilities.WriteLine("GetNewTargetStep");
-            SmartTesterStep nextStep = null;
-            CutOffBehavior cob = GetCutOffBehavior(currentStep, timeSpan, row);
-            if (cob != null)
-                nextStep = Jump(cob, fullSteps, currentStep.Index, row);
-            return nextStep;
-        }
-        private static CutOffBehavior GetCutOffBehavior(SmartTesterStep currentStep, uint timeSpan, StandardRow row)
-        {
-            CutOffBehavior cob = null;
-            switch (currentStep.Action.Mode)
-            {
-                case ActionMode.REST:// "StepFinishByCut_V":
-                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
-                    break;
-                case ActionMode.CC_CV_CHARGE://"StepFinishByCut_I":
-                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
-                    if (cob != null)
-                    {
-                        var time = cob.Condition.Value;
-                        Utilities.WriteLine($"time = {time}");
-                        Utilities.WriteLine($"timeSpan = {timeSpan}");
-                        if (Math.Abs(timeSpan / 1000 - time) < 1)
-                        {
-                            Utilities.WriteLine($"Meet time condition.");
-                            break;
-                        }
-                        else
-                            cob = null;
-                    }
-                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.CURRENT);
-                    break;
-                case ActionMode.CC_DISCHARGE://"StepFinishByCut_T":
-                case ActionMode.CP_DISCHARGE:
-                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.TIME);
-                    if (cob != null)
-                    {
-                        var time = cob.Condition.Value;
-                        Utilities.WriteLine($"time = {time}");
-                        Utilities.WriteLine($"timeSpan = {timeSpan}");
-                        if (Math.Abs(timeSpan / 1000 - time) < 1)
-                        {
-                            Utilities.WriteLine($"Meet time condition.");
-                            break;
-                        }
-                        else
-                            cob = null;
-                    }
-                    cob = currentStep.CutOffBehaviors.SingleOrDefault(o => o.Condition.Parameter == Parameter.VOLTAGE);
-                    if (cob != null)
-                    {
-                        var volt = cob.Condition.Value;
-                        Utilities.WriteLine($"volt = {volt}");
-                        Utilities.WriteLine($"row.Voltage = {row.Voltage}");
-                        if (Math.Abs(row.Voltage - volt) < 15)
-                        {
-                            Utilities.WriteLine($"Meet voltage condition.");
-                            break;
-                        }
-                        else
-                        {
-                            Utilities.WriteLine($"Doesn't meet voltage condition.");
-                            cob = null;
-                        }
-                    }
-                    break;
-            }
-            return cob;
-        }
-        private static SmartTesterStep Jump(CutOffBehavior cob, List<SmartTesterStep> fullSteps, int currentStepIndex, StandardRow row)
+        public static SmartTesterStep Jump(CutOffBehavior cob, List<SmartTesterStep> fullSteps, int currentStepIndex, IRow row)
         {
             SmartTesterStep nextStep = null;
             if (cob.JumpBehaviors.Count == 1)
@@ -403,10 +193,10 @@ namespace SmartTester
                 foreach (var file in files)
                 {
                     string json = File.ReadAllText(file);
-                    var test = JsonConvert.DeserializeObject<SmartTesterRecipe>(json);
+                    //var test = JsonConvert.DeserializeObject<SmartTesterRecipe>(json);
                     //test.Chamber = chamber;
                     //test.Channel = channel;
-                    output.Add(test);
+                    //output.Add(test);
                 }
             }
             catch (Exception e)
@@ -573,79 +363,74 @@ namespace SmartTester
             return testers.SingleOrDefault(tst => tst.Name == testerName);
         }
 
-        public static bool TestPlanFullCheck(string projectName, List<IChamber> chambers, List<ITester> testers)
-        {
-            string root = GlobalSettings.TestPlanFolderPath;
-            bool ret = true;
-            //Utilities.WriteLine("Test Plan pre-check.");
-            //foreach (var chamber in chambers)
-            //{
-            //    var roundIndex = GlobalSettings.ChamberRoundIndex[chamber];
-            //    while (true)
-            //    {
-            //        string folderPath = GetTestPlanOneRoundFolderPath(projectName, chamber, roundIndex);
-            //        if (Directory.Exists(folderPath))
-            //        {
-            //            List<Test> tests;
-            //            if (!LoadTestFromFolder(folderPath, chambers, testers, out tests))
-            //                return false;
-            //            if (!Utilities.ChamberGroupTestCheck(tests))
-            //            {
-            //                Utilities.WriteLine($"Round {roundIndex} failed!");
-            //                ret &= false;
-            //            }
-            //            else
-            //                Utilities.WriteLine($"Round {roundIndex} pass!");
-            //            roundIndex++;
-            //        }
-            //        else
-            //        {
-            //            if (roundIndex == 1)
-            //            {
-            //                Utilities.WriteLine($"There's no test plan, please check.");
-            //                ret = false;
-            //                break;
-            //            }
-            //            else
-            //            {
-            //                Utilities.WriteLine($"All rounds test plan check finished.");
-            //                break;
-            //            }
-            //        }
-            //    }
-            //}
-            return ret;
-        }
-#if debug
-        public static bool SaveConfiguration(List<DebugChamber> chambers, List<DebugTester> testers)
-#else
-        public static bool SaveConfiguration(List<Chamber> chambers, List<Tester> testers)
-#endif
-        {
-            try
-            {
-                Configuration conf = new Configuration(chambers, testers);
-                //string jsonString = System.Text.Json.JsonSerializer.Serialize(conf);
-                string jsonString = JsonConvert.SerializeObject(conf, Formatting.Indented);
-                File.WriteAllText(GlobalSettings.ConfigurationFilePath, jsonString);
-            }
-            catch (Exception e)
-            {
-                Utilities.WriteLine("Error! Create Configuration Failed!");
-                return false;
-            }
-            return true;
-        }
-
         public static bool LoadConfiguration(out Configuration conf)
         {
-            conf = null;
+            conf = new Configuration();
             try
             {
                 string jsonString = File.ReadAllText(GlobalSettings.ConfigurationFilePath);
-                conf = JsonConvert.DeserializeObject<Configuration>(jsonString);
+                using (JsonDocument document = JsonDocument.Parse(jsonString))
+                {
+                    JsonElement root = document.RootElement;
+                    JsonElement testersElement = root.GetProperty("Testers");
+                    foreach (JsonElement testerElement in testersElement.EnumerateArray())
+                    {
+                        ITester tester = null;
+                        var className = testerElement.GetProperty("Class").GetString();
+                        var id = testerElement.GetProperty("Id").GetInt32();
+                        var name = testerElement.GetProperty("Name").GetString();
+                        var channelNumber = testerElement.GetProperty("ChannelNumber").GetInt32();
+                        var ipAddress = testerElement.GetProperty("IpAddress").GetString();
+                        var port = testerElement.GetProperty("Port").GetInt32();
+                        var sessionStr = testerElement.GetProperty("SessionStr").GetString();
+                        switch (className)
+                        {
+                            case "Chroma17208":
+                                tester = new Chroma17208(id, name!, channelNumber, ipAddress!, port, sessionStr!);
+                                break;
+                            case "DebugTester":
+                                tester = new DebugTester(id, name!, channelNumber, ipAddress!, port, sessionStr!);
+                                break;
+                            case "PackTester":
+                                tester = new PackTester(id, name!, channelNumber, ipAddress!, port, sessionStr!);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (tester != null)
+                            conf.Testers.Add(tester);
+                    }
+                    JsonElement chambersElement = root.GetProperty("Chambers");
+                    foreach (JsonElement chamberElement in chambersElement.EnumerateArray())
+                    {
+                        IChamber chamber = null;
+                        var className = chamberElement.GetProperty("Class").GetString();
+                        var id = chamberElement.GetProperty("Id").GetInt32();
+                        var manufacturer = chamberElement.GetProperty("Manufacturer").GetString();
+                        var name = chamberElement.GetProperty("Name").GetString();
+                        var lowestTemperature = chamberElement.GetProperty("LowestTemperature").GetDouble();
+                        var highestTemperature = chamberElement.GetProperty("HighestTemperature").GetDouble();
+                        var ipAddress = chamberElement.GetProperty("IpAddress").GetString();
+                        var port = chamberElement.GetProperty("Port").GetInt32();
+                        switch (className)
+                        {
+                            case "Chamber":
+                                chamber = new Chamber(id, manufacturer!, name!, highestTemperature, lowestTemperature, ipAddress!, port);
+                                break;
+                            case "DebugChamber":
+                                chamber = new DebugChamber(id, manufacturer!, name!, highestTemperature, lowestTemperature);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (chamber != null)
+                        {
+                            conf.Chambers.Add(chamber);
+                        }
+                    }
+                }
             }
-            catch (Exception e)
+            catch(Exception e) 
             {
                 Utilities.WriteLine($"Error! Load Configuration Failed! {e.Message}");
                 return false;
@@ -688,5 +473,13 @@ namespace SmartTester
             }
             return true;
         }
+    }
+    public static class Tolerance
+    {
+        public const int Voltage = 15;
+        public const int Current = 2;
+        public const int Power = 1;
+        public const int Temperature = 1;
+        public const int Time = 1;
     }
 }

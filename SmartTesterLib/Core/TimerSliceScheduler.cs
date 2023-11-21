@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class TimerSliceScheduler
     {
@@ -40,7 +40,7 @@ namespace SmartTester
             mainWatch.Stop();
         }
 
-        private void MainCounter()
+        private void MainCounter()  //在合适的时间点开启某一个channel自己的timer
         {
             long data;
             do

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class PseudoHardware
     {
@@ -16,13 +16,14 @@ namespace SmartTester
         public int TimerIntervalInMS { get; set; }
         public Timer Timer { get; set; }
 
-        public PseudoHardware(int interval, double ccs, double cvs, double dvs, double dts, double ndts)
+        public PseudoHardware(int interval, double ccs1, double ccs2, double cvs, double dvs, double dts, double ndts)
         {
             Stopwatch = new Stopwatch();
             DataLength = 20;
             DataQueues = new Queue<StandardRow>();
             Battery = new PseudoBattery(3600, 0, 0, 3600, 20);
-            Battery.ChargeCurrentSlope = ccs;
+            Battery.ChargeCurrentSlope1 = ccs1;
+            Battery.ChargeCurrentSlope2 = ccs2;
             Battery.ChargeVoltageSlope = cvs;
             Battery.DischargeVoltageSlope = dvs;
             Battery.EnvTemperature = 0;
@@ -56,7 +57,14 @@ namespace SmartTester
                             Battery.Voltage = Step.Action.Voltage;
                     }
                     else
-                        Battery.Current -= Battery.ChargeCurrentSlope * TimerIntervalInMS / 1000.0 + currentOffset;
+                    {
+                        if(Battery.Current > 300)
+                            Battery.Current -= Battery.ChargeCurrentSlope1 * TimerIntervalInMS / 1000.0;
+                        else
+                            Battery.Current -= Battery.ChargeCurrentSlope2 * TimerIntervalInMS / 1000.0;
+                        if (Battery.Current < 0)
+                            Battery.Current = 0;
+                    }
 
                     Battery.RemainCapacity += Battery.Current / 1000 * (TimerIntervalInMS / 1000.0) / 3600;
 

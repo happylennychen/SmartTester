@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class DataLogger : IDataLogger
     {

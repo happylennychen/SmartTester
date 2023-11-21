@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
-    public class StandardRow
+    public class StandardRow : IRow
     {
         public uint Index { get; set; }
         public uint TimeInMS { get; set; }
@@ -20,7 +20,7 @@ namespace SmartTester
         public StandardRow()
         {
         }
-        public StandardRow(string line)
+        public void LoadFromString(string line)
         {
             var strArray = line.Split(',');
             uint Index; uint TimeInMS; ActionMode Mode; double Current; double Voltage; double Temperature; double Capacity; double TotalCapacity; RowStatus Status;

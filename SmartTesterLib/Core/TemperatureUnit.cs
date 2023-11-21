@@ -1,4 +1,4 @@
-﻿namespace SmartTester
+﻿namespace SmartTesterLib
 {
     public class TemperatureUnit    //作为scheduler中的基础温度节点，描述温度点的状态
     {

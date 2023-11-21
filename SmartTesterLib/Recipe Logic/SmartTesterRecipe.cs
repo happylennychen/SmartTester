@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class SmartTesterRecipe
     {

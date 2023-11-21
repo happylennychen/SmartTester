@@ -1,4 +1,4 @@
-﻿#define debug
+﻿//#define debug
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using static System.Threading.Thread;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class Automator//提供Automator顶层数据结构及API（Init, AutoRun），不关心具体的硬件
     {
@@ -26,10 +26,10 @@ namespace SmartTester
             {
                 Chambers = conf.Chambers.Select(c => (IChamber)c).ToList();
                 Testers = conf.Testers.Select(t => (ITester)t).ToList();
-                foreach (var chamber in Chambers)
-                {
-                    GlobalSettings.ChamberRoundIndex.Add(chamber, 1);
-                }
+                //foreach (var chamber in Chambers)
+                //{
+                //    GlobalSettings.ChamberRoundIndex.Add(chamber, 1);
+                //}
                 return true;
             }
         }

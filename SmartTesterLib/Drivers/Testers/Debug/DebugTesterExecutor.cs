@@ -6,14 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using static System.Threading.Thread;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class DebugTesterExecutor : ITesterExecutor
     {
         private object HWLock = new object();
 
-        public string FilePath { get; set; }
-        public int ChannelIndex { get; set; }
+        private string FilePath { get; set; }
+        private int ChannelIndex { get; set; }
         private int ChannelNunber { get; set; }
         //private Stopwatch[] Stopwatches { get; set; }   //用秒表来控制每个通道的状态
         //private Queue<StandardRow>[] DataQueues { get; set; }    //用来记录历史数据，以便推演新数据
@@ -27,7 +27,7 @@ namespace SmartTester
             for (int i = 0; i < ChannelNunber; i++)
             {
                 //PseudoHardwares[i] = new PseudoHardware(500, 100 - i, 25 + 0.3 * i, 25 + 0.5 * i, 5 + 0.2 * i, 5 + 0.1 * i);
-                PseudoHardwares[i] = new PseudoHardware(500, 150 - i, 35 + 0.3 * i, 35 + 0.5 * i, 15 + 0.2 * i, 15 + 0.1 * i);
+                PseudoHardwares[i] = new PseudoHardware(500, 150 - i, 50, 35 + 0.3 * i, 35 + 0.5 * i, 15 + 0.2 * i, 15 + 0.1 * i);
             }
             //Stopwatches = new Stopwatch[ChannelNunber];
             //for (int i = 0; i < ChannelNunber; i++)
@@ -35,7 +35,7 @@ namespace SmartTester
             //    Stopwatches[i] = new Stopwatch();
             //}
         }
-        public bool ReadRow(int channelIndex, out StandardRow stdRow, out uint channelEvents)
+        public bool ReadRow(int channelIndex, out object row, out uint channelEvents)
         {
             lock (HWLock)
             {
@@ -50,9 +50,10 @@ namespace SmartTester
                 //stdRow.TimeInMS = (uint)PseudoHardwares[channelIndex - 1].Stopwatch.ElapsedMilliseconds;
                 //if (stdRow.TimeInMS > 3000)
                 //    stdRow.Status = RowStatus.STOP;
-                stdRow = PseudoHardwares[channelIndex - 1].GetStandardRow();
+                var stdRow = PseudoHardwares[channelIndex - 1].GetStandardRow();
                 AccessFile($"Channel {channelIndex}, Time: {stdRow.TimeInMS}, Thread:{CurrentThread.ManagedThreadId}");
                 channelEvents = 0;
+                row = stdRow;
                 return true;
             }
         }

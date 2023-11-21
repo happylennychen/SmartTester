@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define UseFileInsteadOfConsole
+using SmartTesterLib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,6 +11,7 @@ namespace SmartTester
 {
     class Program//调用automator提供的API，提供基本的操作界面。后期可以用图形界面替代。
     {
+        [STAThread]
         static void Main(string[] args)
         {
 #if UseFileInsteadOfConsole
@@ -28,44 +31,43 @@ namespace SmartTester
                 return;
 
             amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch=>ch.Index<=4), amtr.Chambers[0]);
-            amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch => ch.Index > 4), amtr.Chambers[1]);
+            amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch=>ch.Index>4), amtr.Chambers[1]);
+            //amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch => ch.Index == 1), amtr.Chambers[0]);
             #region Chamber1
-            var  chm1_r1_ch3= Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R1\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm1_r2_ch1 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH1\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm1_r2_ch2 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH2\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm1_r2_ch3 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm1_r2_ch4 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH4\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var  chm1_r1_ch3= Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-80\R1\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm1_r2_ch1 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH1\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm1_r2_ch2 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH2\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm1_r2_ch3 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm1_r2_ch4 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH4\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+
             Dictionary<IChannel, SmartTesterRecipe> channelRecipesForR1 = new Dictionary<IChannel, SmartTesterRecipe>();
-            channelRecipesForR1.Add(amtr.Testers[0].Channels[2], chm1_r1_ch3);
+            channelRecipesForR1.Add(amtr.Testers[0].Channels[0], chm1_r1_ch3);
 
             TestRound round1 = new TestRound(channelRecipesForR1);
             amtr.Chambers[0].TestScheduler.AppendTestRound(round1);
 
             Dictionary<IChannel, SmartTesterRecipe> channelRecipesForR2 = new Dictionary<IChannel, SmartTesterRecipe>();
             channelRecipesForR2.Add(amtr.Testers[0].Channels[0], chm1_r2_ch1);
-            channelRecipesForR2.Add(amtr.Testers[0].Channels[1], chm1_r2_ch2);
-            channelRecipesForR2.Add(amtr.Testers[0].Channels[2], chm1_r2_ch3);
-            channelRecipesForR2.Add(amtr.Testers[0].Channels[3], chm1_r2_ch4); 
             
             TestRound round2 = new TestRound(channelRecipesForR2);
             amtr.Chambers[0].TestScheduler.AppendTestRound(round2);
             #endregion
-
+            
             #region Chamber2
-            var chm2_r1_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r1_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r1_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r1_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r1_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r1_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r1_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r1_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
 
-            var chm2_r2_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r2_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r2_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r2_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r2_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r2_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r2_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r2_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R2\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
 
-            var chm2_r3_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r3_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r3_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
-            var chm2_r3_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r3_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r3_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r3_ch7 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm2_r3_ch8 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R3\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
 
             var r1 = new Dictionary<IChannel, SmartTesterRecipe>();
             r1.Add(amtr.Testers[0].Channels[4], chm2_r1_ch5);
@@ -89,9 +91,9 @@ namespace SmartTester
             r3.Add(amtr.Testers[0].Channels[6], chm2_r3_ch7);
             r3.Add(amtr.Testers[0].Channels[7], chm2_r3_ch8);
             var R3 = new TestRound(r3);
-            amtr.Chambers[1].TestScheduler.AppendTestRound(R3);
+            amtr.Chambers[1].TestScheduler.AppendTestRound(R3);//*/
             #endregion
-
+            
             Task task = amtr.AsyncStartChambers();
             Monitor monitor = new Monitor(amtr);
             monitor.Run();

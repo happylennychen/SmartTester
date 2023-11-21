@@ -1,9 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿//using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class DebugChamber : IChamber
     {
@@ -12,7 +12,7 @@ namespace SmartTester
         public string Name { get; set; }
         public double LowestTemperature { get; set; }
         public double HighestTemperature { get; set; }
-        [JsonIgnore]
+        ////[JsonIgnore]
         public IChamberExecutor Executor { get; set; }
 
         public TestPlanScheduler TestScheduler { get; set; }
@@ -21,7 +21,7 @@ namespace SmartTester
         private Timer timer { get; set; }
         private byte TempInRangeCounter { get; set; } = 0;
 
-        [JsonConstructor]
+        //[JsonConstructor]
         public DebugChamber(int id, string manufacturer, string name, double highestTemperature, double lowestTemperature)
         {
             Id = id;

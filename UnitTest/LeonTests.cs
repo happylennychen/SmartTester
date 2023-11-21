@@ -1,4 +1,5 @@
-﻿#define debug
+﻿//#define debug
+#define debugChamber
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SmartTester;
 using System;
@@ -29,7 +30,7 @@ namespace UnitTest
             for (int i = 1; i <= 8; i++)
             {
                 var fileList = files.Where(o => o.Contains($"Chroma17208M-Ch{i}")).OrderBy(o => o).ToList();
-                Utilities.FileConvert(fileList, CreateFullSteps(), -10);
+                Utilities.StdFileConvert(fileList, CreateFullSteps(), -10);
             }
             //List<string> fileList = new List<string>();
             //fileList.Add(@"D:\BC_Lab\SW Design\Instrument Automation\File Converter\30T auto init 2\Chroma17208M-Ch1-20220630160748.txt");
@@ -76,7 +77,7 @@ namespace UnitTest
             standardRows.Add(new StandardRow("0,60000,2,-3128.044,2558.552,32.14,-50.25982,0,0"));
             standardRows.Add(new StandardRow("0,60012,2,-3128.086912,2558.500484,32.11,-50.27025,0,8"));
             standardRows.Add(new StandardRow("0,334,2,-7.898484E-05,2648.892,32.14,-0.5672878,0,8"));
-            Tester test = new Tester();
+            Chroma17208 test = new Chroma17208();
             PrivateObject poTest = new PrivateObject(test);
             StandardRow stdrow = (StandardRow)poTest.Invoke("GetAdjustedRow", standardRows, step);
             Assert.Equal(2500.0, stdrow.Voltage);
@@ -91,11 +92,16 @@ namespace UnitTest
             var chamber = new DebugChamber(1, "Hongzhan", "PUL-80", 150, -40);
             List<DebugChamber> chambers = new List<DebugChamber>();
             List<DebugTester> testers = new List<DebugTester>();
+#elif debugChamber
+            var tester = new PackTester(1, "17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
+            var chamber = new DebugChamber(1, "Hongzhan", "PUL-80", 150, -40);
+            List<DebugChamber> chambers = new List<DebugChamber>();
+            List<PackTester> testers = new List<PackTester>();
 #else
-            var tester = new Tester(1, "17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
+            var tester = new PackTester(1, "17208Auto", 8, "192.168.1.23", 8802, "TCPIP0::192.168.1.101::60000::SOCKET");
             var chamber = new Chamber(1, "Hongzhan", "PUL-80", 150, -40, "192.168.1.102", 3000);
             List<Chamber> chambers = new List<Chamber>();
-            List<Tester> testers = new List<Tester>();
+            List<PackTester> testers = new List<PackTester>();
 #endif
             chambers.Add(chamber);
             testers.Add(tester);
@@ -114,7 +120,7 @@ namespace UnitTest
             for (int i = 1; i < 10; i++)
             {
                 IChamber chamber = new Chamber(i, "Hongzhan", $"Chamber{i.ToString()}", 120, -40);
-                ITester tester = new Tester(i, $"Tester{i.ToString()}", 8);
+                ITester tester = new Chroma17208(i, $"Tester{i.ToString()}", 8);
                 chambers.Add(chamber);
                 testers.Add(tester);
             }
