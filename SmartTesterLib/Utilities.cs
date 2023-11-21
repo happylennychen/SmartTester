@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public static class Utilities
     {

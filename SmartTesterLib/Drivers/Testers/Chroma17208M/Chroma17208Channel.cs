@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class Chroma17208Channel : IChannel
     {

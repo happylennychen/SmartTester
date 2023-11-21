@@ -1,4 +1,5 @@
 ﻿//#define UseFileInsteadOfConsole
+using SmartTesterLib;
 using System;
 using System.Collections.Generic;
 using System.IO;

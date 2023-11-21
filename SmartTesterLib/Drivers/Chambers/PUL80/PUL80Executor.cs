@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class PUL80Executor : IChamberExecutor
     {

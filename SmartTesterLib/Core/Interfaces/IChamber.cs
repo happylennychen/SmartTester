@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public interface IChamber
     {

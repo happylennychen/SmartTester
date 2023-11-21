@@ -1,4 +1,4 @@
-﻿namespace SmartTester
+﻿namespace SmartTesterLib
 {
     public class TemperatureTarget      //recipe中带有的实验条件
     {

@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Linq;
 using System.Text;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class Chroma17208Executor : ITesterExecutor
     {

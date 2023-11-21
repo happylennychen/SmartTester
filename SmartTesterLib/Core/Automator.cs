@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using static System.Threading.Thread;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class Automator//提供Automator顶层数据结构及API（Init, AutoRun），不关心具体的硬件
     {

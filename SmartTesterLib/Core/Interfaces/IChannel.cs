@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public interface IChannel
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class PackRow : IRow
     {

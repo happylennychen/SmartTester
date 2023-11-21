@@ -1,4 +1,4 @@
-﻿namespace SmartTester
+﻿namespace SmartTesterLib
 {
     public interface IDataLogger
     {

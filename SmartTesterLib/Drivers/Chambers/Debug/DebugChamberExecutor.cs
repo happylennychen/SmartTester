@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class DebugChamberExecutor : IChamberExecutor
     {

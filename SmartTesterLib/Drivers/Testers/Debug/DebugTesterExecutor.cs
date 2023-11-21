@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static System.Threading.Thread;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class DebugTesterExecutor : ITesterExecutor
     {

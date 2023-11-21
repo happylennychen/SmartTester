@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SmartTester
+namespace SmartTesterLib
 {
     public class Chamber : IChamber
     {
