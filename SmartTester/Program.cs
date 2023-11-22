@@ -1,4 +1,5 @@
 ﻿//#define UseFileInsteadOfConsole
+//#define debug
 using SmartTesterLib;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ namespace SmartTester
             //TestPlanScheduler scheduler = new TestPlanScheduler();
             if(!amtr.InitHW())
                 return;
-
+#if debug
             amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch=>ch.Index<=4), amtr.Chambers[0]);
             amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch=>ch.Index>4), amtr.Chambers[1]);
             //amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch => ch.Index == 1), amtr.Chambers[0]);
@@ -93,7 +94,16 @@ namespace SmartTester
             var R3 = new TestRound(r3);
             amtr.Chambers[1].TestScheduler.AppendTestRound(R3);//*/
             #endregion
-            
+#else
+            amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch => ch.Index == 1), amtr.Chambers[0]);
+            var chm1_r1_ch3 = Utilities.LoadRecipeFromFile(@"E:\Smart Tester Test\test\25Deg-Charge Test.testplan");
+            Dictionary<IChannel, SmartTesterRecipe> channelRecipesForR1 = new Dictionary<IChannel, SmartTesterRecipe>();
+            channelRecipesForR1.Add(amtr.Testers[0].Channels[0], chm1_r1_ch3);
+
+            TestRound round1 = new TestRound(channelRecipesForR1);
+            amtr.Chambers[0].TestScheduler.AppendTestRound(round1);
+#endif
+
             Task task = amtr.AsyncStartChambers();
             Monitor monitor = new Monitor(amtr);
             monitor.Run();

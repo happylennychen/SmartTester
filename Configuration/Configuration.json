@@ -1,0 +1,25 @@
+{
+  "Chambers": [
+    {
+      "Id": 1,
+      "Manufacturer": "Hongzhan",
+      "Class": "Chamber",
+      "Name": "PUL-80",
+      "LowestTemperature": -40.0,
+      "HighestTemperature": 150.0,
+      "IpAddress": "192.168.1.102",
+      "Port": 3000
+    }
+  ],
+  "Testers": [
+    {
+      "Id": 3,
+      "Class": "PackTester",
+      "Name": "PackTester",
+      "ChannelNumber": 1,
+      "IpAddress": "192.168.1.25",
+      "Port": 8802,
+      "SessionStr": "TCPIP0::192.168.1.103::60000::SOCKET"
+    }
+  ]
+}

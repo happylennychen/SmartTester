@@ -5,7 +5,13 @@ namespace SmartTesterLib
 {
     public class OZ93510
     {
+        private const uint RetryCount = 15;
+        private const byte BusAddress = 0x16;
         private CCommunicateManager m_Interface { get; set; }
+        public OZ93510() 
+        {
+            m_Interface = new CCommunicateManager();
+        }
         public bool Init()
         {
             BusOptions m_busoption = new BusOptions();
@@ -100,6 +106,92 @@ namespace SmartTesterLib
             else
                 return false;
 
+        }
+        public UInt32 OnBlockRead(byte cmd, ref TSMBbuffer pval)
+        {
+            int crcLen = 0;
+            byte[] databuf = null;
+            UInt16 DataOutLen = 0;
+            UInt16 DataInLen = (UInt16)(pval.length + 1);
+            byte[] sendbuf = new byte[2];
+            UInt32 ret = LibErrorCode.IDS_ERR_SUCCESSFUL;
+            databuf = new byte[DataInLen];
+            sendbuf[0] = BusAddress;
+            sendbuf[1] = cmd;
+            for (int i = 0; i < RetryCount; i++)
+            {
+                if (m_Interface.ReadDevice(sendbuf, ref databuf, ref DataOutLen, DataInLen))
+                {
+                    Array.Copy(databuf, 0, pval.bdata, 0, pval.length);
+                    if (true)
+                    {
+                        if (pval.length == 32)
+                        {
+                            crcLen = databuf[0] + 1;
+                            if (databuf[crcLen] != calc_crc_read2(sendbuf[0], sendbuf[1], pval.bdata, crcLen))
+                            {
+                                ret = LibErrorCode.IDS_ERR_BUS_DATA_PEC_ERROR;
+                                continue;
+                            }
+                        }
+                        else if (databuf[pval.length] != calc_crc_read2(sendbuf[0], sendbuf[1], pval.bdata, pval.length))
+                        {
+                            ret = LibErrorCode.IDS_ERR_BUS_DATA_PEC_ERROR;
+                            continue;
+                        }
+                    }
+                    ret = LibErrorCode.IDS_ERR_SUCCESSFUL;
+                    break;
+                }
+                ret = LibErrorCode.IDS_ERR_DEM_FUN_TIMEOUT;
+                Thread.Sleep(10);
+            }
+            return ret;
+        }
+        public UInt32 OnWordRead(byte cmd, out ushort wData)
+        {
+            UInt32 ret = LibErrorCode.IDS_ERR_SUCCESSFUL;
+            TSMBbuffer buffer = new TSMBbuffer();
+            ret = OnBlockRead(cmd, ref buffer);
+            if (ret != LibErrorCode.IDS_ERR_SUCCESSFUL)
+            {
+                wData = 0;
+                return ret;
+            }
+            wData = SharedFormula.MAKEWORD(buffer.bdata[0], buffer.bdata[1]);
+            return ret;
+        }
+        private byte calc_crc_read2(byte slave_addr, byte reg_addr, byte[] data, int dataLen = 3)
+        {
+            byte[] pdata = new byte[3 + dataLen];//new byte[5];
+            pdata[0] = slave_addr;
+            pdata[1] = reg_addr;
+            pdata[2] = (byte)(slave_addr | 0x01);
+            Array.Copy(data, 0, pdata, 3, dataLen);
+            return crc8_calc(ref pdata, (UInt16)(3 + dataLen));
+        }
+        private byte crc8_calc(ref byte[] pdata, UInt16 n)
+        {
+            byte crc = 0;
+            byte crcdata;
+            UInt16 i, j;
+            for (i = 0; i < n; i++)
+            {
+                crcdata = pdata[i];
+                for (j = 0x80; j != 0; j >>= 1)
+                {
+                    if ((crc & 0x80) != 0)
+                    {
+                        crc <<= 1;
+                        crc ^= 0x07;
+                    }
+                    else
+                        crc <<= 1;
+                    if ((crcdata & j) != 0)
+                        crc ^= 0x07;
+                }
+            }
+            return crc;
         }
     }
 }
