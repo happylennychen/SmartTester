@@ -5,7 +5,7 @@ VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartTester", "SmartTester\SmartTester.csproj", "{4B1EF29F-4E18-4BD6-AD5A-DAB90D88A2BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartTesterLib", "SmartTesterLib\SmartTesterLib.csproj", "{2D823E06-5183-48EF-9B5F-F34014FBD967}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartTesterLib", "SmartTesterLib\SmartTesterLib.csproj", "{2D823E06-5183-48EF-9B5F-F34014FBD967}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,0 +1,110 @@
+{
+  "Steps": [
+    {
+      "Id": 0,
+      "Index": 1,
+      "Action": {
+        "Id": 0,
+        "Mode": 0,
+        "Voltage": 3650,
+        "Current": 15000,
+        "Power": 0
+      },
+      "CutOffBehaviors": [
+        {
+          "Id": 0,
+          "Condition": {
+            "Id": 0,
+            "Parameter": 1,
+            "Mark": 2,
+            "Value": 750
+          },
+          "JumpBehaviors": [
+            {
+              "Id": 0,
+              "Condition": {
+                "Id": 0,
+                "Parameter": 5,
+                "Mark": 0,
+                "Value": 0
+              },
+              "JumpType": 0,
+              "Index": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": 3058,
+      "Index": 2,
+      "Action": {
+        "Id": 3058,
+        "Mode": 3,
+        "Voltage": 0,
+        "Current": 0,
+        "Power": 0
+      },
+      "CutOffBehaviors": [
+        {
+          "Id": 3727,
+          "Condition": {
+            "Id": 7435,
+            "Parameter": 4,
+            "Mark": 1,
+            "Value": 1800
+          },
+          "JumpBehaviors": [
+            {
+              "Id": 3709,
+              "Condition": {
+                "Id": 7436,
+                "Parameter": 5,
+                "Mark": 0,
+                "Value": 0
+              },
+              "JumpType": 0,
+              "Index": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": 0,
+      "Index": 3,
+      "Action": {
+        "Id": 0,
+        "Mode": 2,
+        "Voltage": 0,
+        "Current": 0,
+        "Power": 45000
+      },
+      "CutOffBehaviors": [
+        {
+          "Id": 0,
+          "Condition": {
+            "Id": 0,
+            "Parameter": 0,
+            "Mark": 2,
+            "Value": 2500
+          },
+          "JumpBehaviors": [
+            {
+              "Id": 0,
+              "Condition": {
+                "Id": 0,
+                "Parameter": 5,
+                "Mark": 0,
+                "Value": 0
+              },
+              "JumpType": 0,
+              "Index": 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "DischargeTemperature": 40.0
+}
