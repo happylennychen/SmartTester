@@ -30,7 +30,7 @@ namespace SmartTesterLib
             HighestTemperature = highestTemperature;
             LowestTemperature = lowestTemperature;
             Executor = new DebugChamberExecutor();
-            TestScheduler = new TestPlanScheduler();
+            TestScheduler = new TestPlanScheduler(this);
             TempScheduler = new TemperatureScheduler();
             timer = new Timer(_ => TimerCallback(), null, Timeout.Infinite, 1000);
         }

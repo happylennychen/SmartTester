@@ -40,7 +40,7 @@ namespace SmartTesterLib
             IpAddress = ipAddress;
             Port = port;
             Executor = new PUL80Executor();
-            TestScheduler = new TestPlanScheduler();
+            TestScheduler = new TestPlanScheduler(this);
             TempScheduler = new TemperatureScheduler();
             if (!Executor.Init(ipAddress, port))
             {

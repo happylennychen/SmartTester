@@ -1,10 +1,12 @@
 ﻿//#define UseFileInsteadOfConsole
-#define debug
+//#define debug
+#define shell
 using SmartTesterLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using static System.Threading.Thread;
 
@@ -24,18 +26,54 @@ namespace SmartTester
             var tempOut = Console.Out;
             Console.SetOut(sw);
 #endif
-
+#if shell
+            string testPlanFolder = @"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\";
+            List<string> recipeFiles = Directory.EnumerateFiles(testPlanFolder, "*.testplan").ToList();
             Utilities.CreateOutputFolderRoot();
             Automator amtr = new Automator();
+            Monitor monitor = new Monitor(amtr);
             //TestPlanScheduler scheduler = new TestPlanScheduler();
-            if(!amtr.InitHW())
+            if (!amtr.InitHW())
                 return;
+            bool bQuit = false;
+            while (!bQuit)
+            {
+                Console.WriteLine("1. Setup Chambers. 2.Configure Test Rounds 3. Run 4. Stop 5. Start Monitor 6. Stop Monitor 7.Quit");
+                var key = Console.ReadLine();
+                switch (key.Trim())
+                {
+                    case "1":
+                        SetupChambers(amtr);
+                        break;
+                    case "2":
+                        ConfigureTestRounds(amtr.Chambers, recipeFiles);
+                        break;
+                    case "3":
+                        Task task = amtr.AsyncStartChambers();
+                        //task.Wait();
+                        break;
+                    case "4": break;
+                    case "5":
+                        monitor.Run();
+                        break;
+                    case "6":
+                        monitor.Stop();
+                        break;
+                    case "7":
+                        bQuit = true;
+                        break;
+                    default:
+                        Console.WriteLine("Invalid input!");
+                        break;
+                }
+            }
+#else
 #if debug
-            amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch=>ch.Index<=4), amtr.Chambers[0]);
-            amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch=>ch.Index>4), amtr.Chambers[1]);
+            amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch => ch.Index <= 4), amtr.Chambers[0]);
+            amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch => ch.Index > 4), amtr.Chambers[1]);
             //amtr.PutChannelsInChamber(amtr.Testers[0].Channels.Where(ch => ch.Index == 1), amtr.Chambers[0]);
             #region Chamber1
-            var  chm1_r1_ch3= Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-80\R1\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
+            var chm1_r1_ch3 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-80\R1\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
             var chm1_r2_ch1 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH1\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
             var chm1_r2_ch2 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH2\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
             var chm1_r2_ch3 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-80\R2\17208Auto\CH3\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
@@ -49,11 +87,11 @@ namespace SmartTester
 
             Dictionary<IChannel, SmartTesterRecipe> channelRecipesForR2 = new Dictionary<IChannel, SmartTesterRecipe>();
             channelRecipesForR2.Add(amtr.Testers[0].Channels[0], chm1_r2_ch1);
-            
+
             TestRound round2 = new TestRound(channelRecipesForR2);
             amtr.Chambers[0].TestScheduler.AppendTestRound(round2);
             #endregion
-            
+
             #region Chamber2
             var chm2_r1_ch5 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
             var chm2_r1_ch6 = Utilities.LoadRecipeFromFile(@"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\2Chambers1Tester_2\PUL-82\R1\17208Auto\CH5\0Deg-NOZZLE-INSTALL-STANDARD-IDLE-60S.testplan");
@@ -110,14 +148,126 @@ namespace SmartTester
             //Task task = amtr.AsyncStartChamber(amtr.Chambers[0]);
             //Task task = amtr.AsyncStartOneRound(amtr.Chambers[1], R3);
             task.Wait();
+#endif
 #if UseFileInsteadOfConsole
             sw.Close();
             fs.Close();
             Console.SetOut(tempOut);
             Utilities.WriteLine($"Demo program completed! Please check {consoleOuputFile} for the details.");
-#endif
+#else
             Utilities.WriteLine($"Demo program completed!");
             Console.ReadLine();
+#endif
+        }
+
+
+        private static SmartTesterRecipe SpecifyRecipe(List<string> recipeFiles)
+        {
+            Console.WriteLine($"There're {recipeFiles.Count} files. Which one do you want to choose?");
+            foreach (var recipeFile in recipeFiles)
+                Console.WriteLine($"{recipeFiles.IndexOf(recipeFile)},{recipeFile}");
+            Console.WriteLine("Please enter the file Index.");
+            var fileIndexStr = Console.ReadLine();
+            var fileIndex = Convert.ToInt32(fileIndexStr);
+            var selectedFile = recipeFiles[fileIndex];
+            return Utilities.LoadRecipeFromFile(selectedFile);
+        }
+        private static List<IChannel> SpecifyChannels(List<ITester> testers)
+        {
+            List<IChannel> output = new List<IChannel>();
+            bool bQuit = false;
+            while (!bQuit)
+            {
+                Console.WriteLine("1. Add channels 2.Quit");
+                var key = Console.ReadLine();
+                switch (key.Trim())
+                {
+                    case "1":
+                        var tester = SpecifyTester(testers);
+                        var channel = SpecifyChannel(tester.Channels);
+                        if (!output.Contains(channel))
+                            output.Add(channel);
+                        break;
+                    case "2":
+                        bQuit = true;
+                        break;
+                    default:
+                        Console.WriteLine("Invalid input!");
+                        break;
+                }
+            }
+            return output;
+        }
+
+        private static IChannel SpecifyChannel(List<IChannel> channels)
+        {
+            Console.WriteLine($"There're {channels.Count} channels. Which one do you want to choose?");
+            foreach (var channel in channels)
+                Console.WriteLine($"Index:{channel.Index} Name:{channel.Name}");
+            Console.WriteLine("Please enter the channel Index.");
+            var channelIDStr = Console.ReadLine();
+            var channelID = Convert.ToInt32(channelIDStr);
+            return channels.SingleOrDefault(t => t.Index == channelID);
+        }
+
+        private static ITester SpecifyTester(List<ITester> testers)
+        {
+            Console.WriteLine($"There're {testers.Count} testers. Which one do you want to choose?");
+            foreach (var tester in testers)
+                Console.WriteLine($"ID:{tester.Id} Name:{tester.Name}");
+            Console.WriteLine("Please enter the tester ID.");
+            var testerIDStr = Console.ReadLine();
+            var testerID = Convert.ToInt32(testerIDStr);
+            return testers.SingleOrDefault(t => t.Id == testerID);
+        }
+
+        private static IChamber SpecifyChamber(List<IChamber> chambers)
+        {
+            Console.WriteLine($"There're {chambers.Count} chambers. Which one do you want to choose?");
+            foreach (var chamber in chambers)
+                Console.WriteLine($"ID:{chamber.Id} Name:{chamber.Name}");
+            Console.WriteLine("Please enter the chamber ID.");
+            var chamberIDStr = Console.ReadLine();
+            var chamberID = Convert.ToInt32(chamberIDStr);
+            return chambers.SingleOrDefault(c => c.Id == chamberID);
+        }
+        private static void SetupChambers(Automator amtr)
+        {
+            var selectedChamber = SpecifyChamber(amtr.Chambers);
+            var selectedChannels = SpecifyChannels(amtr.Testers);
+            amtr.PutChannelsInChamber(selectedChannels, selectedChamber);
+            Console.WriteLine($"{selectedChannels.Count} channels has been put into {selectedChamber.ToString()}");
+        }
+
+        private static void ConfigureTestRounds(List<IChamber> chambers, List<string> recipeFiles)
+        {
+            var selectedChamber = SpecifyChamber(chambers);
+            //var trl = selectedChamber.TestScheduler.TestRoundList;
+            Dictionary<IChannel, SmartTesterRecipe> channelRecipes = new Dictionary<IChannel, SmartTesterRecipe>();
+
+            bool bQuit = false;
+            while (!bQuit)
+            {
+                Console.WriteLine("1. Add channel-recipe 2.Quit");
+                var key = Console.ReadLine();
+                switch (key.Trim())
+                {
+                    case "1":
+                        var selectedChannel = SpecifyChannel(selectedChamber.Channels);
+                        var recipe = SpecifyRecipe(recipeFiles);
+                        if (!channelRecipes.ContainsKey(selectedChannel))
+                            channelRecipes.Add(selectedChannel, recipe);
+                        break;
+                    case "2":
+                        bQuit = true;
+                        break;
+                    default:
+                        Console.WriteLine("Invalid input!");
+                        break;
+                }
+            }
+            TestRound tr = new TestRound(channelRecipes);
+            selectedChamber.TestScheduler.AppendTestRound(tr);
         }
 
         private static bool TestPlanPreCheck()

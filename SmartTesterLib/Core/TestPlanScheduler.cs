@@ -6,9 +6,11 @@ namespace SmartTesterLib
 {
     public class TestPlanScheduler
     {
+        public IChamber Chamber { get; set; }
         public List<TestRound> TestRoundList { get; set; }
-        public TestPlanScheduler()
+        public TestPlanScheduler(IChamber chamber)
         {
+            Chamber = chamber;
             TestRoundList = new List<TestRound>();
         }
         public bool IsCompleted 
@@ -19,10 +21,17 @@ namespace SmartTesterLib
             } 
         }
 
-        public void AppendTestRound(TestRound round)
+        public bool AppendTestRound(TestRound round)
         {
+            foreach(var item in round.ChannelRecipes)
+            {
+                var ch = item.Key;
+                if (!Chamber.Channels.Contains(ch))
+                    return false;
+            }
             round.Status = RoundStatus.WAITING;
             TestRoundList.Add(round);
+            return true;
         }
         public void InsertTestRound(TestRound round, int index)
         {

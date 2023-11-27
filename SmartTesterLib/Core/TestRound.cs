@@ -13,5 +13,15 @@ namespace SmartTesterLib
             ChannelRecipes = channelRecipes;
             Status = RoundStatus.WAITING;
         }
+        public override string ToString()
+        {
+            string output = string.Empty;
+            foreach (var item in this.ChannelRecipes)
+            {
+                var ch = item.Key;
+                output+=($"\tChannel:{ch.Name}, Recipe:{item.Value.Name}");
+            }
+            return output;
+        }
     }
 }
