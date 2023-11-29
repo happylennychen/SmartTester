@@ -34,5 +34,9 @@ namespace SmartTesterLib
         //public IChamber Chamber { get; set; }   //尝试去掉
         //public IChannel Channel { get; set; }   //尝试去掉
         //public double DischargeTemperature { get; set; }
+        public override string ToString()
+        {
+            return this.Name;
+        }
     }
 }

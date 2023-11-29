@@ -108,5 +108,9 @@ namespace SmartTesterLib
             timer.Change(Timeout.Infinite, 1000);
             return true;
         }
+        public override string ToString()
+        {
+            return this.Name;
+        }
     }
 }

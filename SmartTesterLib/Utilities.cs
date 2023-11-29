@@ -13,47 +13,6 @@ namespace SmartTesterLib
 {
     public static class Utilities
     {
-        public static bool CreateTestPlanFolders(string projectName, Dictionary<IChamber, Dictionary<int, List<IChannel>>> testPlanFolderTree)
-        {
-            string projectPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName);
-            if (Directory.Exists(projectName))
-            {
-                Utilities.WriteLine($"Error! {projectName} already existed.");
-                return false;
-            }
-            try
-            {
-                Directory.CreateDirectory(projectPath);
-                foreach (var chamber in testPlanFolderTree.Keys)
-                {
-                    string chamberPath = Path.Combine(projectPath, chamber.Name);
-                    Directory.CreateDirectory(chamberPath);
-                    foreach (var roundIndex in testPlanFolderTree[chamber].Keys)
-                    {
-                        string roundPath = Path.Combine(chamberPath, roundIndex.ToString());
-                        Directory.CreateDirectory(roundPath);
-                        var testers = testPlanFolderTree[chamber][roundIndex].Select(ch => ch.Tester).Distinct().ToList();
-                        foreach (var tester in testers)
-                        {
-                            string testerPath = Path.Combine(roundPath, tester.Name);
-                            Directory.CreateDirectory(testerPath);
-                            var channels = testPlanFolderTree[chamber][roundIndex].Where(ch => ch.Tester == tester).ToList();
-                            foreach (var channel in channels)
-                            {
-                                string channelPath = Path.Combine(testerPath, channel.Index.ToString());
-                                Directory.CreateDirectory(channelPath);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Utilities.WriteLine($"Error! {e.Message}");
-                return false;
-            }
-            return true;
-        }
 
         public static RowStatus UpdateLastRowStatus(CutOffBehavior cob)    //根据cob来推出RowStatus，条件是找到了正确的cob
         {
@@ -181,136 +140,6 @@ namespace SmartTesterLib
             return nextStep;
         }
 
-
-        public static bool LoadTestFromFolder(string folderPath, List<IChamber> chambers, List<ITester> testers, out List<SmartTesterRecipe> output)
-        {
-            output = new List<SmartTesterRecipe>();
-            try
-            {
-                var files = Directory.GetFiles(folderPath, "*.testplan");
-                IChannel channel = GetChannelFromFolderPath(folderPath, testers);
-                IChamber chamber = GetChamberFromFolderPath(folderPath, chambers);
-                foreach (var file in files)
-                {
-                    string json = File.ReadAllText(file);
-                    //var test = JsonConvert.DeserializeObject<SmartTesterRecipe>(json);
-                    //test.Chamber = chamber;
-                    //test.Channel = channel;
-                    //output.Add(test);
-                }
-            }
-            catch (Exception e)
-            {
-                Utilities.WriteLine($"Error! {e.Message}");
-                return false;
-            }
-            return true;
-        }
-
-        private static IChamber GetChamberFromFolderPath(string folderPath, List<IChamber> chambers)
-        {
-            var path = folderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty);
-            var chamberName = path.Split('\\')[1];
-            var chamber = chambers.SingleOrDefault(cmb => cmb.Name == chamberName);
-            return chamber;
-
-        }
-
-        private static IChannel GetChannelFromFolderPath(string folderPath, List<ITester> testers)
-        {
-            var path = folderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty);
-            var testerName = path.Split('\\')[3];
-            var channelIndex = Convert.ToInt32(path.Split('\\')[4]);
-            var tester = testers.SingleOrDefault(tst => tst.Name == testerName);
-            var channel = tester.Channels.SingleOrDefault(ch => ch.Index == channelIndex);
-            return channel;
-        }
-
-        public static string GetTestPlanOneRoundFolderPath(string projectName, IChamber chamber, int index)
-        {
-            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName, chamber.Name, "R" + index.ToString());
-            return folderPath;
-        }
-
-        public static string GetTestPlanProjectFolderPath(string projectName)
-        {
-            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName);
-            return folderPath;
-        }
-
-        public static string GetTestPlanChamberFolderPath(string projectName, IChamber chamber)
-        {
-            string folderPath = Path.Combine(GlobalSettings.TestPlanFolderPath, projectName, chamber.Name);
-            return folderPath;
-        }
-        public static bool LoadTestsForOneRound(string projectName, List<IChamber> chambers, List<ITester> testers, IChamber chamber, int index, out List<SmartTesterRecipe> tests)
-        {
-            bool ret = false;
-            tests = new List<SmartTesterRecipe>();
-            string oneRoundFolderPath = GetTestPlanOneRoundFolderPath(projectName, chamber, index);
-            if (!Directory.Exists(oneRoundFolderPath))
-                return false;
-            //foreach (var testerFolderPath in Directory.EnumerateDirectories(oneRoundFolderPath))
-            var folders = Directory.EnumerateDirectories(oneRoundFolderPath);
-            if (folders.Count() == 0)
-                return false;
-            foreach (var testerFolderPath in folders)
-            {
-                ITester tester = GetTesterFromFolderPath(testerFolderPath, testers);
-                if (tester == null)
-                {
-                    Utilities.WriteLine($"There's no available tester in {testerFolderPath}");
-                    return false;
-                }
-                foreach (var channelFolderPath in Directory.EnumerateDirectories(testerFolderPath))
-                {
-                    IChannel channel = GetChannelFromFolderPath(channelFolderPath, tester);
-                    if (channel == null)
-                    {
-                        Utilities.WriteLine($"There's no available channel in {channelFolderPath}");
-                        return false;
-                    }
-                    SmartTesterRecipe test;
-                    //if (!LoadTestFromFolder(channelFolderPath, chamber, tester, channel, out test))
-                    //return false;
-                    //tests.Add(test);
-                    var ret1 = LoadTestFromFolder(channelFolderPath, chamber, tester, channel, out test);
-                    if (ret1)
-                        tests.Add(test);
-                    ret |= ret1;
-                }
-            }
-            return ret;
-            //if (Directory.Exists(folderPath))
-            //{
-            //    if (!LoadTestFromFolder(folderPath, chambers, testers, out tests))
-            //        return false;
-            //    return true;
-            //}
-            //else
-            //    return false;
-        }
-
-        private static bool LoadTestFromFolder(string channelFolderPath, IChamber chamber, ITester tester, IChannel channel, out SmartTesterRecipe test)
-        {
-            test = null;
-            try
-            {
-                var files = Directory.GetFiles(channelFolderPath, "*.testplan");
-                if (files.Count() != 1)
-                    return false;
-                test = LoadRecipeFromFile(files[0]);
-                //test.Chamber = chamber;
-                //test.Channel = channel;
-            }
-            catch (Exception e)
-            {
-                Utilities.WriteLine($"Error! {e.Message}");
-                return false;
-            }
-            return true;
-        }
-
         public static SmartTesterRecipe LoadRecipeFromFile(string filePath)
         {
             string json = File.ReadAllText(filePath);
@@ -349,18 +178,6 @@ namespace SmartTesterLib
                 }
                 step.Target = t;
             }
-        }
-
-        private static IChannel GetChannelFromFolderPath(string channelFolderPath, ITester tester)
-        {
-            var channelIndex = Convert.ToInt32(channelFolderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty).Split('\\')[4].Replace("CH", ""));
-            return tester.Channels.SingleOrDefault(ch => ch.Index == channelIndex);
-        }
-
-        private static ITester GetTesterFromFolderPath(string testerFolderPath, List<ITester> testers)
-        {
-            var testerName = testerFolderPath.Replace(GlobalSettings.TestPlanFolderPath, string.Empty).Split('\\')[3];
-            return testers.SingleOrDefault(tst => tst.Name == testerName);
         }
 
         public static bool LoadConfiguration(out Configuration conf)

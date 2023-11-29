@@ -500,5 +500,9 @@ namespace SmartTesterLib
         {
             return Recipe.Steps.Where(st => (st.TemperatureUint.Status == TemperatureStatus.REACHING && st.TemperatureUint.Target.IsCritical == false) || st.TemperatureUint.Status == TemperatureStatus.REACHED).ToList();
         }
+        public override string ToString()
+        {
+            return Tester.Name + " " + Name;
+        }
     }
 }
