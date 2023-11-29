@@ -54,7 +54,7 @@ namespace SmartTesterLib
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    Utilities.WriteLine(e.Message);
                     return false;
                 }
             }
@@ -68,7 +68,7 @@ namespace SmartTesterLib
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    Utilities.WriteLine(e.Message);
                     return false;
                 }
             }
@@ -129,7 +129,7 @@ namespace SmartTesterLib
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Utilities.WriteLine(e.Message);
             }
 
             while (PowerPort.ReadByte() == HEAD)

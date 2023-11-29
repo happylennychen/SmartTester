@@ -44,15 +44,15 @@ namespace SmartTesterLib
             SmartTesterStep step = fullSteps.First();
             using (FileStream stdFile = new FileStream(newFilePath, FileMode.Create))
             {
-                Console.WriteLine($"{newFilePath} created.");
+                Utilities.WriteLine($"{newFilePath} created.");
                 using (StreamWriter stdWriter = new StreamWriter(stdFile))
                 {
-                    Console.WriteLine($"StreamWriter created.");
+                    Utilities.WriteLine($"StreamWriter created.");
                     stdWriter.WriteLine("Index,Time(mS),Mode,Current(mA),Voltage(mV),Temperature(degC),Capacity(mAh),Total Capacity(mAh),Status");
                     foreach (var filePath in filePaths)
                     {
 
-                        Console.WriteLine($"Trying to open file {filePath}.");
+                        Utilities.WriteLine($"Trying to open file {filePath}.");
                         try
                         {
                             using (FileStream rawFile = new FileStream(filePath, FileMode.Open))
@@ -75,7 +75,7 @@ namespace SmartTesterLib
                                             step = GetNewTargetStep(step, fullSteps, targetTemperature, lastRow);
                                             if (step == null)
                                             {
-                                                Console.WriteLine("GetNewTargetStep return null");
+                                                Utilities.WriteLine("GetNewTargetStep return null");
                                                 break;
                                             }
                                             lastRow.Status = Utilities.UpdateLastRowStatus(cob);
@@ -107,7 +107,7 @@ namespace SmartTesterLib
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine($"Cannot open file {filePath}.\n{e.Message}");
+                            Utilities.WriteLine($"Cannot open file {filePath}.\n{e.Message}");
                             return;
                         }
                     }
@@ -313,15 +313,15 @@ namespace SmartTesterLib
         }
         public SmartTesterStep GetNewTargetStep(SmartTesterStep currentStep, List<SmartTesterStep> fullSteps, double temperature, IRow row)
         {
-            Console.WriteLine("GetNewTargetStep");
+            Utilities.WriteLine("GetNewTargetStep");
             SmartTesterStep nextStep = null;
             CutOffBehavior cob = GetCutOffBehavior(currentStep, row);
             if (cob != null)
                 nextStep = Utilities.Jump(cob, fullSteps, currentStep.Index, row);
             else
             {
-                Console.WriteLine("GetCutOffBehavior return null");
-                Console.WriteLine($"Index:{currentStep.Index}, Action:{currentStep.Action.Mode.ToString()}");
+                Utilities.WriteLine("GetCutOffBehavior return null");
+                Utilities.WriteLine($"Index:{currentStep.Index}, Action:{currentStep.Action.Mode.ToString()}");
             }
             return nextStep;
         }
@@ -336,11 +336,11 @@ namespace SmartTesterLib
                     if (cob != null)
                     {
                         var time = cob.Condition.Value;
-                        Console.WriteLine($"time = {time}");
-                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        Utilities.WriteLine($"time = {time}");
+                        Utilities.WriteLine($"timeSpan = {timeSpan}");
                         if (Math.Abs(timeSpan / 1000 - time) < Tolerance.Time)
                         {
-                            Console.WriteLine($"Meet time condition.");
+                            Utilities.WriteLine($"Meet time condition.");
                             break;
                         }
                         else
@@ -352,11 +352,11 @@ namespace SmartTesterLib
                     if (cob != null)
                     {
                         var time = cob.Condition.Value;
-                        Console.WriteLine($"time = {time}");
-                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        Utilities.WriteLine($"time = {time}");
+                        Utilities.WriteLine($"timeSpan = {timeSpan}");
                         if (Math.Abs(timeSpan / 1000 - time) < Tolerance.Time)
                         {
-                            Console.WriteLine($"Meet time condition.");
+                            Utilities.WriteLine($"Meet time condition.");
                             break;
                         }
                         else
@@ -368,7 +368,7 @@ namespace SmartTesterLib
                         var curr = cob.Condition.Value;
                         if (curr >= row.Current)
                         {
-                            Console.WriteLine($"Meet current condition.");
+                            Utilities.WriteLine($"Meet current condition.");
                             break;
                         }
                         else
@@ -381,11 +381,11 @@ namespace SmartTesterLib
                     if (cob != null)
                     {
                         var time = cob.Condition.Value;
-                        Console.WriteLine($"time = {time}");
-                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        Utilities.WriteLine($"time = {time}");
+                        Utilities.WriteLine($"timeSpan = {timeSpan}");
                         if (Math.Abs(timeSpan / 1000 - time) < Tolerance.Time)
                         {
-                            Console.WriteLine($"Meet time condition.");
+                            Utilities.WriteLine($"Meet time condition.");
                             break;
                         }
                         else
@@ -395,16 +395,16 @@ namespace SmartTesterLib
                     if (cob != null)
                     {
                         var volt = cob.Condition.Value;
-                        Console.WriteLine($"volt = {volt}");
-                        Console.WriteLine($"row.Voltage = {row.Voltage}");
+                        Utilities.WriteLine($"volt = {volt}");
+                        Utilities.WriteLine($"row.Voltage = {row.Voltage}");
                         if (Math.Abs(row.Voltage - volt) < Tolerance.Voltage)
                         {
-                            Console.WriteLine($"Meet voltage condition.");
+                            Utilities.WriteLine($"Meet voltage condition.");
                             break;
                         }
                         else
                         {
-                            Console.WriteLine($"Doesn't meet voltage condition.");
+                            Utilities.WriteLine($"Doesn't meet voltage condition.");
                             cob = null;
                         }
                     }

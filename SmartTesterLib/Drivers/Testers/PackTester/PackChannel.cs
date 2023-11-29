@@ -37,15 +37,15 @@ namespace SmartTesterLib
             SmartTesterStep step = fullSteps.First();
             using (FileStream stdFile = new FileStream(newFilePath, FileMode.Create))
             {
-                Console.WriteLine($"{newFilePath} created.");
+                Utilities.WriteLine($"{newFilePath} created.");
                 using (StreamWriter stdWriter = new StreamWriter(stdFile))
                 {
-                    Console.WriteLine($"StreamWriter created.");
+                    Utilities.WriteLine($"StreamWriter created.");
                     stdWriter.WriteLine("Index,Time(mS),Mode,Current(mA),Voltage(mV),Temperature(degC),Status");
                     foreach (var filePath in filePaths)
                     {
 
-                        Console.WriteLine($"Trying to open file {filePath}.");
+                        Utilities.WriteLine($"Trying to open file {filePath}.");
                         try
                         {
                             using (FileStream rawFile = new FileStream(filePath, FileMode.Open))
@@ -80,7 +80,7 @@ namespace SmartTesterLib
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine($"Cannot open file {filePath}.\n{e.Message}");
+                            Utilities.WriteLine($"Cannot open file {filePath}.\n{e.Message}");
                             return;
                         }
                     }
@@ -110,7 +110,7 @@ namespace SmartTesterLib
         {
             Token.ShouldTimerStart = false;
 
-            Console.WriteLine($"Stop channel {Index - 1 + 1}");
+            Utilities.WriteLine($"Stop channel {Index - 1 + 1}");
             Tester.Executor.SpecifyChannel(Index);
             Tester.Executor.Stop();
             Timer.Change(Timeout.Infinite, Timeout.Infinite);
@@ -176,7 +176,7 @@ namespace SmartTesterLib
                 {
                     Reset();
                     Status = ChannelStatus.ERROR;
-                    Console.WriteLine("Cannot read row from tester. Please check cable connection.");
+                    Utilities.WriteLine("Cannot read row from tester. Please check cable connection.");
                     return;
                 }
                 packRow = row as PackRow;
@@ -196,14 +196,14 @@ namespace SmartTesterLib
             #endregion
 
             #region display data
-            Console.WriteLine(strRow);
+            Utilities.WriteLine(strRow);
             #endregion
 
             #region verify data
             if (channelEvents != ChannelEvents.Normal)
             {
                 Reset();
-                Console.WriteLine("Channel Event Error");
+                Utilities.WriteLine("Channel Event Error");
                 return;
             }
             if (CurrentStep.Action.Mode == ActionMode.CC_DISCHARGE)
@@ -211,7 +211,7 @@ namespace SmartTesterLib
                 {
                     Reset();
                     Status = ChannelStatus.ERROR;
-                    Console.WriteLine("Current out of range.");
+                    Utilities.WriteLine("Current out of range.");
                     return;
                 }
             #endregion
@@ -223,7 +223,7 @@ namespace SmartTesterLib
                 if (CurrentStep == null)
                 {
                     Reset();
-                    Console.WriteLine($"CH{Index} Done!");
+                    Utilities.WriteLine($"CH{Index} Done!");
                     Status = ChannelStatus.COMPLETED;
                     //Task task = Task.Run(() => FileTransfer(DataLogger.FilePath));
                     return;
@@ -234,19 +234,19 @@ namespace SmartTesterLib
                     if (!Tester.Executor.SpecifyChannel(Index))
                     {
                         Reset();
-                        Console.WriteLine("Cannot specify  Please check cable connection.");
+                        Utilities.WriteLine("Cannot specify  Please check cable connection.");
                         return;
                     }
                     if (!Tester.Executor.SpecifyTestStep(CurrentStep))
                     {
                         Reset();
-                        Console.WriteLine("Cannot specify test step. Please check cable connection.");
+                        Utilities.WriteLine("Cannot specify test step. Please check cable connection.");
                         return;
                     }
                     if (!Tester.Executor.Start())
                     {
                         Reset();
-                        Console.WriteLine("Cannot start tester. Please check cable connection.");
+                        Utilities.WriteLine("Cannot start tester. Please check cable connection.");
                         return;
                     }
                 }
@@ -260,15 +260,15 @@ namespace SmartTesterLib
         }
         public SmartTesterStep GetNewTargetStep(SmartTesterStep currentStep, List<SmartTesterStep> fullSteps, double temperature, IRow row)
         {
-            Console.WriteLine("GetNewTargetStep");
+            Utilities.WriteLine("GetNewTargetStep");
             SmartTesterStep nextStep = null;
             CutOffBehavior cob = GetCutOffBehavior(currentStep, row);
             if (cob != null)
                 nextStep = Utilities.Jump(cob, fullSteps, currentStep.Index, row);
             else
             {
-                Console.WriteLine("GetCutOffBehavior return null");
-                Console.WriteLine($"Index:{currentStep.Index}, Action:{currentStep.Action.Mode.ToString()}");
+                Utilities.WriteLine("GetCutOffBehavior return null");
+                Utilities.WriteLine($"Index:{currentStep.Index}, Action:{currentStep.Action.Mode.ToString()}");
             }
             return nextStep;
         }
@@ -284,11 +284,11 @@ namespace SmartTesterLib
                     if (cob != null)
                     {
                         var time = cob.Condition.Value;
-                        Console.WriteLine($"time = {time}");
-                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        Utilities.WriteLine($"time = {time}");
+                        Utilities.WriteLine($"timeSpan = {timeSpan}");
                         if (timeSpan / 1000 > time)
                         {
-                            Console.WriteLine($"Meet time condition.");
+                            Utilities.WriteLine($"Meet time condition.");
                             break;
                         }
                         else
@@ -300,11 +300,11 @@ namespace SmartTesterLib
                     if (cob != null)
                     {
                         var time = cob.Condition.Value;
-                        Console.WriteLine($"time = {time}");
-                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        Utilities.WriteLine($"time = {time}");
+                        Utilities.WriteLine($"timeSpan = {timeSpan}");
                         if (timeSpan / 1000 > time)
                         {
-                            Console.WriteLine($"Meet time condition.");
+                            Utilities.WriteLine($"Meet time condition.");
                             break;
                         }
                         else
@@ -316,7 +316,7 @@ namespace SmartTesterLib
                         var curr = cob.Condition.Value;
                         if (curr < row.Current)
                         {
-                            Console.WriteLine($"Current time condition.");
+                            Utilities.WriteLine($"Current time condition.");
                             break;
                         }
                         else
@@ -329,11 +329,11 @@ namespace SmartTesterLib
                     if (cob != null)
                     {
                         var time = cob.Condition.Value;
-                        Console.WriteLine($"time = {time}");
-                        Console.WriteLine($"timeSpan = {timeSpan}");
+                        Utilities.WriteLine($"time = {time}");
+                        Utilities.WriteLine($"timeSpan = {timeSpan}");
                         if (timeSpan / 1000 > time)
                         {
-                            Console.WriteLine($"Meet time condition.");
+                            Utilities.WriteLine($"Meet time condition.");
                             break;
                         }
                         else
@@ -343,16 +343,16 @@ namespace SmartTesterLib
                     if (cob != null)
                     {
                         var volt = cob.Condition.Value;
-                        Console.WriteLine($"volt = {volt}");
-                        Console.WriteLine($"row.Voltage = {row.Voltage}");
+                        Utilities.WriteLine($"volt = {volt}");
+                        Utilities.WriteLine($"row.Voltage = {row.Voltage}");
                         if (row.Voltage < volt)
                         {
-                            Console.WriteLine($"Meet voltage condition.");
+                            Utilities.WriteLine($"Meet voltage condition.");
                             break;
                         }
                         else
                         {
-                            Console.WriteLine($"Doesn't meet voltage condition.");
+                            Utilities.WriteLine($"Doesn't meet voltage condition.");
                             cob = null;
                         }
                     }
@@ -428,19 +428,19 @@ namespace SmartTesterLib
             double slope = (y2 - y1) / ((int)x2 - (int)x1);
             double offset = y1 - slope * x1;
             var output = Math.Round((slope * x + offset), 6);
-            Console.WriteLine($"x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}, x:{x}, y:{output}");
+            Utilities.WriteLine($"x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}, x:{x}, y:{output}");
             return output;
         }
 
         public void SetStepsForOneTempPoint()
         {
-            Console.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} S");
-            Console.WriteLine("");
+            Utilities.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} S");
+            Utilities.WriteLine("");
             StepsForOneTempPoint = GetCurrentSteps();
             if (StepsForOneTempPoint.Count == 0)
-                Console.WriteLine("No valid temp point.");
-            Console.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} E");
-            Console.WriteLine("");
+                Utilities.WriteLine("No valid temp point.");
+            Utilities.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} E");
+            Utilities.WriteLine("");
         }
 
         private List<SmartTesterStep> GetCurrentSteps()

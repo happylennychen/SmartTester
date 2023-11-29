@@ -63,14 +63,14 @@ namespace SmartTesterLib
             var tUnit = TempScheduler.GetNextTemp();
             if (tUnit == null)
             {
-                Console.WriteLine($"There's no waiting temperature.");
+                Utilities.WriteLine($"There's no waiting temperature.");
                 return false;
             }
 
             ret = Executor.Start(tUnit.Target.Value);
             if (!ret)
             {
-                Console.WriteLine($"Start chamber failed! Please check chamber cable.");
+                Utilities.WriteLine($"Start chamber failed! Please check chamber cable.");
                 return ret;
             }
             tUnit.Status = TemperatureStatus.REACHING;
@@ -86,7 +86,7 @@ namespace SmartTesterLib
             ret = Executor.Stop();
             if (!ret)
             {
-                Console.WriteLine($"Stop chamber failed! Please check chamber cable.");
+                Utilities.WriteLine($"Stop chamber failed! Please check chamber cable.");
                 return ret;
             }
             //tUnit.Status = TemperatureStatus.PASSED;

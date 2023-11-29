@@ -1,4 +1,4 @@
-﻿#define debug
+﻿//#define debug
 #define mute
 using Newtonsoft.Json;
 using System;
@@ -273,7 +273,7 @@ namespace SmartTesterLib
         public static void WriteLine(string v)
         {
 #if !mute
-            Console.WriteLine(v);
+            Utilities.WriteLine(v);
 #endif
         }
 

@@ -310,7 +310,7 @@ namespace SmartTesterLib
         }
         public async Task AsyncStartChambers()
         {
-
+            Utilities.CreateOutputFolderRoot();
             List<Task> tasks = new List<Task>();
             foreach (var chamber in Chambers)        //Tests按Chamber分组
             {

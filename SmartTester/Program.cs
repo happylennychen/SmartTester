@@ -13,7 +13,7 @@ namespace SmartTester
             SpectreMonitor monitor = new SpectreMonitor(amtr);
             string testPlanFolder = @"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\";
             List<string> recipeFiles = Directory.EnumerateFiles(testPlanFolder, "*.testplan").ToList();
-            Utilities.CreateOutputFolderRoot();
+            //Utilities.CreateOutputFolderRoot();
             if (!amtr.InitHW())
                 return;
             monitor.Run();
@@ -22,7 +22,10 @@ namespace SmartTester
             {
                 var cmd = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                .Title("")
+                .Title($"\n[green]Welcome to SmartTester![/]" +
+                $"\n[green]Test Plan Folder: {testPlanFolder}[/]" +
+                $"\n[green]Configuration Folder: {GlobalSettings.ConfigurationFilePath}[/]" +
+                $"\n[green]Output Folder: {GlobalSettings.OutputFolder}[/]")
                 .AddChoices(new[] {
                     "Setup Chambers",
                     "Setup Test Rounds",

@@ -111,11 +111,11 @@ namespace SmartTesterLib
             catch (Exception e)
             {
 
-                Console.WriteLine(e.Message);
+                Utilities.WriteLine(e.Message);
                 throw;
             }
 
-            Console.WriteLine("Pack SpecifyTestStep");
+            Utilities.WriteLine("Pack SpecifyTestStep");
             return true;
         }
 
@@ -136,10 +136,10 @@ namespace SmartTesterLib
             catch (Exception e)
             {
                 Stop();
-                Console.WriteLine(e.Message);
+                Utilities.WriteLine(e.Message);
             }
 
-            Console.WriteLine("Pack Start");
+            Utilities.WriteLine("Pack Start");
             Stopwatch.Restart();
             return true;
         }
@@ -158,7 +158,7 @@ namespace SmartTesterLib
                 throw;
             }
 
-            Console.WriteLine("Pack Stop");
+            Utilities.WriteLine("Pack Stop");
             Stopwatch.Reset();
             return true;
         }

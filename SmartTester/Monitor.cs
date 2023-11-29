@@ -35,34 +35,34 @@ namespace SmartTester
             Console.Clear();
             foreach (var chamber in amtr.Chambers)
             {
-                Console.WriteLine($"Chamber:{chamber.Name}");
+                Utilities.WriteLine($"Chamber:{chamber.Name}");
                 for (int i = 0; i < chamber.TempScheduler.TemperatureUintList.Count; i++)
                 {
                     var tu = chamber.TempScheduler.TemperatureUintList[i];
-                    Console.WriteLine($"\tTemp[{i}]:{tu.Target.Value} Degree,{tu.Status}");
+                    Utilities.WriteLine($"\tTemp[{i}]:{tu.Target.Value} Degree,{tu.Status}");
                 }
                 for (int i = 0; i < chamber.TestScheduler.TestRoundList.Count; i++)
                 {
                     var tr = chamber.TestScheduler.TestRoundList[i];
-                    Console.WriteLine($"Round {i + 1}, {tr.Status}");
+                    Utilities.WriteLine($"Round {i + 1}, {tr.Status}");
                     foreach (var item in tr.ChannelRecipes)
                     {
                         var ch = item.Key;
-                        Console.WriteLine($"\tChannel:{ch.Name}, Recipe:{item.Value.Name}");
+                        Utilities.WriteLine($"\tChannel:{ch.Name}, Recipe:{item.Value.Name}");
                         if (tr.Status == RoundStatus.RUNNING)
                         {
-                            Console.WriteLine($"\t\tChannel Status:{ch.Status}");
+                            Utilities.WriteLine($"\t\tChannel Status:{ch.Status}");
                             foreach (var step in ch.Recipe.Steps)
                             {
                                 if (step == ch.CurrentStep)
-                                    Console.WriteLine($"\t\t\t{step.ToString()} *");
+                                    Utilities.WriteLine($"\t\t\t{step.ToString()} *");
                                 else
-                                    Console.WriteLine($"\t\t\t{step.ToString()}");
+                                    Utilities.WriteLine($"\t\t\t{step.ToString()}");
                             }
                         }
                     }
                 }
-                Console.WriteLine("---------------------------------");
+                Utilities.WriteLine("---------------------------------");
             }
         }
 
