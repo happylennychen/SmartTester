@@ -179,13 +179,12 @@ namespace SmartTesterLib
                 step.Target = t;
             }
         }
-
-        public static bool LoadConfiguration(out Configuration conf)
+        public static bool LoadConfiguration(string configurationFilePath, out Configuration conf)
         {
             conf = new Configuration();
             try
             {
-                string jsonString = File.ReadAllText(GlobalSettings.ConfigurationFilePath);
+                string jsonString = File.ReadAllText(configurationFilePath);
                 using (JsonDocument document = JsonDocument.Parse(jsonString))
                 {
                     JsonElement root = document.RootElement;
@@ -275,20 +274,6 @@ namespace SmartTesterLib
 #if !mute
             Utilities.WriteLine(v);
 #endif
-        }
-
-        public static bool CreateConsoleFolder()
-        {
-            try
-            {
-                Directory.CreateDirectory(GlobalSettings.ConsoleFolderPath);
-            }
-            catch (Exception e)
-            {
-                Utilities.WriteLine("Error! " + e.Message);
-                return false;
-            }
-            return true;
         }
     }
     public static class Tolerance

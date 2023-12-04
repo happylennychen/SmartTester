@@ -14,10 +14,10 @@ namespace SmartTesterLib
         private string ProjectName { get; set; }
         public List<IChamber> Chambers { get; set; }
         public List<ITester> Testers { get; set; }
-        public bool InitHW()//从配置文件中创建HW Driver
+        public bool InitHW(string configurationFilePath)//从配置文件中创建HW Driver
         {
             Configuration conf;
-            if (!Utilities.LoadConfiguration(out conf))
+            if (!Utilities.LoadConfiguration(configurationFilePath, out conf))
             {
                 Utilities.WriteLine("Error! Load Configuration Failed!");
                 return false;
@@ -26,10 +26,6 @@ namespace SmartTesterLib
             {
                 Chambers = conf.Chambers.Select(c => (IChamber)c).ToList();
                 Testers = conf.Testers.Select(t => (ITester)t).ToList();
-                //foreach (var chamber in Chambers)
-                //{
-                //    GlobalSettings.ChamberRoundIndex.Add(chamber, 1);
-                //}
                 return true;
             }
         }

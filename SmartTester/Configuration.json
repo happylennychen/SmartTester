@@ -1,0 +1,45 @@
+{
+  "Chambers": [
+    {
+      "Id": 1,
+      "Class": "DebugChamber",
+      "Manufacturer": "Hongzhan",
+      "Name": "PUL-80",
+      "LowestTemperature": -40.0,
+      "HighestTemperature": 150.0,
+      "IpAddress": "192.168.1.102",
+      "Port": 3000
+    },
+
+    {
+      "Id": 2,
+      "Class": "DebugChamber",
+      "Manufacturer": "Hongzhan",
+      "Name": "PUL-82",
+      "LowestTemperature": -40.0,
+      "HighestTemperature": 150.0,
+      "IpAddress": "192.168.1.103",
+      "Port": 3000
+    }
+  ],
+  "Testers": [
+    {
+      "Id": 1,
+      "Class": "DebugTester",
+      "Name": "17208Auto",
+      "ChannelNumber": 8,
+      "IpAddress": "192.168.1.23",
+      "Port": 8802,
+      "SessionStr": "TCPIP0::192.168.1.101::60000::SOCKET"
+    },
+    {
+      "Id": 2,
+      "Class": "DebugTester",
+      "Name": "17208Auto2",
+      "ChannelNumber": 8,
+      "IpAddress": "192.168.1.24",
+      "Port": 8802,
+      "SessionStr": "TCPIP0::192.168.1.102::60000::SOCKET"
+    }
+  ]
+}
