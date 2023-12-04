@@ -18,7 +18,7 @@ namespace SmartTesterLib
         public TestPlanScheduler TestScheduler { get; set; }
         public List<IChannel> Channels { get; set; }
         public TemperatureScheduler TempScheduler { get; set; }
-        private Timer timer { get; set; }
+        //private Timer timer { get; set; }
         private byte TempInRangeCounter { get; set; } = 0;
 
         //[JsonConstructor]
@@ -32,10 +32,9 @@ namespace SmartTesterLib
             Executor = new DebugChamberExecutor();
             TestScheduler = new TestPlanScheduler(this);
             TempScheduler = new TemperatureScheduler();
-            timer = new Timer(_ => TimerCallback(), null, Timeout.Infinite, 1000);
         }
 
-        private void TimerCallback()
+        public bool UpdateStatus()
         {
             double temp;
             bool ret = false;
@@ -43,7 +42,7 @@ namespace SmartTesterLib
             if (!ret)
             {
                 Utilities.WriteLine($"Read Temperature failed! Please check chamber cable.");
-                return;
+                return false;
             }
             var currentTemp = TempScheduler.GetCurrentTemp();
             if (Math.Abs(temp - currentTemp.Target.Value) < 5)
@@ -63,8 +62,9 @@ namespace SmartTesterLib
             else
             {
                 currentTemp.Status = TemperatureStatus.REACHED;
-                timer.Change(Timeout.Infinite, 1000);
+                //timer.Change(Timeout.Infinite, 1000);
             }
+            return true;
         }
 
         public bool StartNextUnit()
@@ -88,7 +88,7 @@ namespace SmartTesterLib
             }
             tUnit.Status = TemperatureStatus.REACHING;
 
-            timer.Change(0, 1000);
+            //timer.Change(0, 1000);
             return true;
         }
 
@@ -105,7 +105,7 @@ namespace SmartTesterLib
             }
             //tUnit.Status = TemperatureStatus.PASSED;
 
-            timer.Change(Timeout.Infinite, 1000);
+            //timer.Change(Timeout.Infinite, 1000);
             return true;
         }
         public override string ToString()

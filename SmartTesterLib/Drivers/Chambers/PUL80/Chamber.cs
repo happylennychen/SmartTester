@@ -18,6 +18,7 @@ namespace SmartTesterLib
         public List<IChannel> Channels { get; set; }
         public TestPlanScheduler TestScheduler { get; set; }
         public TemperatureScheduler TempScheduler { get; set; }
+        private byte TempInRangeCounter { get; set; } = 0;
 
         public Chamber()
         { }
@@ -90,6 +91,38 @@ namespace SmartTesterLib
                 return ret;
             }
             //tUnit.Status = TemperatureStatus.PASSED;
+            return true;
+        }
+        public bool UpdateStatus()
+        {
+            double temp;
+            bool ret = false;
+            ret = Executor.ReadTemperature(out temp);
+            if (!ret)
+            {
+                Utilities.WriteLine($"Read Temperature failed! Please check chamber cable.");
+                return false;
+            }
+            var currentTemp = TempScheduler.GetCurrentTemp();
+            if (Math.Abs(temp - currentTemp.Target.Value) < 5)
+            {
+                TempInRangeCounter++;
+                Utilities.WriteLine($"Temperature reach target. Counter: {TempInRangeCounter}");
+            }
+            else
+            {
+                TempInRangeCounter = 0;
+                Utilities.WriteLine($"Temperature leave target. Counter: {TempInRangeCounter}");
+            }
+            if (TempInRangeCounter < 30)
+            {
+                currentTemp.Status = TemperatureStatus.REACHING;
+            }
+            else
+            {
+                currentTemp.Status = TemperatureStatus.REACHED;
+                //timer.Change(Timeout.Infinite, 1000);
+            }
             return true;
         }
     }

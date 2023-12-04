@@ -16,5 +16,6 @@ namespace SmartTesterLib
 
         bool StartNextUnit();   //根据TempScheduler开始调温
         bool Stop();
+        bool UpdateStatus();    //读取温度，更新TestScheduler中的CurrentTemperatureUnit的Status
     }
 }

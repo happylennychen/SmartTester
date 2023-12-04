@@ -450,7 +450,10 @@ namespace SmartTesterLib
         private async Task<bool> WaitForChamberReady(IChamber chamber, double temperature)
         {
             while (chamber.TempScheduler.GetCurrentTemp().Status != TemperatureStatus.REACHED)
+            {
                 await Task.Delay(1000);
+                chamber.UpdateStatus();
+            }
             return true;
         }
         private async Task<bool> WaitForAllChannelsDone(List<IChannel> channels)
