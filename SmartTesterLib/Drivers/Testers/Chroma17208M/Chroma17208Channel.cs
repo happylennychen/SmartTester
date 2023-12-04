@@ -496,7 +496,18 @@ namespace SmartTesterLib
 
         public void SetStepsForOneTempPoint()
         {
-            throw new NotImplementedException();
+            Utilities.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} S");
+            Utilities.WriteLine("");
+            StepsForOneTempPoint = GetCurrentSteps();
+            if (StepsForOneTempPoint.Count == 0)
+                Utilities.WriteLine("No valid temp point.");
+            Utilities.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} E");
+            Utilities.WriteLine("");
+        }
+
+        private List<SmartTesterStep> GetCurrentSteps()
+        {
+            return Recipe.Steps.Where(st => (st.TemperatureUint.Status == TemperatureStatus.REACHING && st.TemperatureUint.Target.IsCritical == false) || st.TemperatureUint.Status == TemperatureStatus.REACHED).ToList();
         }
     }
 }
