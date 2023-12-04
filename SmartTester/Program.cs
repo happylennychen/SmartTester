@@ -11,10 +11,10 @@ namespace SmartTester
         {
             Automator amtr = new Automator();
             SpectreMonitor monitor = new SpectreMonitor(amtr);
-            string testPlanFolder = @"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\bin\Debug\net6.0\Test Plan\";
+            string testPlanFolder = @"D:\Lenny\Tasks\O2Micro\Smart Tester\SmartTester\SmartTester\Test Plan";
             List<string> recipeFiles = Directory.EnumerateFiles(testPlanFolder, "*.testplan").ToList();
             //Utilities.CreateOutputFolderRoot();
-            string configurationPath = @"D:\O2Micro\Source Codes\BC Lab\ST\SmartTester\SmartTester\Configuration.json";
+            string configurationPath = @"D:\Lenny\Tasks\O2Micro\Smart Tester\SmartTester\SmartTester\Configuration.json";
             if (!amtr.InitHW(configurationPath))
                 return;
             monitor.Run();

@@ -8,6 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Test Plan\20221123\**" />
+    <Compile Remove="Test Plan\2Chambers1Tester_2\**" />
+    <EmbeddedResource Remove="Test Plan\20221123\**" />
+    <EmbeddedResource Remove="Test Plan\2Chambers1Tester_2\**" />
+    <None Remove="Test Plan\20221123\**" />
+    <None Remove="Test Plan\2Chambers1Tester_2\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Spectre.Console" Version="0.48.0" />
   </ItemGroup>
 
