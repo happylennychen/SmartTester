@@ -9,14 +9,19 @@ namespace SmartTester
         [STAThread]
         static void Main(string[] args)
         {
-            Automator amtr = new Automator();
-            SpectreMonitor monitor = new SpectreMonitor(amtr);
             string testPlanFolder = @"D:\Lenny\Tasks\O2Micro\Smart Tester\SmartTester\SmartTester\Test Plan";
             List<string> recipeFiles = Directory.EnumerateFiles(testPlanFolder, "*.testplan").ToList();
             //Utilities.CreateOutputFolderRoot();
             string configurationPath = @"D:\Lenny\Tasks\O2Micro\Smart Tester\SmartTester\SmartTester\Configuration.json";
-            if (!amtr.InitHW(configurationPath))
+
+            Automator amtr = new Automator();
+            if (amtr == null)
                 return;
+            List<IChamber> chambers;
+            Utilities.LoadChambersFromFile(configurationPath, out chambers);
+            List<ITester> testers;
+            Utilities.LoadTestersFromFile(configurationPath, out testers);
+            SpectreMonitor monitor = new SpectreMonitor(chambers);
             monitor.Run();
             bool bQuit = false;
             while (!bQuit)
@@ -38,13 +43,13 @@ namespace SmartTester
                 switch (cmd)
                 {
                     case "Setup Chambers":
-                        SetupChambers(amtr);
+                        SetupChambers(chambers, testers, amtr);
                         break;
                     case "Setup Test Rounds":
-                        SetupTestRounds(amtr.Chambers, recipeFiles);
+                        SetupTestRounds(chambers, recipeFiles);
                         break;
                     case "Run Tests":
-                        Task task = amtr.AsyncStartChambers();
+                        Task task = amtr.AsyncStartChambers(chambers);
                         break;
                     case "Quit": bQuit = true; break;
                     default: break;
@@ -53,6 +58,7 @@ namespace SmartTester
             AnsiConsole.WriteLine($"Demo program completed!");
             Console.ReadLine();
         }
+
         private static void SetupTestRounds(List<IChamber> chambers, List<string> recipeFiles)
         {
             var selectedChamber = SpecifyChamber(chambers);
@@ -181,9 +187,9 @@ namespace SmartTester
             return SpecifyItem<IChannel>(channels, "Channel");
         }
 
-        private static void SetupChambers(Automator amtr)
+        private static void SetupChambers(List<IChamber> chambers, List<ITester> testers, Automator amtr)
         {
-            var selectedChamber = SpecifyChamber(amtr.Chambers);
+            var selectedChamber = SpecifyChamber(chambers);
 
             var channelsStr = AnsiConsole.Prompt(
                 new MultiSelectionPrompt<string>()
@@ -194,10 +200,10 @@ namespace SmartTester
                 .InstructionsText(
                     "[grey](Press [blue]<space>[/] to toggle a channel, " +
                     "[green]<enter>[/] to accept)[/]")
-                .AddChoices(amtr.Testers.SelectMany(t => t.Channels.Select(c => c.Tester.Name + " " + c.Name)))
+                .AddChoices(testers.SelectMany(t => t.Channels.Select(c => c.Tester.Name + " " + c.Name)))
                 );
 
-            List<IChannel> selectedChannels = amtr.Testers.SelectMany(t => t.Channels.Where(c => channelsStr.Contains(c.Tester.Name + " " + c.Name))).ToList();
+            List<IChannel> selectedChannels = testers.SelectMany(t => t.Channels.Where(c => channelsStr.Contains(c.Tester.Name + " " + c.Name))).ToList();
             amtr.PutChannelsInChamber(selectedChannels, selectedChamber);
         }
 
