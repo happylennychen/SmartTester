@@ -14,6 +14,98 @@ namespace SmartTesterLib
     public static class Utilities
     {
 
+        public static bool LoadChambersFromFile(string configurationFilePath, out List<IChamber> chambers)
+        {
+            chambers = new List<IChamber>();
+            try
+            {
+                string jsonString = File.ReadAllText(configurationFilePath);
+                using (JsonDocument document = JsonDocument.Parse(jsonString))
+                {
+                    JsonElement root = document.RootElement;
+                    JsonElement chambersElement = root.GetProperty("Chambers");
+                    foreach (JsonElement chamberElement in chambersElement.EnumerateArray())
+                    {
+                        IChamber chamber = null;
+                        var className = chamberElement.GetProperty("Class").GetString();
+                        var id = chamberElement.GetProperty("Id").GetInt32();
+                        var manufacturer = chamberElement.GetProperty("Manufacturer").GetString();
+                        var name = chamberElement.GetProperty("Name").GetString();
+                        var lowestTemperature = chamberElement.GetProperty("LowestTemperature").GetDouble();
+                        var highestTemperature = chamberElement.GetProperty("HighestTemperature").GetDouble();
+                        var ipAddress = chamberElement.GetProperty("IpAddress").GetString();
+                        var port = chamberElement.GetProperty("Port").GetInt32();
+                        switch (className)
+                        {
+                            case "Chamber":
+                                chamber = new Chamber(id, manufacturer!, name!, highestTemperature, lowestTemperature, ipAddress!, port);
+                                break;
+                            case "DebugChamber":
+                                chamber = new DebugChamber(id, manufacturer!, name!, highestTemperature, lowestTemperature);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (chamber != null)
+                        {
+                            chambers.Add(chamber);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Utilities.WriteLine($"Error! Load Chambers Failed! {e.Message}");
+                return false;
+            }
+            return true;
+        }
+        public static bool LoadTestersFromFile(string configurationFilePath, out List<ITester> testers)
+        {
+            testers = new List<ITester>();
+            try
+            {
+                string jsonString = File.ReadAllText(configurationFilePath);
+                using (JsonDocument document = JsonDocument.Parse(jsonString))
+                {
+                    JsonElement root = document.RootElement;
+                    JsonElement testersElement = root.GetProperty("Testers");
+                    foreach (JsonElement testerElement in testersElement.EnumerateArray())
+                    {
+                        ITester tester = null;
+                        var className = testerElement.GetProperty("Class").GetString();
+                        var id = testerElement.GetProperty("Id").GetInt32();
+                        var name = testerElement.GetProperty("Name").GetString();
+                        var channelNumber = testerElement.GetProperty("ChannelNumber").GetInt32();
+                        var ipAddress = testerElement.GetProperty("IpAddress").GetString();
+                        var port = testerElement.GetProperty("Port").GetInt32();
+                        var sessionStr = testerElement.GetProperty("SessionStr").GetString();
+                        switch (className)
+                        {
+                            case "Chroma17208":
+                                tester = new Chroma17208(id, name!, channelNumber, ipAddress!, port, sessionStr!);
+                                break;
+                            case "DebugTester":
+                                tester = new DebugTester(id, name!, channelNumber, ipAddress!, port, sessionStr!);
+                                break;
+                            case "PackTester":
+                                tester = new PackTester(id, name!, channelNumber, ipAddress!, port, sessionStr!);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (tester != null)
+                            testers.Add(tester);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Utilities.WriteLine($"Error! Load Testers Failed! {e.Message}");
+                return false;
+            }
+            return true;
+        }
         public static RowStatus UpdateLastRowStatus(CutOffBehavior cob)    //根据cob来推出RowStatus，条件是找到了正确的cob
         {
             RowStatus rs = RowStatus.UNKNOWN;
@@ -178,80 +270,6 @@ namespace SmartTesterLib
                 }
                 step.Target = t;
             }
-        }
-        public static bool LoadConfiguration(string configurationFilePath, out Configuration conf)
-        {
-            conf = new Configuration();
-            try
-            {
-                string jsonString = File.ReadAllText(configurationFilePath);
-                using (JsonDocument document = JsonDocument.Parse(jsonString))
-                {
-                    JsonElement root = document.RootElement;
-                    JsonElement testersElement = root.GetProperty("Testers");
-                    foreach (JsonElement testerElement in testersElement.EnumerateArray())
-                    {
-                        ITester tester = null;
-                        var className = testerElement.GetProperty("Class").GetString();
-                        var id = testerElement.GetProperty("Id").GetInt32();
-                        var name = testerElement.GetProperty("Name").GetString();
-                        var channelNumber = testerElement.GetProperty("ChannelNumber").GetInt32();
-                        var ipAddress = testerElement.GetProperty("IpAddress").GetString();
-                        var port = testerElement.GetProperty("Port").GetInt32();
-                        var sessionStr = testerElement.GetProperty("SessionStr").GetString();
-                        switch (className)
-                        {
-                            case "Chroma17208":
-                                tester = new Chroma17208(id, name!, channelNumber, ipAddress!, port, sessionStr!);
-                                break;
-                            case "DebugTester":
-                                tester = new DebugTester(id, name!, channelNumber, ipAddress!, port, sessionStr!);
-                                break;
-                            case "PackTester":
-                                tester = new PackTester(id, name!, channelNumber, ipAddress!, port, sessionStr!);
-                                break;
-                            default:
-                                break;
-                        }
-                        if (tester != null)
-                            conf.Testers.Add(tester);
-                    }
-                    JsonElement chambersElement = root.GetProperty("Chambers");
-                    foreach (JsonElement chamberElement in chambersElement.EnumerateArray())
-                    {
-                        IChamber chamber = null;
-                        var className = chamberElement.GetProperty("Class").GetString();
-                        var id = chamberElement.GetProperty("Id").GetInt32();
-                        var manufacturer = chamberElement.GetProperty("Manufacturer").GetString();
-                        var name = chamberElement.GetProperty("Name").GetString();
-                        var lowestTemperature = chamberElement.GetProperty("LowestTemperature").GetDouble();
-                        var highestTemperature = chamberElement.GetProperty("HighestTemperature").GetDouble();
-                        var ipAddress = chamberElement.GetProperty("IpAddress").GetString();
-                        var port = chamberElement.GetProperty("Port").GetInt32();
-                        switch (className)
-                        {
-                            case "Chamber":
-                                chamber = new Chamber(id, manufacturer!, name!, highestTemperature, lowestTemperature, ipAddress!, port);
-                                break;
-                            case "DebugChamber":
-                                chamber = new DebugChamber(id, manufacturer!, name!, highestTemperature, lowestTemperature);
-                                break;
-                            default:
-                                break;
-                        }
-                        if (chamber != null)
-                        {
-                            conf.Chambers.Add(chamber);
-                        }
-                    }
-                }
-            }
-            catch(Exception e) 
-            {
-                Utilities.WriteLine($"Error! Load Configuration Failed! {e.Message}");
-                return false;
-            }
-            return true;
         }
 
         public static bool CreateOutputFolderRoot()

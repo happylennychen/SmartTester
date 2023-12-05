@@ -1,34 +1,15 @@
 ﻿//#define debug
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using static System.Threading.Thread;
+using System.Text.Json;
 
 namespace SmartTesterLib
 {
     public class Automator//提供Automator顶层数据结构及API（Init, AutoRun），不关心具体的硬件
     {
-        private string ProjectName { get; set; }
-        public List<IChamber> Chambers { get; set; }
-        public List<ITester> Testers { get; set; }
-        public bool InitHW(string configurationFilePath)//从配置文件中创建HW Driver
+        public Automator()
         {
-            Configuration conf;
-            if (!Utilities.LoadConfiguration(configurationFilePath, out conf))
-            {
-                Utilities.WriteLine("Error! Load Configuration Failed!");
-                return false;
-            }
-            else
-            {
-                Chambers = conf.Chambers.Select(c => (IChamber)c).ToList();
-                Testers = conf.Testers.Select(t => (ITester)t).ToList();
-                return true;
-            }
         }
+
+        //private string Name { get; set; }
         #region AutoRun
 #if false
         public async Task AutoRun(string projectName)//从目录结构中加载Test，控制温箱分组，控制温箱中各实验的同步工作。
@@ -304,11 +285,11 @@ namespace SmartTesterLib
                 ch.Chamber = chamber;
             }
         }
-        public async Task AsyncStartChambers()
+        public async Task AsyncStartChambers(IEnumerable<IChamber> chambers)
         {
             Utilities.CreateOutputFolderRoot();
             List<Task> tasks = new List<Task>();
-            foreach (var chamber in Chambers)        //Tests按Chamber分组
+            foreach (var chamber in chambers)        //Tests按Chamber分组
             {
                 Task t = AsyncStartChamber(chamber);
                 tasks.Add(t);
@@ -380,7 +361,7 @@ namespace SmartTesterLib
                 if (target.IsCritical)
                 {
                     Utilities.WriteLine($"Wait for {target.Value} deg ready");
-                    ret = await WaitForChamberReady(chamber, target.Value);
+                    ret = await WaitForChamberReady(chamber);
                     if (ret == false)
                     {
                         Utilities.WriteLine("Chamber control failed.");
@@ -447,7 +428,7 @@ namespace SmartTesterLib
             else
                 return false;
         }
-        private async Task<bool> WaitForChamberReady(IChamber chamber, double temperature)
+        private async Task<bool> WaitForChamberReady(IChamber chamber)
         {
             while (chamber.TempScheduler.GetCurrentTemp().Status != TemperatureStatus.REACHED)
             {

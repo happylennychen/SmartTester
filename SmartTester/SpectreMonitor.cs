@@ -10,14 +10,14 @@ namespace SmartTester
     public class SpectreMonitor
     {
         private Timer timer { get; set; }
-        private Automator amtr { get; set; }
+        private List<IChamber> Chambers { get; set; }
         private string[] SpinnerList = new string[] { "|", "/", "-", "\\" };
         private string Spinner { get { return SpinnerList[SpinnerCounter % 4]; } }
         private uint SpinnerCounter { get; set; }
 
-        public SpectreMonitor(Automator amtr)
+        public SpectreMonitor(IEnumerable<IChamber> chambers)
         {
-            this.amtr = amtr;
+            this.Chambers = chambers.ToList();
             timer = new Timer(_ => MonitorCallback());
         }
 
@@ -25,7 +25,7 @@ namespace SmartTester
         {
             SpinnerCounter++;
             AnsiConsole.Clear();
-            Render(amtr.Chambers);
+            Render(Chambers);
         }
 
         private void Render(List<IChamber> chambers)
