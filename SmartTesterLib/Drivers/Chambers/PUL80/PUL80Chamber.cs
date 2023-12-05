@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace SmartTesterLib
 {
-    public class Chamber : IChamber
+    public class PUL80Chamber : IChamber
     {
         public int Id { get; set; }
         public string Manufacturer { get; set; }
@@ -20,9 +20,9 @@ namespace SmartTesterLib
         public TemperatureScheduler TempScheduler { get; set; }
         private byte TempInRangeCounter { get; set; } = 0;
 
-        public Chamber()
+        public PUL80Chamber()
         { }
-        public Chamber(int Id, string Manufacturer, string Name, int HighestTemperature, int LowestTemperature)
+        public PUL80Chamber(int Id, string Manufacturer, string Name, int HighestTemperature, int LowestTemperature)
         {
             this.Id = Id;
             this.Manufacturer = Manufacturer;
@@ -31,7 +31,7 @@ namespace SmartTesterLib
             this.LowestTemperature = LowestTemperature;
         }
         //[JsonConstructor]
-        public Chamber(int id, string manufacturer, string name, double highestTemperature, double lowestTemperature, string ipAddress, int port)
+        public PUL80Chamber(int id, string manufacturer, string name, double highestTemperature, double lowestTemperature, string ipAddress, int port)
         {
             Id = id;
             Manufacturer = manufacturer;

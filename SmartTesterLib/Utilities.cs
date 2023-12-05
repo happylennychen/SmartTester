@@ -38,7 +38,7 @@ namespace SmartTesterLib
                         switch (className)
                         {
                             case "Chamber":
-                                chamber = new Chamber(id, manufacturer!, name!, highestTemperature, lowestTemperature, ipAddress!, port);
+                                chamber = new PUL80Chamber(id, manufacturer!, name!, highestTemperature, lowestTemperature, ipAddress!, port);
                                 break;
                             case "DebugChamber":
                                 chamber = new DebugChamber(id, manufacturer!, name!, highestTemperature, lowestTemperature);
