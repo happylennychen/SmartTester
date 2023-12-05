@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartTesterShell", "SmartTe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartTesterLib", "SmartTesterLib\SmartTesterLib.csproj", "{2D823E06-5183-48EF-9B5F-F34014FBD967}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartTesterAPI", "SmartTesterAPI\SmartTesterAPI.csproj", "{B2B43781-52FD-4868-B5CF-66B23EE2D3E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{2D823E06-5183-48EF-9B5F-F34014FBD967}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D823E06-5183-48EF-9B5F-F34014FBD967}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D823E06-5183-48EF-9B5F-F34014FBD967}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2B43781-52FD-4868-B5CF-66B23EE2D3E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2B43781-52FD-4868-B5CF-66B23EE2D3E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2B43781-52FD-4868-B5CF-66B23EE2D3E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2B43781-52FD-4868-B5CF-66B23EE2D3E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
