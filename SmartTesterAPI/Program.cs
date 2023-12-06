@@ -1,3 +1,5 @@
+using SmartTesterLib;
+
 namespace SmartTesterAPI
 {
     public class Program
@@ -9,6 +11,7 @@ namespace SmartTesterAPI
             // Add services to the container.
 
             builder.Services.AddControllers();
+            builder.Services.AddSingleton<Automator>();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
