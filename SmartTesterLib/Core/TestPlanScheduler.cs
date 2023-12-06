@@ -26,7 +26,7 @@ namespace SmartTesterLib
             foreach(var item in round.ChannelRecipes)
             {
                 var ch = item.Key;
-                if (!Chamber.Channels.Contains(ch))
+                if (!Chamber.PairedChannels.Contains(ch))
                     return false;
             }
             round.Status = RoundStatus.WAITING;

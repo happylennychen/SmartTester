@@ -4,6 +4,7 @@ namespace SmartTesterLib
 {
     public class PackChannel : IChannel
     {
+        public int Id { get; set; }
         public int Index { get; set; }
         public string Name { get; set; }
         public SmartTesterStep CurrentStep { get; set; }
@@ -11,7 +12,7 @@ namespace SmartTesterLib
         public SmartTesterRecipe Recipe { get; set; }
         [JsonIgnore]
         public ITester Tester { get; set; }
-        public IChamber Chamber { get; set; }
+        public IChamber? ContainingChamber { get; set; }
         public ChannelStatus Status { get; set; }
         private Token Token { get; set; }
         private double TargetTemperature { get; set; }
@@ -434,12 +435,12 @@ namespace SmartTesterLib
 
         public void SetStepsForOneTempPoint()
         {
-            Utilities.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} S");
+            Utilities.WriteLine($"Chamber:{ContainingChamber.Name}, Channel:{Name} S");
             Utilities.WriteLine("");
             StepsForOneTempPoint = GetCurrentSteps();
             if (StepsForOneTempPoint.Count == 0)
                 Utilities.WriteLine("No valid temp point.");
-            Utilities.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} E");
+            Utilities.WriteLine($"Chamber:{ContainingChamber.Name}, Channel:{Name} E");
             Utilities.WriteLine("");
         }
 

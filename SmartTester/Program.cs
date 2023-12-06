@@ -92,22 +92,6 @@ namespace SmartTester
             {
                 var tr = trl.Single(i => $"Round {trl.IndexOf(i)}" == selectedTRStr);
                 EditTestRound(tr, selectedChamber, recipeFiles);
-                var selectedCRStr = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                .Title($"Select an existed channel-recipe pair, or create a new one:")
-                .AddChoices(tr.ChannelRecipes.Select(cr => $"{cr.Key}:{cr.Value}").Append(CREATE_STR))
-                );
-                if (selectedCRStr == CREATE_STR)
-                {
-                    //CreateAndAppendChannelRecipe()
-                    var selectedChannel = SpecifyChannel(selectedChamber.Channels);
-                    var selectedRecipe = SpecifyRecipe(recipeFiles);
-                    selectedChamber.TestScheduler.AppendTestRound(new TestRound(new Dictionary<IChannel, SmartTesterRecipe> { { selectedChannel, selectedRecipe } }));
-                }
-                else
-                {
-
-                }
             }
         }
 
@@ -128,9 +112,9 @@ namespace SmartTester
                 switch (cmd)
                 {
                     case "Create Channel-Recipe pair":
-                        var selectedChannel = SpecifyChannel(selectedChamber.Channels);
+                        var selectedChannel = SpecifyChannel(selectedChamber.PairedChannels);
                         var selectedRecipe = SpecifyRecipe(recipeFiles);
-                        tr.ChannelRecipes.Add(selectedChannel, selectedRecipe);
+                        tr.AppendChannelRecipePair(selectedChannel, selectedRecipe);
                         break;
                     case "Quit": bQuit = true; break;
                     default: break;
@@ -142,7 +126,7 @@ namespace SmartTester
 
         private static void CreateTestRound(IChamber selectedChamber, IEnumerable<string> recipeFiles)
         {
-            TestRound tr = new TestRound();
+            TestRound tr = new TestRound(selectedChamber.PairedChannels);
             bool bQuit = false;
             while (!bQuit)
             {
@@ -158,9 +142,9 @@ namespace SmartTester
                 switch (cmd)
                 {
                     case "Create Channel-Recipe pair":
-                        var selectedChannel = SpecifyChannel(selectedChamber.Channels);
+                        var selectedChannel = SpecifyChannel(selectedChamber.PairedChannels);
                         var selectedRecipe = SpecifyRecipe(recipeFiles);
-                        tr.ChannelRecipes.Add(selectedChannel, selectedRecipe);
+                        tr.AppendChannelRecipePair(selectedChannel, selectedRecipe);
                         break;
                     case "Quit": bQuit = true; break;
                     default: break;

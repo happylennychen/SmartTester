@@ -16,7 +16,7 @@ namespace SmartTesterLib
         public IChamberExecutor Executor { get; set; }
 
         public TestPlanScheduler TestScheduler { get; set; }
-        public List<IChannel> Channels { get; set; }
+        public List<IChannel> PairedChannels { get; set; }
         public TemperatureScheduler TempScheduler { get; set; }
         //private Timer timer { get; set; }
         private byte TempInRangeCounter { get; set; } = 0;

@@ -5,6 +5,7 @@ namespace SmartTesterLib
 {
     public interface IChannel
     {
+        int Id { get; set; }
         int Index { get; set; }
         string Name { get; set; }
         SmartTesterRecipe Recipe { get; set; }
@@ -12,7 +13,7 @@ namespace SmartTesterLib
         //List<Step> StepsForOneTempPoint { get; set; }
         ChannelStatus Status { get; set; }
         ITester Tester { get; set; }
-        IChamber Chamber { get; set; }
+        IChamber? ContainingChamber { get; set; }
         void GenerateFile();
         void Reset();
         void Stop();

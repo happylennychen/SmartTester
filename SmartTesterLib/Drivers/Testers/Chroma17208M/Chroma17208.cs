@@ -60,18 +60,18 @@ namespace SmartTesterLib
             Scheduler.Activate();
         }
 
-        public Chroma17208(int id, string name, int channelNumber)
-        {
-            Id = id;
-            Name = name;
-            Channels = new List<IChannel>();
-            for (int i = 1; i <= channelNumber; i++)
-            {
-                Token token;
-                Chroma17208Channel ch = new Chroma17208Channel($"Ch{i}", i, this, out token);
-                Scheduler.RegisterToken(token);
-                Channels.Add(ch);
-            }
-        }
+        //public Chroma17208(int id, string name, int channelNumber)
+        //{
+        //    Id = id;
+        //    Name = name;
+        //    Channels = new List<IChannel>();
+        //    for (int i = 1; i <= channelNumber; i++)
+        //    {
+        //        Token token;
+        //        Chroma17208Channel ch = new Chroma17208Channel($"Ch{i}", i, this, out token);
+        //        Scheduler.RegisterToken(token);
+        //        Channels.Add(ch);
+        //    }
+        //}
     }
 }

@@ -9,7 +9,7 @@ namespace SmartTesterLib
     public class TimerSliceScheduler
     {
         //public DebugTester Tester { get; set; }
-        private Timer mainTimer { get; set; }
+        private Timer? mainTimer { get; set; }
         private int _counter { get; set; } = 0;
         private Stopwatch mainWatch { get; set; }
         public int _count { get; set; }
