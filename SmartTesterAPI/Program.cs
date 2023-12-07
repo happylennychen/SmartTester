@@ -1,4 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using SmartTesterLib;
+using SmartTesterLib.DataAccess;
 
 namespace SmartTesterAPI
 {
@@ -12,6 +14,11 @@ namespace SmartTesterAPI
 
             builder.Services.AddControllers();
             builder.Services.AddSingleton<Automator>();
+            builder.Services.AddDbContext<SmartTesterDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("SmartTesterDB")));
+            builder.Services.AddScoped<IChamberRepository, ChamberRepository>();
+            builder.Services.AddScoped<ITesterRepository, TesterRepository>();
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
