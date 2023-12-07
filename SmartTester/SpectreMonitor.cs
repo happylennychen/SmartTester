@@ -35,8 +35,8 @@ namespace SmartTester
             {
                 var cmbNode = root.AddNode(chamber.Name);
                 var channelNode = cmbNode.AddNode("Channels");
-                if (chamber.Channels != null)
-                    foreach (var ch in chamber.Channels)
+                if (chamber.PairedChannels != null)
+                    foreach (var ch in chamber.PairedChannels)
                     {
                         var chNode = channelNode.AddNode($"{ch}:{ch.Recipe}");
                         if (ch.Status == ChannelStatus.RUNNING)

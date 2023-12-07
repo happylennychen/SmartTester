@@ -9,6 +9,6 @@ namespace SmartTesterLib
 {
     public static class GlobalSettings
     {
-        public static string OutputFolder { get; set; }
+        public static string? OutputFolder { get; set; }
     }
 }

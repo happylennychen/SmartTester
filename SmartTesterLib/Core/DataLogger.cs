@@ -6,6 +6,7 @@ namespace SmartTesterLib
 {
     public class DataLogger : IDataLogger
     {
+        public int Id { get; set; }
         public string FilePath { get; set; }
         //public int Id { get; set; }
         private int bufferSize { get; set; }

@@ -11,6 +11,7 @@ namespace SmartTesterLib
 {
     public class Chroma17208Channel : IChannel
     {
+        public int Id { get; set; }
         public Chroma17208Channel(string name, int index, ITester tester, Timer timer)
         {
             Name = name;
@@ -23,7 +24,7 @@ namespace SmartTesterLib
         public int Index { get; set; }
         //[JsonIgnore]
         public ITester Tester { get; set; }
-        public IChamber Chamber { get; set; }
+        public IChamber? ContainingChamber { get; set; }
         public SmartTesterRecipe Recipe { get; set; }
         public string Name { get; set; }
         public ChannelStatus Status { get; set; }
@@ -496,12 +497,12 @@ namespace SmartTesterLib
 
         public void SetStepsForOneTempPoint()
         {
-            Utilities.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} S");
+            Utilities.WriteLine($"Chamber:{ContainingChamber.Name}, Channel:{Name} S");
             Utilities.WriteLine("");
             StepsForOneTempPoint = GetCurrentSteps();
             if (StepsForOneTempPoint.Count == 0)
                 Utilities.WriteLine("No valid temp point.");
-            Utilities.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} E");
+            Utilities.WriteLine($"Chamber:{ContainingChamber.Name}, Channel:{Name} E");
             Utilities.WriteLine("");
         }
 

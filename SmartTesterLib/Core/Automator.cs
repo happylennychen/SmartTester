@@ -279,10 +279,10 @@ namespace SmartTesterLib
         #region New Method
         public void PutChannelsInChamber(IEnumerable<IChannel> channels, IChamber chamber)
         {
-            chamber.Channels = channels.ToList();
+            chamber.PairedChannels = channels.ToList();
             foreach (var ch in channels)
             {
-                ch.Chamber = chamber;
+                ch.ContainingChamber = chamber;
             }
         }
         public async Task AsyncStartChambers(IEnumerable<IChamber> chambers)
@@ -331,12 +331,12 @@ namespace SmartTesterLib
                 Utilities.WriteLine($"{ch.Tester.Name} {ch.Name}: {rec.Name}");
                 if (!AssignRecipeToChannel(ch, rec))
                 {
-                    Utilities.WriteLine($"{rec.Name} cannot be assigned to {ch.Chamber.Name} because of temperature conflict.");
+                    Utilities.WriteLine($"{rec.Name} cannot be assigned to {ch.ContainingChamber.Name} because of temperature conflict.");
                 }
             }
             tr.Status = RoundStatus.RUNNING;
             Utilities.WriteLine($"Start Chamber Group for {chamber.Name}.");
-            var assignedChannels = chamber.Channels.Where(ch => ch.Status == ChannelStatus.ASSIGNED).ToList();
+            var assignedChannels = chamber.PairedChannels.Where(ch => ch.Status == ChannelStatus.ASSIGNED).ToList();
             bool ret;
             foreach (var channel in assignedChannels)
             {
@@ -405,19 +405,12 @@ namespace SmartTesterLib
             tr.Status = RoundStatus.COMPLETED;
         }
 
-        private List<TestSection> GetTestSections(List<IChannel> channels)
-        {
-            List<TestSection> output = new List<TestSection>();
-            List<TemperatureTarget> tts = channels[0].Recipe.GetUniqueTemperaturePoints(); //假设每个recipe的温度点都一样
-            return output;
-        }
-
         private bool AssignRecipeToChannel(IChannel channel, SmartTesterRecipe recipe) //不仅把recipe指派给了channel，同时更新了温箱的温度列表,同时绑定了recipe.Steps中的TemperatureUnit到chamber.TempScheduler中的TemperatureUnit
         {
             //var ts = recipe.GetUniqueTemperaturePoints();
-            if (channel.Chamber.TempScheduler.IsTemperatureSchedulerCompatible(recipe.GetUniqueTemperaturePoints()))
+            if (channel.ContainingChamber.TempScheduler.IsTemperatureSchedulerCompatible(recipe.GetUniqueTemperaturePoints()))
             {
-                channel.Chamber.TempScheduler.UpdateTemperatureScheduler(ref recipe); //同时绑定了recipe.Steps中的TemperatureUnit到chamber.TempScheduler中的TemperatureUnit
+                channel.ContainingChamber.TempScheduler.UpdateTemperatureScheduler(ref recipe); //同时绑定了recipe.Steps中的TemperatureUnit到chamber.TempScheduler中的TemperatureUnit
                 channel.Recipe = recipe;
                 channel.Status = ChannelStatus.ASSIGNED;
                 //recipe.Channel = channel;

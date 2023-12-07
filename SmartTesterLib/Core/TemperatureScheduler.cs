@@ -72,14 +72,14 @@ namespace SmartTesterLib
             }
         }
 
-        public TemperatureUnit GetNextTemp()
+        public TemperatureUnit? GetNextTemp()
         {
             if (TemperatureUintList.All(tu => tu.Status != TemperatureStatus.WAITING))
                 return null;
             return TemperatureUintList.First(tu => tu.Status == TemperatureStatus.WAITING);
         }
 
-        public TemperatureUnit GetCurrentTemp()
+        public TemperatureUnit? GetCurrentTemp()
         {
             if (TemperatureUintList.All(tu => tu.Status != TemperatureStatus.REACHING && tu.Status != TemperatureStatus.REACHED))
                 return null;

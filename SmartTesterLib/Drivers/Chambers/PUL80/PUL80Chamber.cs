@@ -15,7 +15,7 @@ namespace SmartTesterLib
         public int Port { get; set; }
         //[JsonIgnore]
         public IChamberExecutor Executor { get; set; }
-        public List<IChannel> Channels { get; set; }
+        public List<IChannel> PairedChannels { get; set; }
         public TestPlanScheduler TestScheduler { get; set; }
         public TemperatureScheduler TempScheduler { get; set; }
         private byte TempInRangeCounter { get; set; } = 0;
@@ -124,6 +124,11 @@ namespace SmartTesterLib
                 //timer.Change(Timeout.Infinite, 1000);
             }
             return true;
+        }
+
+        public void Assamble()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,4 +1,9 @@
-﻿using SmartTesterLib;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using SmartTesterLib;
+using SmartTesterLib.DataAccess;
 using Spectre.Console;
 
 namespace SmartTester
@@ -9,6 +14,8 @@ namespace SmartTester
         [STAThread]
         static void Main(string[] args)
         {
+            var builder = CreateHostBuilder(args);
+            var host = builder.Build();
             string testPlanFolder = @"D:\Lenny\Tasks\O2Micro\Smart Tester\SmartTester\SmartTester\Test Plan";
             List<string> recipeFiles = Directory.EnumerateFiles(testPlanFolder, "*.testplan").ToList();
             //Utilities.CreateOutputFolderRoot();
@@ -17,10 +24,51 @@ namespace SmartTester
             Automator amtr = new Automator();
             if (amtr == null)
                 return;
-            List<IChamber> chambers;
-            Utilities.LoadChambersFromFile(configurationPath, out chambers);
-            List<ITester> testers;
-            Utilities.LoadTestersFromFile(configurationPath, out testers);
+            List<IChamber> chambers = new List<IChamber>();
+            //Utilities.LoadChambersFromFile(configurationPath, out chambers);
+            List<ITester> testers = new List<ITester>();
+            //Utilities.LoadTestersFromFile(configurationPath, out testers);
+
+            using (var scope = host.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+
+                try
+                {
+                    var context = services.GetRequiredService<SmartTesterDbContext>();
+                    //context.Database.EnsureDeleted();
+                    //context.Database.EnsureCreated(); // 自动创建数据库
+                    var chamberRepository = services.GetRequiredService<IChamberRepository>();
+                    // 使用 chamberRepository 进行数据库操作
+                    //foreach (var chamber in chambers)
+                    //{
+                    //    chamberRepository.AddChamber(chamber);
+                    //}
+                    var testerRepository = services.GetRequiredService<ITesterRepository>();
+                    //foreach (var tester in testers)
+                    //{
+                    //    testerRepository.AddTester(tester);
+                    //}
+                    chambers = chamberRepository.GetAllChambers().ToList();
+                    testers = testerRepository.GetAllTesters().ToList();
+                    //因为从EFCore加载List<IChannel>有困难，以及只能加载部分属性，所以要在业务逻辑中组装其他属性。
+                    foreach(var tester in testers)
+                    {
+                        var t = (DebugTester)tester;
+                        t.Assamble();
+                    }
+                    foreach(var chamber in chambers)
+                    {
+                        var c = (DebugChamber)chamber;
+                        c.Assamble();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+            //host.Run();
             SpectreMonitor monitor = new SpectreMonitor(chambers);
             monitor.Run();
             bool bQuit = false;
@@ -58,7 +106,18 @@ namespace SmartTester
             AnsiConsole.WriteLine($"Demo program completed!");
             Console.ReadLine();
         }
+        static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+            .ConfigureServices((hostContext, services) =>
+            {
+                var str = hostContext.Configuration.GetConnectionString("SmartTesterDB");
+                services.AddDbContext<SmartTesterDbContext>(options =>
+                    options.UseNpgsql("Server=localhost;Database=SmartTester1206;Port=5432;User Id=postgres;Password=123456;"));
 
+                services.AddScoped<IChamberRepository, ChamberRepository>();
+                services.AddScoped<ITesterRepository, TesterRepository>();
+                // 注册其他服务
+            });
         private static void SetupTestRounds(List<IChamber> chambers, List<string> recipeFiles)
         {
             var selectedChamber = SpecifyChamber(chambers);
@@ -92,22 +151,6 @@ namespace SmartTester
             {
                 var tr = trl.Single(i => $"Round {trl.IndexOf(i)}" == selectedTRStr);
                 EditTestRound(tr, selectedChamber, recipeFiles);
-                var selectedCRStr = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                .Title($"Select an existed channel-recipe pair, or create a new one:")
-                .AddChoices(tr.ChannelRecipes.Select(cr => $"{cr.Key}:{cr.Value}").Append(CREATE_STR))
-                );
-                if (selectedCRStr == CREATE_STR)
-                {
-                    //CreateAndAppendChannelRecipe()
-                    var selectedChannel = SpecifyChannel(selectedChamber.Channels);
-                    var selectedRecipe = SpecifyRecipe(recipeFiles);
-                    selectedChamber.TestScheduler.AppendTestRound(new TestRound(new Dictionary<IChannel, SmartTesterRecipe> { { selectedChannel, selectedRecipe } }));
-                }
-                else
-                {
-
-                }
             }
         }
 
@@ -128,9 +171,9 @@ namespace SmartTester
                 switch (cmd)
                 {
                     case "Create Channel-Recipe pair":
-                        var selectedChannel = SpecifyChannel(selectedChamber.Channels);
+                        var selectedChannel = SpecifyChannel(selectedChamber.PairedChannels);
                         var selectedRecipe = SpecifyRecipe(recipeFiles);
-                        tr.ChannelRecipes.Add(selectedChannel, selectedRecipe);
+                        tr.AppendChannelRecipePair(selectedChannel, selectedRecipe);
                         break;
                     case "Quit": bQuit = true; break;
                     default: break;
@@ -142,7 +185,7 @@ namespace SmartTester
 
         private static void CreateTestRound(IChamber selectedChamber, IEnumerable<string> recipeFiles)
         {
-            TestRound tr = new TestRound();
+            TestRound tr = new TestRound(selectedChamber.PairedChannels);
             bool bQuit = false;
             while (!bQuit)
             {
@@ -158,9 +201,9 @@ namespace SmartTester
                 switch (cmd)
                 {
                     case "Create Channel-Recipe pair":
-                        var selectedChannel = SpecifyChannel(selectedChamber.Channels);
+                        var selectedChannel = SpecifyChannel(selectedChamber.PairedChannels);
                         var selectedRecipe = SpecifyRecipe(recipeFiles);
-                        tr.ChannelRecipes.Add(selectedChannel, selectedRecipe);
+                        tr.AppendChannelRecipePair(selectedChannel, selectedRecipe);
                         break;
                     case "Quit": bQuit = true; break;
                     default: break;

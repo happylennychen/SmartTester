@@ -1,14 +1,12 @@
-﻿using System.Collections.Generic;
-
-namespace SmartTesterLib
+﻿namespace SmartTesterLib
 {
-    public interface IChamber
+    public interface IChamber : IAssamble
     {
+        int Id { get; set; }
         IChamberExecutor Executor { get; set; }
-        List<IChannel> Channels { get; set; }
+        List<IChannel> PairedChannels { get; set; }
         TestPlanScheduler TestScheduler { get; set; }
         double HighestTemperature { get; set; }
-        int Id { get; set; }
         double LowestTemperature { get; set; }
         string Manufacturer { get; set; }
         string Name { get; set; }

@@ -2,7 +2,7 @@
 
 namespace SmartTesterLib
 {
-    public interface ITester
+    public interface ITester: IAssamble
     {
         int Id { get; set; }
         //void Start(int index);

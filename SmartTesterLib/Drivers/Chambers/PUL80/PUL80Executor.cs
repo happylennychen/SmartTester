@@ -5,8 +5,8 @@ namespace SmartTesterLib
 {
     public class PUL80Executor : IChamberExecutor
     {
-        private static TcpClient tcpClient;
-        private static NetworkStream stream;
+        private static TcpClient? tcpClient;
+        private static NetworkStream? stream;
 
         public bool Init(string ipAddress, int port)
         {

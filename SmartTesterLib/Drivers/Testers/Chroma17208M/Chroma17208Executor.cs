@@ -8,9 +8,9 @@ namespace SmartTesterLib
 {
     public class Chroma17208Executor : ITesterExecutor
     {
-        private static MessageBasedSession mbSession;
+        private static MessageBasedSession? mbSession;
         //private static TcpClient tcpClient;
-        private static NetworkStream stream;
+        private static NetworkStream? stream;
         private object HiokiLock = new object();
         private object ChromaLock = new object();
 
@@ -20,7 +20,7 @@ namespace SmartTesterLib
                 return false;
 
             string line = $":STARt\n";
-            stream.Write(Encoding.ASCII.GetBytes(line), 0, line.Length);
+            stream!.Write(Encoding.ASCII.GetBytes(line), 0, line.Length);
 
             return Open17208Session(sessionStr);
         }

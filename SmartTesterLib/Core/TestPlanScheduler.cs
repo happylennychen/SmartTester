@@ -8,6 +8,10 @@ namespace SmartTesterLib
     {
         public IChamber Chamber { get; set; }
         public List<TestRound> TestRoundList { get; set; }
+        public TestPlanScheduler()
+        {
+            
+        }
         public TestPlanScheduler(IChamber chamber)
         {
             Chamber = chamber;
@@ -26,7 +30,7 @@ namespace SmartTesterLib
             foreach(var item in round.ChannelRecipes)
             {
                 var ch = item.Key;
-                if (!Chamber.Channels.Contains(ch))
+                if (!Chamber.PairedChannels.Contains(ch))
                     return false;
             }
             round.Status = RoundStatus.WAITING;

@@ -43,5 +43,10 @@ namespace SmartTesterLib
             }
             Scheduler.Activate();
         }
+
+        public void Assamble()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

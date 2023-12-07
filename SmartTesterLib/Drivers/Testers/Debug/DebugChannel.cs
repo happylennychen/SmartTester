@@ -1,6 +1,8 @@
 ﻿//using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -9,14 +11,20 @@ namespace SmartTesterLib
 {
     public class DebugChannel : IChannel
     {
+        public int Id { get; set; }
         public int Index { get; set; }
         public string Name { get; set; }
+        [NotMapped]
         public SmartTesterStep CurrentStep { get; set; }
         private List<SmartTesterStep> StepsForOneTempPoint { get; set; }
+        [NotMapped]
         public SmartTesterRecipe Recipe { get; set; }
         //[JsonIgnore]
+        [NotMapped]
         public ITester Tester { get; set; }
-        public IChamber Chamber { get; set; }
+        [NotMapped]
+        public IChamber? ContainingChamber { get; set; }
+        [NotMapped]
         public ChannelStatus Status { get; set; }
         private Token Token { get; set; }
         private double TargetTemperature { get; set; }
@@ -487,12 +495,12 @@ namespace SmartTesterLib
 
         public void SetStepsForOneTempPoint()
         {
-            Utilities.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} S");
+            Utilities.WriteLine($"Chamber:{ContainingChamber.Name}, Channel:{Name} S");
             Utilities.WriteLine("");
             StepsForOneTempPoint = GetCurrentSteps();
             if (StepsForOneTempPoint.Count == 0)
                 Utilities.WriteLine("No valid temp point.");
-            Utilities.WriteLine($"Chamber:{Chamber.Name}, Channel:{Name} E");
+            Utilities.WriteLine($"Chamber:{ContainingChamber.Name}, Channel:{Name} E");
             Utilities.WriteLine("");
         }
 
