@@ -1,6 +1,8 @@
 ﻿//using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -12,12 +14,17 @@ namespace SmartTesterLib
         public int Id { get; set; }
         public int Index { get; set; }
         public string Name { get; set; }
+        [NotMapped]
         public SmartTesterStep CurrentStep { get; set; }
         private List<SmartTesterStep> StepsForOneTempPoint { get; set; }
+        [NotMapped]
         public SmartTesterRecipe Recipe { get; set; }
         //[JsonIgnore]
+        [NotMapped]
         public ITester Tester { get; set; }
+        [NotMapped]
         public IChamber? ContainingChamber { get; set; }
+        [NotMapped]
         public ChannelStatus Status { get; set; }
         private Token Token { get; set; }
         private double TargetTemperature { get; set; }

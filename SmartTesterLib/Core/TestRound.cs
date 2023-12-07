@@ -9,6 +9,10 @@ namespace SmartTesterLib
         public List<IChannel> AvailableChannels { get; private set; }
         public Dictionary<IChannel, SmartTesterRecipe> ChannelRecipes { get; private set; }
         public RoundStatus Status { get; set; }
+        public TestRound()
+        {
+            
+        }
         public TestRound(List<IChannel> availableChannels)
         {
             ChannelRecipes = new Dictionary<IChannel, SmartTesterRecipe>();

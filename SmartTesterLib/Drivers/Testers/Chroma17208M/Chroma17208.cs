@@ -60,6 +60,11 @@ namespace SmartTesterLib
             Scheduler.Activate();
         }
 
+        public void Assamble()
+        {
+            throw new NotImplementedException();
+        }
+
         //public Chroma17208(int id, string name, int channelNumber)
         //{
         //    Id = id;

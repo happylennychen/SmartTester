@@ -125,5 +125,10 @@ namespace SmartTesterLib
             }
             return true;
         }
+
+        public void Assamble()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

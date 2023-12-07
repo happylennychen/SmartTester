@@ -8,6 +8,10 @@ namespace SmartTesterLib
     {
         public IChamber Chamber { get; set; }
         public List<TestRound> TestRoundList { get; set; }
+        public TestPlanScheduler()
+        {
+            
+        }
         public TestPlanScheduler(IChamber chamber)
         {
             Chamber = chamber;

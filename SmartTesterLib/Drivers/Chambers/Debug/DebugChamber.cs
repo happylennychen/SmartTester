@@ -1,7 +1,5 @@
 ﻿//using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Threading;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartTesterLib
 {
@@ -13,13 +11,20 @@ namespace SmartTesterLib
         public double LowestTemperature { get; set; }
         public double HighestTemperature { get; set; }
         ////[JsonIgnore]
+        [NotMapped]
         public IChamberExecutor Executor { get; set; }
-
+        [NotMapped]
         public TestPlanScheduler TestScheduler { get; set; }
+        [NotMapped]
         public List<IChannel> PairedChannels { get; set; }
+        [NotMapped]
         public TemperatureScheduler TempScheduler { get; set; }
         //private Timer timer { get; set; }
         private byte TempInRangeCounter { get; set; } = 0;
+        public DebugChamber()
+        {
+            
+        }
 
         //[JsonConstructor]
         public DebugChamber(int id, string manufacturer, string name, double highestTemperature, double lowestTemperature)
@@ -29,6 +34,12 @@ namespace SmartTesterLib
             Name = name;
             HighestTemperature = highestTemperature;
             LowestTemperature = lowestTemperature;
+            Executor = new DebugChamberExecutor();
+            TestScheduler = new TestPlanScheduler(this);
+            TempScheduler = new TemperatureScheduler();
+        }
+        public void Assamble()  //从DB中Load上来后，只有部分属性。还需要组装其他属性
+        {
             Executor = new DebugChamberExecutor();
             TestScheduler = new TestPlanScheduler(this);
             TempScheduler = new TemperatureScheduler();

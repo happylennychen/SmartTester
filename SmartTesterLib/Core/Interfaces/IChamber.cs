@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-
-namespace SmartTesterLib
+﻿namespace SmartTesterLib
 {
-    public interface IChamber
+    public interface IChamber : IAssamble
     {
         int Id { get; set; }
         IChamberExecutor Executor { get; set; }
